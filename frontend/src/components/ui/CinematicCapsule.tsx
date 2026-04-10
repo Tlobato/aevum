@@ -4,12 +4,15 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Type, Mic, FileVideo, Lock } from "lucide-react";
 import { ItemType, Memory } from "@/types/capsule";
+import { THEME_REGISTRY } from "@/config/themes";
 import { PhysicalRelic } from "./relics/PhysicalRelic";
 import { ForgeModal } from "./forge/ForgeModal";
 
 const MAX_ITEMS = 10;
+const DEFAULT_THEME_ID = "bau-pirata";
 
-export function CinematicCapsule() {
+export function CinematicCapsule({ themeId = DEFAULT_THEME_ID }: { themeId?: string }) {
+  const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
   const [memories, setMemories] = useState<Memory[]>([]);
   const [isOpened, setIsOpened] = useState(false);
   const [isSealed, setIsSealed] = useState(false);
@@ -96,7 +99,7 @@ export function CinematicCapsule() {
                  className="absolute left-1/2 top-1/3 ml-[-40px] mt-[-50px] z-[60] flex items-center justify-center"
                  style={{ perspective: "500px" }}
                >
-                 <PhysicalRelic type={flyingItem.type} />
+                 <PhysicalRelic type={flyingItem.type} theme={activeTheme} />
                </motion.div>
             )}
         </AnimatePresence>
@@ -104,10 +107,10 @@ export function CinematicCapsule() {
         {/* Máquina de Estado do PNG (O 'Chomp') */}
         <div className="relative w-full h-full z-20 pointer-events-none filter drop-shadow-2xl flex items-center justify-center">
             <motion.img 
-              src="/bau-fechado.png" className="absolute w-full max-h-full object-contain"
+              src={activeTheme.assets.vault.closed} className="absolute w-full max-h-full object-contain"
               animate={{ opacity: isChomping ? 0 : 1 }} transition={{ duration: 0 }} />
             <motion.img 
-              src="/bau-aberto.png" className="absolute w-full max-h-full object-contain"
+              src={activeTheme.assets.vault.opened} className="absolute w-full max-h-full object-contain"
               animate={{ opacity: isChomping ? 1 : 0 }} transition={{ duration: 0 }} />
         </div>
       </div>
