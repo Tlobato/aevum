@@ -1,27 +1,25 @@
-## Status Atual do Desenvolvimento
+# Status Atual do Projeto (Overview)
 
-### Fase 1: Scaffolding (Completo ✔️)
-- [x] Inicialização do Frontend (Next.js + Tailwind + Framer Motion)
-- [x] Inicialização do Backend (Spring Boot + GraalVM Native Image)
-- [x] Setup do Monorepo
+## Resumo Executivo
+O projeto Aevum encontra-se com o **Frontend (MVP Visual) 100% finalizado e operante**. Estabelecemos um padrão ouro de UX focada em Retenção ("Game Feel") similar ao *Royal Match*, utilizando o poder do Next.js e Framer Motion. 
 
-### Fase 2: Domínio e Persistência Java (Completo ✔️)
-- [x] Definição de Entidades Principais (`Capsule`, `MemoryItem`)
-- [x] Definição da Entidade de Guarda (`CapsuleGuardian`)
-- [x] Repositórios Spring Data JPA
-- [x] Modo Desenvolvedor Admin na modelagem (`isTestMode` boolean flag)
+A arquitetura atual consegue não apenas renderizar objetos 2.5D sofisticados ("Cofres com absorção gravitacional de arquivos"), como interage diretamente com o hardware do usuário via `MediaDevices APIs` (Webcam e Microfone) nativamente no browser para criação ao vivo do legado sem recarregar a janela.
 
-### Fase 3: Camada de API e Serviços (Completo ✔️)
-- [x] Transações DTO isoladas (`CapsuleCreateRequest`, `CapsuleResponse`)
-- [x] `CapsuleService`: Regra de Ouro implementada (Bloqueio Temporal `unlockDate`)
-- [x] Endpoints REST (`POST /api/v1/capsules`, `POST /.../seal`, `GET /.../{id}`)
-- [x] `GlobalExceptionHandler`: Interceptador 403 Forbidden para acesso prematuro
-- [x] Adição do `spring-boot-starter-validation` ao Gradle
+## 1. O que está concluído (Frontend - Face Visual)
+- **Estrutura Next.js:** O coração da interface em `src/app/page.tsx` está operante.
+- **Mecanismo de "Forja" (Criação Real-time Modal):**
+  - Sistema de permissão Nativo WebRTC (Espelho de Webcam `video` e simulador de ondas de captura analógica).
+  - Componentização Abstrata de *Uploads Multi-path* (O texto pode ser redigido localmente OU um `.pdf`/`.txt` pode ser anexado na mesma visão).
+- **Mecanismo "A Bocada Mágica" (Física Animada):**
+  - Implementado o sistema de _Asset Swapping_ em 0 delay, onde uma imagem `bau-fechado.png` é trocada pelo `bau-aberto.png` assim que o motor do Framer Motion finaliza os cálculos vetoriais em `X,Y,Z` do item engolido pela cápsula.
 
-### Fase 4: O Frontend Tátil e Luxuoso (Completo ✔️)
-- [x] Design System Global criado (`globals.css`) usando dark theme e Tailwind.
-- [x] Construção do `CapsuleVault.tsx` contemplando Glassmorphism e botões interativos (Shimmer).
-- [x] Componente mágico de Animação `MemoryDropzone.tsx` usando `framer-motion` (Drag and Drop virtual).
-- [x] Nova Tela Inicial `page.tsx` construída conectando Título e Componentes Visuais com fontes minimalistas e luzes ambientes em CSS no Background.
+## 2. O que falta e Está Travado na Fila (O Próximo Passo Mestre)
+**FASE 5: A Integração do Backend e Persistência Física**
+- O Front-end agora gera eficientemente os objetos TypeScript (id, tipo de arquivo, File/Blob real renderizado) localmente na Memória RAM.
+- **Qual a Missão:** Erguer um container **PostgreSQL** pelo Docker Desktop na máquina local.
+- Alterar as configurações do Spring Boot (`application.properties`) para efetuar as criações automáticas das tabelas lógicas via JPA (`Capsule`, `MemoryItem`, `CapsuleGuardian`).
+- Modificar o Next.js para enviar o objeto REST mapeado para nosso `CapsuleController` via Axios/Fetch no exato momento que o botão "FORJAR E ARREMESSAR" for instigado, transformando a experiência visual do browser em um registro definitivo salvo no HD.
 
-*(Próximos passos previstos: Integração Axios do Tátil com a API Java / Setup Postgres Local)*
+## 3. Direcionamento e Assets em Confecção
+- A equipe (Diretora de Arte) enviará os assets de Ícones de Relíquias (Carta, Fita, Foto, Rolo) exportados em `.png` puro para substituirmos as div's vetoriais coloridas feitas em CSS. 
+- A estrutura de física está cega quanto as artes, e reagirá perfeitamente importando a gravidade para qualquer arquivo de arte jogado nela.
