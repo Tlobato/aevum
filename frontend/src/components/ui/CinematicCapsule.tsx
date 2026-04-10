@@ -60,13 +60,16 @@ function PhysicalRelic({ type }: { type: ItemType }) {
   return null;
 }
 
+// No topo, em CinematicCapsule (substituindo do state até o visual)
+
 export function CinematicCapsule() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [isOpened, setIsOpened] = useState(false);
   const [isSealed, setIsSealed] = useState(false);
-  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // Controle da "Bocada" da arte (Aberto/Fechado rápido)
+  const [isChomping, setIsChomping] = useState(false);
+  
   const [flyingItem, setFlyingItem] = useState<Memory | null>(null);
 
   const addMemory = (type: ItemType) => {
@@ -81,18 +84,17 @@ export function CinematicCapsule() {
     
     setFlyingItem(newMemory);
     
-    // O timing cirúrgico: a carta leva 1 seg pra cair. No segundo 0.6, o vídeo da boca abre!
+    // O timing cirúrgico: a carta leva 1 seg pra cair. No segundo 0.6, PISCA A FOTO ABERTA!
     setTimeout(() => {
-      setIsPlayingVideo(true);
-      if (videoRef.current) {
-        videoRef.current.currentTime = 0; // garante que toque do início
-        videoRef.current.play();
-      }
-    }, 600); // Toca o vídeo um pouco antes da carta bater pra dar a sensação de que engoliu no ar
+      setIsChomping(true);
+    }, 600);
 
     setTimeout(() => {
       setMemories(prev => [...prev, newMemory]);
       setFlyingItem(null);
+      
+      // Quando a relíquia some lá dentro, PISCA A FOTO FECHADA DE NOVO!
+      setIsChomping(false);
     }, 1100); 
   };
 
@@ -119,24 +121,20 @@ export function CinematicCapsule() {
       {/* ÁREA DO COFRE */}
       <div className="relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center">
         
-        {/* Luz de Fundo permanente (aumentada pro bau dela reluzir) */}
         <motion.div 
            className="absolute w-[80%] h-[40%] bg-amber-600/30 blur-[40px] rounded-full bottom-[20%]"
            animate={{ scale: isOpened && !isSealed ? 1.2 : 1, opacity: isOpened && !isSealed ? 1 : 0.4 }}
         />
 
-        {/* ======================================================== */}
-        {/* O VÔO FÍSICO (A Relíquia cai cravada na imagem!) */}
-        {/* ======================================================== */}
+        {/* O VÔO FÍSICO */}
         <AnimatePresence>
             {flyingItem && (
                <motion.div
                  key={flyingItem.id}
-                 // Aterrissa mais pro meio superior da caixa (-20y de offset)
                  initial={{ y: 250, scale: 0.2, opacity: 0 }}
                  animate={{ 
-                    y: [250, -60, -20], 
-                    scale: [0.2, 1.2, 0.4, 0], // reduz pra sumir DENTRO do baú
+                    y: [250, -60, -10], 
+                    scale: [0.2, 1.2, 0.4, 0], 
                     opacity: [0, 1, 1, 0.5, 0], 
                     rotateX: [0, 180, 500, 720],
                     rotateY: [0, 360, 500, 720],
@@ -152,29 +150,24 @@ export function CinematicCapsule() {
         </AnimatePresence>
 
         {/* ======================================================== */}
-        {/* AS ARTES MAGISTRÁVEIS (Estático PNG e WEBM Transparente) */}
+        {/* SWAP INSTANTÂNEO DE FOTOS (ZERO LAG, ALTA PERFORMANCE) */}
         {/* ======================================================== */}
         <div className="relative w-full h-full z-20 pointer-events-none filter drop-shadow-2xl flex items-center justify-center">
 
-            {/* A Imagem Base Estática */}
+            {/* A Imagem Base Estática (Fechada) */}
             <motion.img 
               src="/bau-fechado.png" 
               className="absolute w-full max-h-full object-contain"
-              animate={{ opacity: isPlayingVideo ? 0 : 1 }}
-              transition={{ duration: 0.1 }}
+              animate={{ opacity: isChomping ? 0 : 1 }}
+              transition={{ duration: 0 }}
             />
 
-            {/* O Vídeo de "Bocada Mágica". Invisível até a carta encostar. */}
-            <motion.video 
-              ref={videoRef}
-              src="/bau-abre-fecha.webm" 
-              autoPlay={false}
-              muted
-              playsInline
-              onEnded={() => setIsPlayingVideo(false)} // Assim que o video bater a tampa, escondemos ele de volta!
+            {/* A Imagem Aberta (Chomping). Corta abruptamente pra dar a ilusão de velocidade */}
+            <motion.img 
+              src="/bau-aberto.png" 
               className="absolute w-full max-h-full object-contain"
-              animate={{ opacity: isPlayingVideo ? 1 : 0 }}
-              transition={{ duration: 0.05 }}
+              animate={{ opacity: isChomping ? 1 : 0 }}
+              transition={{ duration: 0 }}
             />
              
         </div>
