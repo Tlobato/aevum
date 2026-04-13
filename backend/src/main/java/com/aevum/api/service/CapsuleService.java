@@ -2,6 +2,7 @@ package com.aevum.api.service;
 
 import com.aevum.api.domain.Capsule;
 import com.aevum.api.domain.CapsuleStatus;
+import com.aevum.api.domain.MemoryItem;
 import com.aevum.api.dto.CapsuleCreateRequest;
 import com.aevum.api.dto.CapsuleResponse;
 import com.aevum.api.exception.CapsuleLockedException;
@@ -30,6 +31,9 @@ public class CapsuleService {
         }
 
         Capsule capsule = new Capsule();
+        if (request.themeId() != null && !request.themeId().isBlank()) {
+            capsule.setThemeId(request.themeId());
+        }
         capsule.setOwnerId(ownerId);
         capsule.setTitle(request.title());
         capsule.setDescription(request.description());
@@ -54,6 +58,30 @@ public class CapsuleService {
         capsule.setStatus(CapsuleStatus.SEALED);
         capsule.setSealedAt(LocalDateTime.now());
         
+        capsule = repository.save(capsule);
+        return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional
+    public CapsuleResponse addMemory(UUID id, com.aevum.api.dto.AddMemoryRequest request, String ownerId) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+
+        if (!capsule.getOwnerId().equals(ownerId)) {
+            throw new IllegalArgumentException("Você não tem permissão para adicionar memórias a esta cápsula.");
+        }
+
+        if (capsule.getStatus() != CapsuleStatus.DRAFT) {
+            throw new IllegalArgumentException("Apenas cápsulas em rascunho podem receber memórias.");
+        }
+
+        MemoryItem item = new MemoryItem();
+        item.setCapsule(capsule);
+        item.setType(com.aevum.api.domain.ItemType.valueOf(request.type()));
+        item.setContentPayload(request.textContent() != null ? request.textContent() : "");
+        item.setFileName(request.fileName());
+        capsule.getItems().add(item);
+
         capsule = repository.save(capsule);
         return CapsuleResponse.fromEntity(capsule);
     }

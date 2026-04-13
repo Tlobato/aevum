@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aevum-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aevum_db
+      POSTGRES_USER: aevum
+      POSTGRES_PASSWORD: aevum_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - aevum_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aevum -d aevum_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  aevum_pg_data:
+    driver: local

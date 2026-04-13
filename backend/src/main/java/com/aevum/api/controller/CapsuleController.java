@@ -36,6 +36,15 @@ public class CapsuleController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/{id}/memories")
+    public ResponseEntity<CapsuleResponse> addMemory(
+            @PathVariable UUID id,
+            @Valid @RequestBody com.aevum.api.dto.AddMemoryRequest request) {
+        String mockOwnerId = "user_123";
+        CapsuleResponse response = capsuleService.addMemory(id, request, mockOwnerId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CapsuleResponse> openCapsule(@PathVariable UUID id) {
         CapsuleResponse response = capsuleService.openCapsule(id);

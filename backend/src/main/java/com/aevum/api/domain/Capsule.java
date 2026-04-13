@@ -18,6 +18,9 @@ public class Capsule {
     @Column(nullable = false)
     private String ownerId;
 
+    @Column(nullable = false)
+    private String themeId = "bau-pirata";
+
     @Column(nullable = false, length = 150)
     private String title;
 
@@ -73,6 +76,8 @@ public class Capsule {
     public void setId(UUID id) { this.id = id; }
     public String getOwnerId() { return ownerId; }
     public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
+    public String getThemeId() { return themeId; }
+    public void setThemeId(String themeId) { this.themeId = themeId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }

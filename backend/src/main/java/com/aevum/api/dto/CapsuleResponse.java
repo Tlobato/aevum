@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record CapsuleResponse(
     UUID id,
+    String themeId,
     String title,
     String description,
     LocalDateTime sealedAt,
@@ -18,6 +19,7 @@ public record CapsuleResponse(
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
             capsule.getId(),
+            capsule.getThemeId(),
             capsule.getTitle(),
             capsule.getDescription(),
             capsule.getSealedAt(),

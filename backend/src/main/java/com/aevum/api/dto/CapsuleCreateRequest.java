@@ -22,5 +22,7 @@ public record CapsuleCreateRequest(
     @NotBlank(message = "Recipient email is required")
     String recipientEmail,
 
+    String themeId, // Optional field for the Capsule theme
+
     boolean isTestMode
 ) {}
