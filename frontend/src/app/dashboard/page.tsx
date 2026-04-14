@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X } from "lucide-react";
+import { ThemePicker } from "@/components/ui/ThemePicker";
 
 type CapsuleCard = {
     id: string;
@@ -48,6 +49,7 @@ export default function Dashboard() {
     });
     const [planType, setPlanType]           = useState("ESQUIRE_1GB");
     const [recipientEmail, setRecipientEmail] = useState("");
+    const [themeId, setThemeId]             = useState("bau-classico");
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
 
@@ -94,7 +96,7 @@ export default function Dashboard() {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "X-User-Id": user!.id },
                 body: JSON.stringify({
-                    themeId: "bau-classico", title, description,
+                    themeId, title, description,
                     unlockDate: new Date(unlockDate).toISOString(),
                     recipientEmail, planType, isTestMode: false
                 })
@@ -210,6 +212,9 @@ export default function Dashboard() {
                                                 <option value="KING_50GB">King — 50GB</option>
                                             </select>
                                         </div>
+                                    </div>
+                                    <div className="pt-2">
+                                        <ThemePicker selectedThemeId={themeId} onChange={setThemeId} />
                                     </div>
                                     <button type="submit" disabled={isSaving}
                                         className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 rounded-xl text-black font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 mt-2">

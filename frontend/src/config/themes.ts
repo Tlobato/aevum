@@ -30,5 +30,18 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
         VIDEO: "/themes/bau-classico/icone-video-classico.png"
       }
     }
+  },
+  "bau-maritimo": {
+    id: "bau-maritimo",
+    name: "Baú Marítimo",
+    assets: {
+      vault: {
+        closed: "/themes/bau-maritimo/bau-maritimo-fechado.png",
+        opened: "/themes/bau-maritimo/bau-maritimo-aberto.png"
+      },
+      relics: {
+        // Ícones serão adicionados futuramente
+      }
+    }
   }
 };
