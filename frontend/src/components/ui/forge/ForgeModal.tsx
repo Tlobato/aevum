@@ -84,9 +84,8 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
     onLaunch({
        type: activeForgeMode,
        label: finalLabel,
-       payload: forgeText, // enviamos o texto caso exista
+       payload: (activeForgeMode === "TEXT" && forgeSubMode === "WRITE") ? forgeText : targetFile,
        fileName: targetFile?.name
-       // futuramente o targetFile (File object) inteiro viajaria pro backend aqui
     });
   };
 

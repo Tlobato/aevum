@@ -281,7 +281,11 @@ export default function Dashboard() {
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between text-xs text-neutral-500">
                                             <span>{plan?.label || cap.planType}</span>
-                                            <span className="font-mono">{(cap.totalSizeBytes / (1024 * 1024)).toFixed(1)} MB usados</span>
+                                            <span className="font-mono">
+                                                {cap.totalSizeBytes < 1024 * 1024 
+                                                    ? `${(cap.totalSizeBytes / 1024).toFixed(1)} KB` 
+                                                    : `${(cap.totalSizeBytes / (1024 * 1024)).toFixed(1)} MB`} usados
+                                            </span>
                                         </div>
                                         <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                                             <motion.div className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full"

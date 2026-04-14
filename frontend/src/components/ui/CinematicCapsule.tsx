@@ -7,6 +7,7 @@ import { ItemType, Memory } from "@/types/capsule";
 import { THEME_REGISTRY } from "@/config/themes";
 import { PhysicalRelic } from "./relics/PhysicalRelic";
 import { ForgeModal } from "./forge/ForgeModal";
+import { StorageBar } from "./StorageBar";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -46,7 +47,7 @@ export function CinematicCapsule({
     let actualFile: File | Blob | null = null;
     let textContent = "";
 
-    if (newMemoryData.payload instanceof Blob || newMemoryData.payload instanceof File) {
+    if ((newMemoryData.payload as any) instanceof Blob || (newMemoryData.payload as any) instanceof File) {
         actualFile = newMemoryData.payload as Blob;
         actualSizeBytes = actualFile.size;
     } else if (typeof newMemoryData.payload === "string") {
@@ -164,29 +165,14 @@ export function CinematicCapsule({
   return (
     <div className="flex flex-col items-center w-full min-h-[650px] relative pointer-events-auto">
 
-      {/* Marcador de Armazenamento - Barra de Quota */}
+      {/* Marcador de Armazenamento - Barra de Quota Externa */}
       {storageStatus === "DRAFT" && (
-        <motion.div
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          className={`absolute top-0 right-4 md:right-8 bg-black/50 px-6 py-4 rounded-xl border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)] select-none z-10 transition-all min-w-[200px] ${isBlurMode ? 'opacity-20 blur-sm' : ''}`}
-        >
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-bold text-amber-500/90 tracking-widest uppercase">
-              Espaço Utilizado
-            </span>
-            <span className="text-xs font-mono text-amber-200">
-              {(localUsedBytes / (1024 * 1024)).toFixed(1)} MB / {(maxSizeBytes / (1024 * 1024)).toFixed(0)} MB
-            </span>
-          </div>
-          <div className="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
-             <motion.div 
-               className={`h-full ${isQuotaFull ? 'bg-red-500' : 'bg-gradient-to-r from-amber-600 to-amber-400'}`}
-               initial={{ width: 0 }}
-               animate={{ width: `${Math.min((localUsedBytes / maxSizeBytes) * 100, 100)}%` }}
-               transition={{ duration: 0.5, ease: "easeOut" }}
-             />
-          </div>
-        </motion.div>
+          <StorageBar 
+              usedBytes={localUsedBytes} 
+              maxBytes={maxSizeBytes} 
+              isQuotaFull={isQuotaFull} 
+              isBlurMode={isBlurMode} 
+          />
       )}
 
       {/* Alerta de Desgelo (RESTORING Storage) */}

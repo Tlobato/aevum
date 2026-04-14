@@ -5,6 +5,6 @@ export interface Memory {
   id: string;
   type: ItemType;
   label: string;
-  payload?: string;
+  payload?: string | Blob | File;
   fileName?: string;
 }
