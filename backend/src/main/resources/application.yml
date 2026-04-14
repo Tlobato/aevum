@@ -10,8 +10,8 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update        # cria/atualiza tabelas automaticamente
-    show-sql: true            # mostra SQL no console durante dev
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -20,6 +20,27 @@ spring:
 server:
   port: 8080
 
-# CORS — libera o front Next.js em desenvolvimento
-allowed:
-  origins: "http://localhost:3000"
+aws:
+  s3:
+    bucket: aevum-storage-bucket
+    region: us-east-1
+    # Para dev local com LocalStack, defina: aws.s3.endpoint=http://localhost:4566
+    # Em produção, remova a linha abaixo (será null e o SDK usará AWS real)
+    endpoint: http://localhost:4566
+
+---
+# Profile de Dev Local (LocalStack)
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/aevum_db
+    username: aevum
+    password: aevum_secret
+
+aws:
+  s3:
+    endpoint: http://localhost:4566
+    access-key: test
+    secret-key: test

@@ -3,10 +3,12 @@ package com.aevum.api.service;
 import com.aevum.api.domain.Capsule;
 import com.aevum.api.domain.CapsuleStatus;
 import com.aevum.api.domain.MemoryItem;
+import com.aevum.api.domain.User;
 import com.aevum.api.dto.CapsuleCreateRequest;
 import com.aevum.api.dto.CapsuleResponse;
 import com.aevum.api.exception.CapsuleLockedException;
 import com.aevum.api.repository.CapsuleRepository;
+import com.aevum.api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,22 +21,28 @@ import java.util.stream.Collectors;
 public class CapsuleService {
 
     private final CapsuleRepository repository;
+    private final UserRepository userRepository;
 
-    public CapsuleService(CapsuleRepository repository) {
+    public CapsuleService(CapsuleRepository repository, UserRepository userRepository) {
         this.repository = repository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public CapsuleResponse createDraft(CapsuleCreateRequest request, String ownerId) {
+    public CapsuleResponse createDraft(CapsuleCreateRequest request, String userId) {
         if (request.unlockDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data de abertura deve estar no futuro.");
         }
+
+        // Lookup real do usuário — lança exceção se não encontrado (não deveria acontecer)
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + userId));
 
         Capsule capsule = new Capsule();
         if (request.themeId() != null && !request.themeId().isBlank()) {
             capsule.setThemeId(request.themeId());
         }
-        capsule.setOwnerId(ownerId);
+        capsule.setOwner(owner);
         capsule.setPlanType(com.aevum.api.domain.CapsulePlan.valueOf(request.planType()));
         capsule.setTitle(request.title());
         capsule.setDescription(request.description());
@@ -60,12 +68,12 @@ public class CapsuleService {
         capsule.setStatus(CapsuleStatus.SEALED);
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.FROZEN);
         capsule.setSealedAt(LocalDateTime.now());
-        
+
         capsule = repository.save(capsule);
-        
+
         // Trigger background or sync freeze to S3 Glacier
         storageService.freezeCapsuleFiles(capsule);
-        
+
         return CapsuleResponse.fromEntity(capsule);
     }
 
@@ -77,11 +85,12 @@ public class CapsuleService {
     }
 
     @Transactional
-    public CapsuleResponse addMemory(UUID id, com.aevum.api.dto.AddMemoryRequest request, String ownerId) {
+    public CapsuleResponse addMemory(UUID id, com.aevum.api.dto.AddMemoryRequest request, String userId) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
 
-        if (!capsule.getOwnerId().equals(ownerId)) {
+        // Valida que o usuário é o dono da cápsula
+        if (!capsule.getOwnerId().equals(userId)) {
             throw new IllegalArgumentException("Você não tem permissão para adicionar memórias a esta cápsula.");
         }
 
@@ -123,8 +132,8 @@ public class CapsuleService {
     }
 
     @Transactional(readOnly = true)
-    public List<CapsuleResponse> listMyCapsules(String ownerId) {
-        return repository.findByOwnerId(ownerId).stream()
+    public List<CapsuleResponse> listMyCapsules(String userId) {
+        return repository.findByOwner_Id(userId).stream()
                 .map(CapsuleResponse::fromEntity)
                 .collect(Collectors.toList());
     }

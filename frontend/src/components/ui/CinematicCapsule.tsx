@@ -10,22 +10,27 @@ import { ForgeModal } from "./forge/ForgeModal";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
+import { useAuth } from "@/components/auth/AuthContext";
+
 export function CinematicCapsule({ 
+  capsuleId,
   themeId = DEFAULT_THEME_ID,
   maxSizeBytes = 1073741824, // 1GB fallback
-  usedSizeBytes = 0,
-  storageStatus = "DRAFT"
+  initialUsedBytes = 0,
+  initialStorageStatus = "DRAFT"
 }: { 
+  capsuleId?: string,
   themeId?: string,
   maxSizeBytes?: number,
-  usedSizeBytes?: number,
-  storageStatus?: string
+  initialUsedBytes?: number,
+  initialStorageStatus?: string
 }) {
+  const { user } = useAuth();
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
-  // Simularemos memórias locais (apenas para animação cênica) enquanto não batemos a API real.
   const [localMemoriesCount, setLocalMemoriesCount] = useState(0);
-  const [localUsedBytes, setLocalUsedBytes] = useState(usedSizeBytes);
+  const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
   
+  const [storageStatus, setStorageStatus] = useState(initialStorageStatus);
   const [isOpened, setIsOpened] = useState(storageStatus !== "DRAFT");
   const [isSealed, setIsSealed] = useState(storageStatus === "FROZEN" || storageStatus === "AVAILABLE");
   const [isChomping, setIsChomping] = useState(false);
@@ -33,30 +38,94 @@ export function CinematicCapsule({
 
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
 
-  const handleLaunchMemory = (newMemoryData: Partial<Memory>) => {
+  const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
 
-    // Mock payload size based on type roughly for visual feedback if no real size given
-    const sizeMap: Record<ItemType, number> = { TEXT: 1024 * 50, PHOTO: 1024 * 1024 * 3, AUDIO: 1024 * 1024 * 5, VIDEO: 1024 * 1024 * 25 };
-    const simulatedByteSize = sizeMap[newMemoryData.type as ItemType] || 0;
+    // Identificar tamanho em Bytes (optimistic approach)
+    let actualSizeBytes = 0;
+    let actualFile: File | Blob | null = null;
+    let textContent = "";
 
+    if (newMemoryData.payload instanceof Blob || newMemoryData.payload instanceof File) {
+        actualFile = newMemoryData.payload as Blob;
+        actualSizeBytes = actualFile.size;
+    } else if (typeof newMemoryData.payload === "string") {
+        textContent = newMemoryData.payload;
+        actualSizeBytes = new Blob([textContent]).size;
+    }
+
+    if (localUsedBytes + actualSizeBytes > maxSizeBytes) {
+        alert("O artefato excede o limite estipulado pela dimensão da relíquia.");
+        return;
+    }
+
+    const memoryIdFallback = Math.random().toString(36).substring(2, 9);
     const newMemory: Memory = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: memoryIdFallback,
       type: newMemoryData.type as ItemType,
       label: newMemoryData.label || "Memória Desconhecida",
       payload: newMemoryData.payload,
-      fileName: newMemoryData.fileName
+      fileName: newMemoryData.fileName || `memoria_${memoryIdFallback}.bin`
     };
 
+    // 1. Optimistic UI Update (Animação voando na hora!)
     setFlyingItem(newMemory);
+    setLocalMemoriesCount(prev => prev + 1);
+    setLocalUsedBytes(prev => prev + actualSizeBytes);
 
     setTimeout(() => { setIsChomping(true); }, 1100);
     setTimeout(() => {
-      setLocalMemoriesCount(prev => prev + 1);
-      setLocalUsedBytes(prev => Math.min(prev + simulatedByteSize, maxSizeBytes));
       setFlyingItem(null);
       setIsChomping(false);
     }, 2000);
+
+    // 2. Transação Furtiva de Cloud (Em Background)
+    if (!capsuleId || !user) return;
+
+    try {
+        let uploadedFileName = "";
+
+        if (actualFile) {
+            uploadedFileName = newMemory.fileName || `media_${Date.now()}`;
+            // Pede URL Assinada
+            const presignRes = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
+                headers: { "X-User-Id": user.id }
+            });
+            
+            if (!presignRes.ok) throw new Error("Falha ao obter URL assinada.");
+            const presignedUrl = await presignRes.text();
+
+            // Upa para AWS S3!
+            const s3Res = await fetch(presignedUrl, {
+                method: "PUT",
+                body: actualFile,
+                headers: {
+                    "Content-Type": actualFile.type || "application/octet-stream"
+                }
+            });
+
+            if (!s3Res.ok) throw new Error("A conexão dimensional falhou durante a transferência.");
+        }
+
+        // Consolida Memória no Banco Postgres
+        await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-User-Id": user.id },
+            body: JSON.stringify({
+                type: newMemory.type,
+                textContent: textContent,
+                fileName: uploadedFileName,
+                sizeBytes: actualSizeBytes
+            })
+        });
+
+    } catch (e) {
+        console.error("Erro na Forja", e);
+        // Rollback Optimistic 
+        setLocalMemoriesCount(prev => prev - 1);
+        setLocalUsedBytes(prev => prev - actualSizeBytes);
+        alert("Uma interferência magnética impediu que a memória fosse ancorada no tempo.");
+    }
   };
 
   const isQuotaFull = localUsedBytes >= maxSizeBytes;
@@ -73,9 +142,21 @@ export function CinematicCapsule({
 
 
 
-  const sealVault = () => {
-    setIsSealed(true);
-    setIsOpened(false);
+  const sealVault = async () => {
+    if (!capsuleId || !user) return;
+    try {
+        const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+            method: "POST",
+            headers: { "X-User-Id": user.id }
+        });
+        if (res.ok) {
+           setIsSealed(true);
+           setIsOpened(false);
+           setStorageStatus("FROZEN");
+        }
+    } catch(e) {
+        console.log("Error sealing:", e);
+    }
   };
 
   const isBlurMode = activeForgeMode !== null;

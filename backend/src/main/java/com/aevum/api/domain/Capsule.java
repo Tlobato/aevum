@@ -14,9 +14,9 @@ public class Capsule {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // ID do usuário autenticado no sistema (ex: Clerk / Auth0)
-    @Column(nullable = false)
-    private String ownerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private User owner;
 
     @Column(nullable = false)
     private String themeId = "bau-classico";
@@ -91,12 +91,17 @@ public class Capsule {
         this.id = id;
     }
 
-    public String getOwnerId() {
-        return ownerId;
+    public User getOwner() {
+        return owner;
     }
 
-    public void setOwnerId(String ownerId) {
-        this.ownerId = ownerId;
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
+
+    // Helper para conveniência nos services
+    public String getOwnerId() {
+        return owner != null ? owner.getId() : null;
     }
 
     public String getThemeId() {

@@ -21,15 +21,11 @@ public class StorageService {
     @Value("${aws.s3.bucket:aevum-storage-bucket}")
     private String bucketName;
 
-    public StorageService() {
-        // Na prática de produção, configuraríamos credenciais/region via variáveis de ambiente.
-        // Por hora, inicializamos mockado ou com Standard configuration que usaria o ~/.aws/credentials.
-        // NOTA: Para rodar localmente sem S3 real, isso daria erro de credenciais.
-        // Num ambiente de Dev real, poderíamos usar MinIO ou LocalStack mock.
-        // Aqui deixamos os imports prontos.
-        this.s3Client = S3Client.create();
-        this.s3Presigner = S3Presigner.create();
+    public StorageService(S3Client s3Client, S3Presigner s3Presigner) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
     }
+
 
     public String generatePresignedUploadUrl(String capsuleId, String fileName, long sizeBytes) {
         String draftKey = "drafts/" + capsuleId + "/" + fileName;

@@ -17,7 +17,10 @@ Aqui está o planejamento detalhado para o nosso MVP, abordando as preocupaçõe
 ### Armazenamento de Dados e Arquivos
 *   **Banco de Dados (Metadados da Cápsula):** **PostgreSQL** Serverless (ex: Supabase ou AWS Aurora Serverless v2/Neon DB). O dado relacional dura muito bem no tempo e o custo em escala zero é mínimo.
 *   **Arquivos (Fotos/Vídeos):** **AWS S3 com transição para S3 Glacier**.
-    *   *O pulo do gato para 20-50 anos:* Quando um usuário faz upload, ele vai pro S3 Standard. Após o processamento/selo da cápsula, movemos automaticamente para o Glacier Deep Archive (custo de frações de centavos por GB/mês). Fica "congelado" até o dia da abertura.
+    *   *S3 Presigned URLs:* Para poupar RAM das instâncias Spring Boot, o frontend comunica diretamente com o S3 usando URLs HTTP assinadas geradas pelo backend.
+    *   *Store Lifecycle:* Uploads ficam em `/drafts/{capsuleId}/` durante o estado DRAFT. Após o Seal, o Java move os objetos para `/sealed/{capsuleId}/` com StorageClass `DEEP_ARCHIVE`.
+    *   *High Availability (Preemptive Restore):* Job Cron que escaneia cápsulas nas próximas T-48h de liberação e ativa o RESTORE silenciosamente. Quando chega o grande dia, os dados fluem sem lag.
+    *   *Ambiente Local:* **LocalStack v3 (community)** na porta `4566` via Docker. Script `infra/localstack-init.sh` cria o bucket e configura CORS automaticamente no boot.
 
 ---
 
@@ -44,21 +47,36 @@ Como teremos um backend em Java e frontend em Node.js/JS, não usaremos o Lerna.
 
 ```text
 aevum/
-├── .github/                  # CI/CD (Actions para build GraalVM e Next.js)
-├── frontend/                 # Aplicação Next.js (App tátil)
+├── .github/                   # CI/CD (Actions para Gradle e Next.js)
+├── frontend/                  # Aplicação Next.js
 │   ├── package.json
-│   ├── src/
-│   │   ├── app/              # Rotas e páginas
-│   │   ├── components/       # Componentes visuais/animações tateis
-│   │   └── lib/              # Integrações (S3, API)
-├── backend/                  # API Spring Boot
+│   └── src/
+│       ├── app/
+│       │   ├── page.tsx              # Portal de Login (e-mail)
+│       │   ├── dashboard/page.tsx    # Galeria multi-cápsula + formulário de setup
+│       │   └── vault/[id]/page.tsx   # Baú Dimensional com dados reais da API
+│       ├── components/
+│       │   ├── auth/AuthContext.tsx  # Estado global de sessão (localStorage)
+│       │   ├── ui/CinematicCapsule.tsx
+│       │   ├── ui/forge/ForgeModal.tsx
+│       │   └── ui/relics/PhysicalRelic.tsx
+│       └── config/themes.ts          # Registro de temas visuais do Baú
+├── backend/                   # API Spring Boot 4
 │   ├── build.gradle
-│   ├── src/
-│   │   └── main/java/com/aevum/
-│   │       ├── api/          # Endpoints REST
-│   │       ├── domain/       # Regras de negócio, Cápsulas
-│   │       └── infra/        # Adaptação S3, BD, Auth
-├── infra/                    # IaC (Terraform ou Pulumi para AWS/GCP)
-├── docs/                     # Documentação de Arquitetura, ADRs
+│   └── src/main/java/com/aevum/api/
+│       ├── config/            # CorsConfig, AwsConfig (S3Client/S3Presigner beans)
+│       ├── controller/        # AuthController, CapsuleController
+│       ├── domain/            # User, Capsule, MemoryItem, Enums, TimeTier
+│       ├── dto/               # CapsuleCreateRequest, CapsuleResponse, AddMemoryRequest
+│       ├── exception/         # CapsuleLockedException
+│       ├── job/               # PreemptiveRestoreJob (Cron T-48h)
+│       ├── repository/        # UserRepository, CapsuleRepository
+│       └── service/           # CapsuleService, PricingService, StorageService
+├── infra/
+│   └── localstack-init.sh     # Cria bucket + CORS no boot do LocalStack
+├── docs/
+│   ├── ai_context/            # Contexto para IA copiloto (este diretório)
+│   └── S3_SETUP.md            # Guia de configuração S3 para produção
+├── docker-compose.yml         # PostgreSQL 16 + LocalStack v3 (community)
 └── README.md
 ```

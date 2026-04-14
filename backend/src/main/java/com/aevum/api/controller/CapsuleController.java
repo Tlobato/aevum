@@ -28,11 +28,10 @@ public class CapsuleController {
     }
 
     @PostMapping
-    public ResponseEntity<CapsuleResponse> createDraft(@Valid @RequestBody CapsuleCreateRequest request) {
-        // TODO: In the future, ownerId will come from the Auth Token (e.g. JWT Principal)
-        String mockOwnerId = "user_123"; 
-        
-        CapsuleResponse response = capsuleService.createDraft(request, mockOwnerId);
+    public ResponseEntity<CapsuleResponse> createDraft(
+            @RequestHeader("X-User-Id") String userId,
+            @Valid @RequestBody CapsuleCreateRequest request) {
+        CapsuleResponse response = capsuleService.createDraft(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -44,10 +43,10 @@ public class CapsuleController {
 
     @PostMapping("/{id}/memories")
     public ResponseEntity<CapsuleResponse> addMemory(
+            @RequestHeader("X-User-Id") String userId,
             @PathVariable UUID id,
             @Valid @RequestBody com.aevum.api.dto.AddMemoryRequest request) {
-        String mockOwnerId = "user_123";
-        CapsuleResponse response = capsuleService.addMemory(id, request, mockOwnerId);
+        CapsuleResponse response = capsuleService.addMemory(id, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -63,6 +62,25 @@ public class CapsuleController {
         return ResponseEntity.ok(summary);
     }
 
+    public record EstimateRequest(String planType, java.time.LocalDateTime unlockDate) {}
+
+    @PostMapping("/estimate")
+    public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> estimatePrice(@RequestBody EstimateRequest request) {
+        com.aevum.api.domain.CapsulePlan plan = com.aevum.api.domain.CapsulePlan.valueOf(request.planType());
+        com.aevum.api.domain.TimeTier timeTier = com.aevum.api.domain.TimeTier.determineTier(request.unlockDate());
+        long price = pricingService.calculatePriceInCents(plan, timeTier);
+
+        com.aevum.api.service.PricingService.PricingSummary summary = new com.aevum.api.service.PricingService.PricingSummary(
+                plan.name(),
+                plan.getMaxSizeBytes(),
+                0L,
+                timeTier.name(),
+                request.unlockDate(),
+                price
+        );
+        return ResponseEntity.ok(summary);
+    }
+
     @GetMapping("/{id}/presign")
     public ResponseEntity<String> getPresignedUrl(@PathVariable UUID id, @RequestParam String fileName, @RequestParam long sizeBytes) {
         // Assume user validation etc in real life
@@ -71,8 +89,7 @@ public class CapsuleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CapsuleResponse>> listMyCapsules() {
-        String mockOwnerId = "user_123";
-        return ResponseEntity.ok(capsuleService.listMyCapsules(mockOwnerId));
+    public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(capsuleService.listMyCapsules(userId));
     }
 }

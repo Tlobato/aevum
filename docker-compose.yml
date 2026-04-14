@@ -19,6 +19,30 @@ services:
       timeout: 5s
       retries: 5
 
+  localstack:
+    image: localstack/localstack:3
+    container_name: aevum-localstack
+    restart: unless-stopped
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEBUG=0
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    volumes:
+      - aevum_localstack_data:/var/lib/localstack
+      - ./infra/localstack-init.sh:/etc/localstack/init/ready.d/init-aws.sh
+    healthcheck:
+      test: ["CMD", "awslocal", "s3", "ls"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
 volumes:
   aevum_pg_data:
+    driver: local
+  aevum_localstack_data:
     driver: local

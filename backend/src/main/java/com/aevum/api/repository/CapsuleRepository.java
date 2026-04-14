@@ -11,8 +11,8 @@ import java.util.UUID;
 @Repository
 public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     
-    // Buscar todas as cápsulas pertencentes a um usuário específico
-    List<Capsule> findByOwnerId(String ownerId);
+    // Buscar todas as cápsulas pertencentes a um usuário específico (navega pela FK owner)
+    List<Capsule> findByOwner_Id(String ownerId);
 
     // Buscar cápsulas destinadas a um email
     List<Capsule> findByRecipientEmail(String recipientEmail);

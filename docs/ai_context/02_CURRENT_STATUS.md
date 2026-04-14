@@ -1,25 +1,33 @@
 # Status Atual do Projeto (Overview)
 
 ## Resumo Executivo
-O projeto Aevum encontra-se com o **Frontend (MVP Visual) 100% finalizado e operante**. Estabelecemos um padrão ouro de UX focada em Retenção ("Game Feel") similar ao *Royal Match*, utilizando o poder do Next.js e Framer Motion. 
+O projeto Aevum está com sua **pilha completa integrada e rodando localmente**: Frontend Next.js, Backend Spring Boot, banco PostgreSQL e agora o **LocalStack simulando S3 da AWS sem custo de nuvem**. A experiência de criação e gestão de relíquias é real e multi-cápsula, com cada usuário podendo gerenciar uma coleção de legados independentes.
 
-A arquitetura atual consegue não apenas renderizar objetos 2.5D sofisticados ("Cofres com absorção gravitacional de arquivos"), como interage diretamente com o hardware do usuário via `MediaDevices APIs` (Webcam e Microfone) nativamente no browser para criação ao vivo do legado sem recarregar a janela.
+---
 
-## 1. O que está concluído (Frontend - Face Visual)
-- **Estrutura Next.js:** O coração da interface em `src/app/page.tsx` está operante.
-- **Mecanismo de "Forja" (Criação Real-time Modal):**
-  - Sistema de permissão Nativo WebRTC (Espelho de Webcam `video` e simulador de ondas de captura analógica).
-  - Componentização Abstrata de *Uploads Multi-path* (O texto pode ser redigido localmente OU um `.pdf`/`.txt` pode ser anexado na mesma visão).
-- **Mecanismo "A Bocada Mágica" (Física Animada):**
-  - Implementado o sistema de _Asset Swapping_ em 0 delay, onde uma imagem `bau-classico-fechado.png` é trocada pelo `bau-classico-aberto.png` assim que o motor do Framer Motion finaliza os cálculos vetoriais em `X,Y,Z` do item engolido pela cápsula.
+## 1. O que está concluído e Estabilizado
 
-## 2. O que falta e Está Travado na Fila (O Próximo Passo Mestre)
-**FASE 5: A Integração do Backend e Persistência Física**
-- O Front-end agora gera eficientemente os objetos TypeScript (id, tipo de arquivo, File/Blob real renderizado) localmente na Memória RAM.
-- **Qual a Missão:** Erguer um container **PostgreSQL** pelo Docker Desktop na máquina local.
-- Alterar as configurações do Spring Boot (`application.properties`) para efetuar as criações automáticas das tabelas lógicas via JPA (`Capsule`, `MemoryItem`, `CapsuleGuardian`).
-- Modificar o Next.js para enviar o objeto REST mapeado para nosso `CapsuleController` via Axios/Fetch no exato momento que o botão "FORJAR E ARREMESSAR" for instigado, transformando a experiência visual do browser em um registro definitivo salvo no HD.
+### Frontend (Next.js)
+- **Portal de Acesso (`/`):** Tela de login minimalista Aevum — usuário entra com e-mail, recebe UUID e sessão salva via `AuthContext` + `localStorage`.
+- **Dashboard (`/dashboard`):** Galeria de cards de todas as cápsulas do usuário com barra de quota individual, data de despertar, badge de status e botão de entrada. Botão "Forjar Nova Relíquia" abre form inline com estimativa dinâmica de preço.
+- **Vault (`/vault/[id]`):** Baú Cinemático conectado à API — carrega dados reais da cápsula pelo ID da URL. Upload de memórias usa Optimistic UI (animação instantânea + upload S3 em background com rollback em caso de erro).
 
-## 3. Direcionamento e Assets em Confecção
-- A equipe (Diretora de Arte) enviará os assets de Ícones de Relíquias (Carta, Fita, Foto, Rolo) exportados em `.png` puro para substituirmos as div's vetoriais coloridas feitas em CSS. 
-- A estrutura de física está cega quanto as artes, e reagirá perfeitamente importando a gravidade para qualquer arquivo de arte jogado nela.
+### Backend (Spring Boot)
+- **Autenticação Provisória:** `POST /api/v1/auth/login` — findOrCreate por e-mail. CORS global liberando `localhost:3000`.
+- **Motor de Precificação:** `PricingService` com matriz Espaço x Tempo. Endpoint `POST /estimate` para orçamento sem cápsula salva.
+- **Cápsulas Multi-usuário:** `CapsuleController` usa `@RequestHeader("X-User-Id")` em todos os endpoints. Usuário tem `@OneToMany` cápsulas via FK real no banco.
+- **Storage:** `StorageService` com Presigned URLs (PUT direto do browser para o S3), freeze para Glacier no Seal, e Job de Restore Preemptivo (T-48h).
+- **CORS:** `WebMvcConfigurer` global configurado em `CorsConfig.java`.
+
+### Infra Local (Docker)
+- **PostgreSQL 16:** Volume persistente, healthcheck configurado.
+- **LocalStack v3 (community):** Simula S3 AWS na porta `4566`. Script `infra/localstack-init.sh` cria o bucket `aevum-storage-bucket` e configura CORS automaticamente no boot.
+- **AwsConfig.java:** Bean central de `S3Client`/`S3Presigner` com `endpointOverride` para LocalStack e `pathStyleAccessEnabled(true)`.
+
+---
+
+## 2. O que falta (Próximos Passos)
+- **Upload Flow Completo:** Testar Presigned URL ponta a ponta contra o LocalStack real (frontend → S3 local → confirmação no banco).
+- **Autenticação Real:** Substituir `X-User-Id` header por JWT validado (Clerk ou Spring Security).
+- **Tela de Checkout/Pagamento:** Fluxo de pagamento simulado antes do Seal definitivo.
+- **Testes:** Testes de integração para os endpoints principais.
