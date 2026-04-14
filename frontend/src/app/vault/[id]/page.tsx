@@ -76,6 +76,9 @@ export default function VaultPage() {
                 maxSizeBytes={maxSizeBytes}
                 initialUsedBytes={capsuleData.totalSizeBytes}
                 initialStorageStatus={capsuleData.storageStatus}
+                title={capsuleData.title}
+                recipientEmail={capsuleData.recipientEmail}
+                unlockDate={capsuleData.unlockDate}
             />
         </main>
     );

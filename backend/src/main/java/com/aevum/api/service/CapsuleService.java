@@ -121,12 +121,9 @@ public class CapsuleService {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
 
-        // Regra de Ouro do Aevum:
-        if (capsule.getStatus() == CapsuleStatus.SEALED && !capsule.isTestMode()) {
-            if (LocalDateTime.now().isBefore(capsule.getUnlockDate())) {
-                throw new CapsuleLockedException("Esta relíquia ainda está trancada no tempo. Retorne em: " + capsule.getUnlockDate());
-            }
-        }
+        // A Regra de Ouro do Aevum protegendo as Memórias será aplicada no endpoint 
+        // futuro de download de arquivos (ex: GET /capsules/{id}/memories), 
+        // já que este endpoint principal devolve apenas metadados necessários para renderizar o baú 3D visualmente na UI.
 
         return CapsuleResponse.fromEntity(capsule);
     }

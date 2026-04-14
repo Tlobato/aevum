@@ -18,17 +18,23 @@ export function CinematicCapsule({
   themeId = DEFAULT_THEME_ID,
   maxSizeBytes = 1073741824, // 1GB fallback
   initialUsedBytes = 0,
-  initialStorageStatus = "DRAFT"
+  initialStorageStatus = "DRAFT",
+  title = "Sinal Transversal",
+  recipientEmail = "herdeiro@futuro.com",
+  unlockDate = "2050-01-01"
 }: { 
   capsuleId?: string,
   themeId?: string,
   maxSizeBytes?: number,
   initialUsedBytes?: number,
-  initialStorageStatus?: string
+  initialStorageStatus?: string,
+  title?: string,
+  recipientEmail?: string,
+  unlockDate?: string
 }) {
   const { user } = useAuth();
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
-  const [localMemoriesCount, setLocalMemoriesCount] = useState(0);
+  const [localMemoriesCount, setLocalMemoriesCount] = useState(initialUsedBytes > 0 ? 1 : 0);
   const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
   
   const [storageStatus, setStorageStatus] = useState(initialStorageStatus);
@@ -38,6 +44,7 @@ export function CinematicCapsule({
   const [flyingItem, setFlyingItem] = useState<Memory | null>(null);
 
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
+  const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
 
   const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
@@ -192,55 +199,126 @@ export function CinematicCapsule({
         )}
       </AnimatePresence>
 
-      {/* Container Principal do Baú */}
-      <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 ${isBlurMode ? 'blur-md opacity-30 scale-95 grayscale-[50%]' : ''}`}>
-        <motion.div
-          className="absolute w-[80%] h-[40%] bg-amber-600/30 blur-[40px] rounded-full bottom-[20%]"
-          animate={{ scale: isOpened && !isSealed ? 1.2 : 1, opacity: isOpened && !isSealed ? 1 : 0.4 }}
-        />
+      {/* Wrapper de Layout (Side-by-Side no Desktop quando Selado) */}
+      <div className={`flex flex-col ${isSealed ? 'md:flex-row md:items-center md:justify-center md:gap-16 w-full max-w-5xl' : 'items-center w-full'} transition-all duration-700`}>
+        
+        {/* Container Principal do Baú */}
+        <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 shrink-0 ${isBlurMode || showEarlyUnlockModal ? 'blur-md opacity-30 scale-95 grayscale-[50%]' : ''}`}>
+          <motion.div
+            className="absolute w-[80%] h-[40%] bg-amber-600/30 blur-[40px] rounded-full bottom-[20%]"
+            animate={{ scale: isOpened && !isSealed ? 1.2 : 1, opacity: isOpened && !isSealed ? 1 : 0.4 }}
+          />
 
-        {/* Animação Parábola 3D da Relíquia */}
+          {/* Animação Parábola 3D da Relíquia */}
+          <AnimatePresence>
+            {flyingItem && (
+              <motion.div
+                key={flyingItem.id}
+                initial={{ y: 250, scale: 0.2, opacity: 0 }}
+                animate={{
+                  y: [250, -60, -10],
+                  scale: [0.2, 1.2, 0.4, 0],
+                  opacity: [0, 1, 1, 0.5, 0],
+                  rotateX: [0, 180, 500, 720],
+                  rotateY: [0, 360, 500, 720],
+                  rotateZ: [0, -180, -360]
+                }}
+                transition={{ duration: 2.0, times: [0, 0.4, 0.8, 1], ease: "easeInOut" }}
+                className="absolute left-1/2 top-1/3 ml-[-40px] mt-[-50px] z-[60] flex items-center justify-center"
+                style={{ perspective: "500px" }}
+              >
+                <PhysicalRelic type={flyingItem.type} theme={activeTheme} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Máquina de Estado do PNG (O 'Chomp') */}
+          <div className="relative w-full h-full z-20 pointer-events-none filter drop-shadow-2xl flex items-center justify-center">
+            <motion.img
+              src={activeTheme.assets.vault.closed} className="absolute w-full max-h-full object-contain"
+              animate={{ opacity: isChomping ? 0 : 1 }} transition={{ duration: 0 }} />
+            <motion.img
+              src={activeTheme.assets.vault.opened} className="absolute w-full max-h-full object-contain"
+              animate={{ opacity: isChomping || storageStatus === "AVAILABLE" ? 1 : 0 }} transition={{ duration: 0 }} />
+              
+            {/* Camada de Gelo se estiver Restoring */}
+            <AnimatePresence>
+               {storageStatus === "RESTORING" && (
+                  <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                    className="absolute inset-0 bg-blue-500/20 backdrop-blur-[2px] backdrop-brightness-150 rounded-full mix-blend-overlay border-[3px] border-cyan-200/40 shadow-[inset_0_0_50px_rgba(165,243,252,0.6)] animate-pulse"
+                  />
+               )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Splash Cênico de Selagem Final / Receipt Holográfico */}
         <AnimatePresence>
-          {flyingItem && (
+          {isSealed && (
             <motion.div
-              key={flyingItem.id}
-              initial={{ y: 250, scale: 0.2, opacity: 0 }}
-              animate={{
-                y: [250, -60, -10],
-                scale: [0.2, 1.2, 0.4, 0],
-                opacity: [0, 1, 1, 0.5, 0],
-                rotateX: [0, 180, 500, 720],
-                rotateY: [0, 360, 500, 720],
-                rotateZ: [0, -180, -360]
-              }}
-              transition={{ duration: 2.0, times: [0, 0.4, 0.8, 1], ease: "easeInOut" }}
-              className="absolute left-1/2 top-1/3 ml-[-40px] mt-[-50px] z-[60] flex items-center justify-center"
-              style={{ perspective: "500px" }}
+              initial={{ opacity: 0, scale: 0.9, x: -30 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 1, type: "spring", bounce: 0.4 }}
+              className={`relative mt-8 md:mt-0 z-[110] w-full max-w-sm shrink-0 transition-all duration-300 ${showEarlyUnlockModal ? 'blur-md opacity-30 grayscale-[50%]' : ''}`}
             >
-              <PhysicalRelic type={flyingItem.type} theme={activeTheme} />
+              <div className="relative mx-auto rounded-3xl bg-black/60 shadow-[0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-2xl border border-amber-500/20 overflow-hidden text-left flex flex-col">
+                
+                {/* Header Fita Seladora */}
+                <div className="w-full bg-gradient-to-r from-amber-600 to-amber-900 py-3 px-6 shadow-md border-b border-amber-500/40 flex justify-between items-center">
+                  <h3 className="text-white font-serif font-black tracking-widest uppercase text-left text-sm drop-shadow-md">
+                     Selo Ativado
+                  </h3>
+                  <Lock className="w-4 h-4 text-amber-200" />
+                </div>
+
+                {/* Corpo (Invoice / Metadados) */}
+                <div className="p-6 flex flex-col gap-5">
+                   
+                   <div>
+                      <span className="text-[10px] text-amber-500/50 uppercase tracking-[0.2em] font-bold block mb-1">Códinome da Relíquia</span>
+                      <span className="text-lg text-amber-100 font-serif font-light">{title}</span>
+                   </div>
+
+                   <div className="flex items-center gap-4 border-t border-white/5 pt-4">
+                      <div className="w-10 h-10 rounded-full bg-amber-500/10 flex flex-shrink-0 items-center justify-center border border-amber-500/30">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M19 21v-2a4 4 string 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      </div>
+                      <div className="flex flex-col truncate">
+                         <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Destinado Para</span>
+                         <span className="text-sm font-mono text-neutral-300 truncate">{recipientEmail}</span>
+                      </div>
+                   </div>
+
+                   <div className="flex items-center gap-4 border-t border-white/5 pt-4">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/10 flex flex-shrink-0 items-center justify-center border border-blue-500/30">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      </div>
+                      <div className="flex flex-col">
+                         <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Despertar Agendado</span>
+                         <span className="text-sm font-mono text-blue-300 font-bold">
+                           {new Date(unlockDate).toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" })}
+                         </span>
+                      </div>
+                   </div>
+                   
+                   {/* Mensagem Rodapé / Destravamento */}
+                   <div className="mt-2 pt-4 border-t border-white/5 text-center flex flex-col gap-3">
+                      <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
+                         Receptáculo protegido pelo selo da eternidade
+                      </span>
+                      <button 
+                        onClick={() => setShowEarlyUnlockModal(true)}
+                        className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
+                        Solicitar Resgate Imediato
+                      </button>
+                   </div>
+
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Máquina de Estado do PNG (O 'Chomp') */}
-        <div className="relative w-full h-full z-20 pointer-events-none filter drop-shadow-2xl flex items-center justify-center">
-          <motion.img
-            src={activeTheme.assets.vault.closed} className="absolute w-full max-h-full object-contain"
-            animate={{ opacity: isChomping ? 0 : 1 }} transition={{ duration: 0 }} />
-          <motion.img
-            src={activeTheme.assets.vault.opened} className="absolute w-full max-h-full object-contain"
-            animate={{ opacity: isChomping || storageStatus === "AVAILABLE" ? 1 : 0 }} transition={{ duration: 0 }} />
-            
-          {/* Camada de Gelo se estiver Restoring */}
-          <AnimatePresence>
-             {storageStatus === "RESTORING" && (
-                <motion.div 
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                  className="absolute inset-0 bg-blue-500/20 backdrop-blur-[2px] backdrop-brightness-150 rounded-full mix-blend-overlay border-[3px] border-cyan-200/40 shadow-[inset_0_0_50px_rgba(165,243,252,0.6)] animate-pulse"
-                />
-             )}
-          </AnimatePresence>
-        </div>
       </div>
 
       {/* Painel Inferior de Criação (Ações) */}
@@ -260,17 +338,20 @@ export function CinematicCapsule({
       )}
 
       {/* Botão Global de Selagem */}
-      {storageStatus === "DRAFT" && (
-      <motion.div
-        animate={{ opacity: isOpened && !isSealed && localMemoriesCount > 0 && !isBlurMode ? 1 : 0, scale: isOpened && !isSealed && localMemoriesCount > 0 && !isBlurMode ? 1 : 0.8 }}
-        className={`mt-8 pointer-events-auto transition-all ${isBlurMode ? 'pointer-events-none opacity-0' : ''}`}
-      >
-        <button onClick={sealVault} className="group relative px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
-          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
-          <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> LACRAR PERMANENTEMENTE</div>
-        </button>
-      </motion.div>
-      )}
+      {storageStatus === "DRAFT" && (() => {
+        const canSeal = !isSealed && localMemoriesCount > 0 && !isBlurMode;
+        return (
+          <motion.div
+            animate={{ opacity: canSeal ? 1 : 0, scale: canSeal ? 1 : 0.8 }}
+            className={`mt-8 transition-all ${canSeal ? 'pointer-events-auto' : 'pointer-events-none opacity-0'}`}
+          >
+            <button onClick={sealVault} className="group relative px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
+              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> LACRAR PERMANENTEMENTE</div>
+            </button>
+          </motion.div>
+        );
+      })()}
 
       {/* ======================================================== */}
       {/* COMPONENTE FILHO INJETADO: O MODAL DA FORJA INTELIGENTE  */}
@@ -285,19 +366,61 @@ export function CinematicCapsule({
         )}
       </AnimatePresence>
 
-      {/* Splash Cênico de Selagem Final */}
+      {/* ======================================================== */}
+      {/* Modal Mock de Resgate Antecipado                           */}
+      {/* ======================================================== */}
       <AnimatePresence>
-        {isSealed && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1, duration: 1, type: "spring" }}
-            className="absolute bottom-10 z-[110] px-10 py-8 rounded-3xl bg-black/50 shadow-2xl backdrop-blur-xl border border-amber-500/30 text-center"
-          >
-            <h3 className="text-4xl text-transparent bg-clip-text bg-gradient-to-b from-amber-200 to-amber-600 font-serif font-black tracking-widest uppercase pb-2">O Tempo Congelou</h3>
-            <p className="mt-2 text-amber-500/60 uppercase tracking-[0.2em] text-sm">Este receptáculo agora aguarda o futuro.</p>
-          </motion.div>
-        )}
+         {showEarlyUnlockModal && (
+            <motion.div
+               initial={{ opacity: 0, scale: 0.95 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.95 }}
+               className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl"
+            >
+               <div className="bg-neutral-900/90 border border-red-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_40px_rgba(239,68,68,0.15)] relative">
+                  <div className="mx-auto w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+                     <Lock className="w-8 h-8 text-red-500" />
+                  </div>
+                  
+                  <h3 className="text-2xl font-serif text-white font-light text-center mb-2">Quebra do Paradoxo Temporal</h3>
+                  <p className="text-sm text-neutral-400 text-center leading-relaxed">
+                     Extrair esses artefatos do arquivamento profundo antes da data acordada exige recursos computacionais de recuperação acelerada de nosso provedor físico subjacente.
+                  </p>
+
+                  <div className="bg-black/50 border border-neutral-800 rounded-2xl p-5 mt-6 mb-8 flex flex-col gap-3">
+                      <div className="flex justify-between items-center text-sm">
+                         <span className="text-neutral-500">Multa de Resgate AWS Glacier</span>
+                         <span className="text-white font-mono">R$ 45,00</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                         <span className="text-neutral-500">Taxa de Reintegração Aevum</span>
+                         <span className="text-white font-mono">R$ 24,90</span>
+                      </div>
+                      <div className="h-[1px] w-full bg-neutral-800 my-1" />
+                      <div className="flex justify-between items-center font-bold">
+                         <span className="text-neutral-300">Total a Pagar</span>
+                         <span className="text-amber-500 font-mono text-xl">R$ 69,90</span>
+                      </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                     <button 
+                        onClick={() => setShowEarlyUnlockModal(false)}
+                        className="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">
+                        Cancelar
+                     </button>
+                     <button 
+                        onClick={() => {
+                           alert("Integração de pagamento pendente. \nNeste momento da aplicação, simularíamos o checkout do Stripe para quebrar o selo!");
+                           setShowEarlyUnlockModal(false);
+                        }}
+                        className="flex-1 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-red-500/20">
+                        Processar
+                     </button>
+                  </div>
+               </div>
+            </motion.div>
+         )}
       </AnimatePresence>
 
     </div>
