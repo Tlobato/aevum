@@ -42,6 +42,17 @@ public class Capsule {
     @Column(nullable = false)
     private CapsuleStatus status = CapsuleStatus.DRAFT;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StorageStatus storageStatus = StorageStatus.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CapsulePlan planType = CapsulePlan.ESQUIRE_1GB;
+
+    @Column(nullable = false)
+    private long totalSizeBytes = 0L;
+
     // Flag especial para nós podermos simular "viagem no tempo"
     // ou acessar antes da data sem ferir a regra das cápsulas reais
     @Column(nullable = false)
@@ -150,6 +161,30 @@ public class Capsule {
 
     public void setTestMode(boolean testMode) {
         isTestMode = testMode;
+    }
+
+    public StorageStatus getStorageStatus() {
+        return storageStatus;
+    }
+
+    public void setStorageStatus(StorageStatus storageStatus) {
+        this.storageStatus = storageStatus;
+    }
+
+    public CapsulePlan getPlanType() {
+        return planType;
+    }
+
+    public void setPlanType(CapsulePlan planType) {
+        this.planType = planType;
+    }
+
+    public long getTotalSizeBytes() {
+        return totalSizeBytes;
+    }
+
+    public void setTotalSizeBytes(long totalSizeBytes) {
+        this.totalSizeBytes = totalSizeBytes;
     }
 
     public List<MemoryItem> getItems() {

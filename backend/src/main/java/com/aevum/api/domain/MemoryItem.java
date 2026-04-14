@@ -27,6 +27,9 @@ public class MemoryItem {
     @Column(length = 255)
     private String fileName;
 
+    @Column(nullable = false)
+    private long sizeBytes = 0L;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
@@ -47,5 +50,7 @@ public class MemoryItem {
     public void setContentPayload(String contentPayload) { this.contentPayload = contentPayload; }
     public String getFileName() { return fileName; }
     public void setFileName(String fileName) { this.fileName = fileName; }
+    public long getSizeBytes() { return sizeBytes; }
+    public void setSizeBytes(long sizeBytes) { this.sizeBytes = sizeBytes; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 }

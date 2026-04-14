@@ -16,9 +16,15 @@ import java.util.UUID;
 public class CapsuleController {
 
     private final CapsuleService capsuleService;
+    private final com.aevum.api.service.PricingService pricingService;
+    private final com.aevum.api.service.StorageService storageService;
 
-    public CapsuleController(CapsuleService capsuleService) {
+    public CapsuleController(CapsuleService capsuleService, 
+                             com.aevum.api.service.PricingService pricingService,
+                             com.aevum.api.service.StorageService storageService) {
         this.capsuleService = capsuleService;
+        this.pricingService = pricingService;
+        this.storageService = storageService;
     }
 
     @PostMapping
@@ -32,7 +38,7 @@ public class CapsuleController {
 
     @PostMapping("/{id}/seal")
     public ResponseEntity<CapsuleResponse> sealCapsule(@PathVariable UUID id) {
-        CapsuleResponse response = capsuleService.sealCapsule(id);
+        CapsuleResponse response = capsuleService.sealCapsule(id, storageService);
         return ResponseEntity.ok(response);
     }
 
@@ -49,6 +55,19 @@ public class CapsuleController {
     public ResponseEntity<CapsuleResponse> openCapsule(@PathVariable UUID id) {
         CapsuleResponse response = capsuleService.openCapsule(id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}/calculate-seal")
+    public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> calculateSeal(@PathVariable UUID id) {
+        com.aevum.api.service.PricingService.PricingSummary summary = capsuleService.calculateSummary(id, pricingService);
+        return ResponseEntity.ok(summary);
+    }
+
+    @GetMapping("/{id}/presign")
+    public ResponseEntity<String> getPresignedUrl(@PathVariable UUID id, @RequestParam String fileName, @RequestParam long sizeBytes) {
+        // Assume user validation etc in real life
+        String url = storageService.generatePresignedUploadUrl(id.toString(), fileName, sizeBytes);
+        return ResponseEntity.ok(url);
     }
 
     @GetMapping

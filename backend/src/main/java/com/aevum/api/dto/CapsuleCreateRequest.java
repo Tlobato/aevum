@@ -23,6 +23,9 @@ public record CapsuleCreateRequest(
     String recipientEmail,
 
     String themeId, // Optional field for the Capsule theme
+    
+    @NotNull(message = "Plan type is required")
+    String planType,
 
     boolean isTestMode
 ) {}

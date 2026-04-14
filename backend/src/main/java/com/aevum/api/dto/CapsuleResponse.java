@@ -14,6 +14,9 @@ public record CapsuleResponse(
     LocalDateTime unlockDate,
     String recipientEmail,
     String status,
+    String planType,
+    String storageStatus,
+    long totalSizeBytes,
     boolean isTestMode
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
@@ -26,6 +29,9 @@ public record CapsuleResponse(
             capsule.getUnlockDate(),
             capsule.getRecipientEmail(),
             capsule.getStatus().name(),
+            capsule.getPlanType().name(),
+            capsule.getStorageStatus().name(),
+            capsule.getTotalSizeBytes(),
             capsule.isTestMode()
         );
     }

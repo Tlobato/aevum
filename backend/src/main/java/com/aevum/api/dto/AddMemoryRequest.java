@@ -10,5 +10,7 @@ public record AddMemoryRequest(
 
     String textContent,
 
-    String fileName
+    String fileName,
+    
+    long sizeBytes
 ) {}
