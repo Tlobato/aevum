@@ -19,7 +19,7 @@ public class Capsule {
     private String ownerId;
 
     @Column(nullable = false)
-    private String themeId = "bau-pirata";
+    private String themeId = "bau-classico";
 
     @Column(nullable = false, length = 150)
     private String title;
@@ -42,7 +42,7 @@ public class Capsule {
     @Column(nullable = false)
     private CapsuleStatus status = CapsuleStatus.DRAFT;
 
-    // Flag especial para nós podermos simular "viagem no tempo" 
+    // Flag especial para nós podermos simular "viagem no tempo"
     // ou acessar antes da data sem ferir a regra das cápsulas reais
     @Column(nullable = false)
     private boolean isTestMode = false;
@@ -56,7 +56,7 @@ public class Capsule {
     // Data de criação e última atualização (Auditoria básica)
     @Column(updatable = false)
     private LocalDateTime createdAt;
-    
+
     private LocalDateTime updatedAt;
 
     @PrePersist
@@ -72,30 +72,107 @@ public class Capsule {
 
     // Getters and Setters
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getOwnerId() { return ownerId; }
-    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
-    public String getThemeId() { return themeId; }
-    public void setThemeId(String themeId) { this.themeId = themeId; }
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    public LocalDateTime getSealedAt() { return sealedAt; }
-    public void setSealedAt(LocalDateTime sealedAt) { this.sealedAt = sealedAt; }
-    public LocalDateTime getUnlockDate() { return unlockDate; }
-    public void setUnlockDate(LocalDateTime unlockDate) { this.unlockDate = unlockDate; }
-    public String getRecipientEmail() { return recipientEmail; }
-    public void setRecipientEmail(String recipientEmail) { this.recipientEmail = recipientEmail; }
-    public CapsuleStatus getStatus() { return status; }
-    public void setStatus(CapsuleStatus status) { this.status = status; }
-    public boolean isTestMode() { return isTestMode; }
-    public void setTestMode(boolean testMode) { isTestMode = testMode; }
-    public List<MemoryItem> getItems() { return items; }
-    public void setItems(List<MemoryItem> items) { this.items = items; }
-    public List<CapsuleGuardian> getGuardians() { return guardians; }
-    public void setGuardians(List<CapsuleGuardian> guardians) { this.guardians = guardians; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getThemeId() {
+        return themeId;
+    }
+
+    public void setThemeId(String themeId) {
+        this.themeId = themeId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getSealedAt() {
+        return sealedAt;
+    }
+
+    public void setSealedAt(LocalDateTime sealedAt) {
+        this.sealedAt = sealedAt;
+    }
+
+    public LocalDateTime getUnlockDate() {
+        return unlockDate;
+    }
+
+    public void setUnlockDate(LocalDateTime unlockDate) {
+        this.unlockDate = unlockDate;
+    }
+
+    public String getRecipientEmail() {
+        return recipientEmail;
+    }
+
+    public void setRecipientEmail(String recipientEmail) {
+        this.recipientEmail = recipientEmail;
+    }
+
+    public CapsuleStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CapsuleStatus status) {
+        this.status = status;
+    }
+
+    public boolean isTestMode() {
+        return isTestMode;
+    }
+
+    public void setTestMode(boolean testMode) {
+        isTestMode = testMode;
+    }
+
+    public List<MemoryItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<MemoryItem> items) {
+        this.items = items;
+    }
+
+    public List<CapsuleGuardian> getGuardians() {
+        return guardians;
+    }
+
+    public void setGuardians(List<CapsuleGuardian> guardians) {
+        this.guardians = guardians;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
 }

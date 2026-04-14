@@ -15,18 +15,19 @@ export interface CapsuleTheme {
 // O Dicionário Central. Para expandir os gráficos da empresa no futuro, 
 // basta adicionar um novo bloco abaixo. NENHUM CÓDIGO REACT PRECISA SER TOCADO!
 export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
-  "bau-pirata": {
-    id: "bau-pirata",
-    name: "Baú de Tesouro Pirata",
+  "bau-classico": {
+    id: "bau-classico",
+    name: "Baú Clássico",
     assets: {
       vault: {
-        closed: "/themes/bau-pirata/bau-fechado.png",
-        opened: "/themes/bau-pirata/bau-aberto.png"
+        closed: "/themes/bau-classico/bau-classico-fechado.png",
+        opened: "/themes/bau-classico/bau-classico-aberto.png"
       },
       relics: {
-        TEXT: "/themes/bau-pirata/carta.png",
-        // PHOTO, AUDIO, VIDEO cairão no Fallback Seguro do CSS (PhysicalRelic)
-        // até que o artista exporte e você registre o path aqui!
+        TEXT: "/themes/bau-classico/icone-texto-classico.png",
+        PHOTO: "/themes/bau-classico/icone-imagem-classico.png",
+        AUDIO: "/themes/bau-classico/icone-audio-classico.png",
+        VIDEO: "/themes/bau-classico/icone-video-classico.png"
       }
     }
   }

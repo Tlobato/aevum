@@ -11,7 +11,7 @@ A arquitetura atual consegue não apenas renderizar objetos 2.5D sofisticados ("
   - Sistema de permissão Nativo WebRTC (Espelho de Webcam `video` e simulador de ondas de captura analógica).
   - Componentização Abstrata de *Uploads Multi-path* (O texto pode ser redigido localmente OU um `.pdf`/`.txt` pode ser anexado na mesma visão).
 - **Mecanismo "A Bocada Mágica" (Física Animada):**
-  - Implementado o sistema de _Asset Swapping_ em 0 delay, onde uma imagem `bau-fechado.png` é trocada pelo `bau-aberto.png` assim que o motor do Framer Motion finaliza os cálculos vetoriais em `X,Y,Z` do item engolido pela cápsula.
+  - Implementado o sistema de _Asset Swapping_ em 0 delay, onde uma imagem `bau-classico-fechado.png` é trocada pelo `bau-classico-aberto.png` assim que o motor do Framer Motion finaliza os cálculos vetoriais em `X,Y,Z` do item engolido pela cápsula.
 
 ## 2. O que falta e Está Travado na Fila (O Próximo Passo Mestre)
 **FASE 5: A Integração do Backend e Persistência Física**
