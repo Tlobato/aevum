@@ -61,3 +61,16 @@ LocalStack para simular S3 local, refatoração JPA com relações formais e Das
 - **AwsConfig.java:** Bean central substituindo o construtor manual do `StorageService`. Detecta `aws.s3.endpoint` no YAML e aplica `endpointOverride` + `pathStyleAccessEnabled(true)` para o LocalStack. Em produção, basta remover a propriedade e o SDK usa a AWS real.
 - **Refatoração JPA (User ↔ Capsule):** Removido o campo primitivo `String ownerId` da entidade `Capsule`. Introduzido `@ManyToOne User owner` com FK real `owner_id` no banco. `User` recebeu `@OneToMany List<Capsule>`. `CapsuleService` agora faz lookup do `User` antes de persistir qualquer cápsula.
 - **Dashboard Multi-Cápsula:** Galeria de cards com animação de entrada escalonada. Cada card exibe título, herdeiro, plano, barra de progresso de quota e data de despertar. Botão "Forjar Nova Relíquia" expande um formulário inline com estimativa de preço dinâmica.
+
+## 14-16 de Abril de 2026 - Polimentos Premium e Transição em Vídeo (Fase 8)
+Focamos em blindar a interface contra bugs visuais e elevar o requinte das interações na hora do usuário trancar a cápsula.
+
+### O que implementamos
+O Componente Central `CinematicCapsule.tsx` foi profundamente lapidado com formatações dinâmicas, correção de cliques fantasmas, Layouts Responsivos para Recibos Holográficos e a renderização limpa do MP4 na etapa de selagem. 
+
+### Resumo das Ações
+- **Barra de Quota Milimétrica (`StorageBar.tsx`):** A barra foi desvinculada para um arquivo próprio. O cálculo de bytes virou estritamente preciso (exibindo dinamicamente "8 KB" ou "3.31 MB"), com um display híbrido muito técnico e um feedback de pulso *(Glow)* ao arremessar memórias.
+- **Recibo Holográfico Responsivo:** Substituto da antiga frase simples de término. É um card lindíssimo posicionado de forma *Side-by-Side* no Desktop, com informações cravadas como E-mail do Destinatário, Título da Relíquia e Data de Eclosão.
+- **Micro-interações & Bugfixes:** Resolvemos a "Amnésia do Baú" garantindo que baús que voltam da API já abram seus arquivos sem esconder botões. Inibimos "Cliques Fantasmas" corrigindo o CSS `pointer-events-none`.
+- **A Quebra do Paradoxo Temporal:** Adicionado o mock do processo de **Resgate Antecipado** (Early Unlock) acessível via o Recibo Holográfico. Possui um design ameaçador em vermelho listando os custos reais atrelados pela AWS Glacier e pela Taxa de Reintegração Aevum.
+- **A Selagem Cinemática (Blend FX):** Implementamos a tag `<motion.video>` com a técnica fantástica CSS do `mix-blend-screen`. O usuário agora assiste uma cinemática de fechamento por MP4 onde o fundo preto some magicamente, combinando sem atrito com o site de fundo.
