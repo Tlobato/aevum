@@ -24,14 +24,25 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
      liveVideoRef,
      startHardwareRecording,
      stopHardwareRecording,
+     capturePhoto,
      resetRecordingState,
      cleanupHardwareTracks
   } = useWebRTC();
 
   // Garante a morte do hardware se o modal desmontar inesperadamente
   useEffect(() => {
-    return () => cleanupHardwareTracks();
-  }, [cleanupHardwareTracks]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+         cleanupHardwareTracks();
+         onCancel();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      cleanupHardwareTracks();
+    };
+  }, [cleanupHardwareTracks, onCancel]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -63,7 +74,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
       if (forgeSubMode === "WRITE") return forgeText.trim().length >= 3;
       return forgeFile !== null;
     }
-    if (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO") {
+    if (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") {
       // Se usar o form nativo hardware, verifica se o blob fantasma existe
       if (forgeSubMode === "WRITE") return recordState === "DONE" && capturedFile !== null;
       return forgeFile !== null; // se foi upload local
@@ -76,7 +87,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
     cleanupHardwareTracks();
     
     // O file físico que será entregue à cápsula
-    const targetFile = (forgeSubMode === "WRITE" && (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO")) ? capturedFile : forgeFile;
+    const targetFile = (forgeSubMode === "WRITE" && (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO")) ? capturedFile : forgeFile;
     
     const finalLabel = targetFile ? targetFile.name : (activeForgeMode === "TEXT" ? "Texto Redigido" : "Registro Temporário");
     
@@ -84,7 +95,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
     onLaunch({
        type: activeForgeMode,
        label: finalLabel,
-       payload: (activeForgeMode === "TEXT" && forgeSubMode === "WRITE") ? forgeText : targetFile,
+       payload: (activeForgeMode === "TEXT" && forgeSubMode === "WRITE") ? forgeText : (targetFile ?? undefined),
        fileName: targetFile?.name
     });
   };
@@ -123,7 +134,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
         <p className="text-xs text-amber-500/60 mb-6 uppercase tracking-wider relative z-20">Configure o registro eterno desta memória</p>
 
         {/* ABAS (Toggles) DE MÚLTIPLOS CAMINHOS */}
-        {(activeForgeMode === "TEXT" || activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO") && (
+        {(activeForgeMode === "TEXT" || activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && (
           <div className="flex w-full bg-white/5 p-1 rounded-xl mb-6 relative z-20">
             <button 
               onClick={() => handleModeSwitch("WRITE")} 
@@ -131,7 +142,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
             >
               {activeForgeMode === "TEXT" && <PenLine size={16}/>}
               {activeForgeMode === "AUDIO" && <Mic size={16}/>}
-              {activeForgeMode === "VIDEO" && <MonitorPlay size={16}/>}
+              {(activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && <MonitorPlay size={16}/>}
               {activeForgeMode === "TEXT" ? "Redigir" : (activeForgeMode === "AUDIO" ? "Gravar Áudio" : "Ligar Câmera")}
             </button>
             <button 
@@ -156,16 +167,16 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
         )}
 
         {/* MODO HARDWARE (WEBCAM E MICROFONE REAIS) */}
-        {(activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO") && forgeSubMode === "WRITE" && (
+        {(activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && forgeSubMode === "WRITE" && (
             <div className="w-full h-[220px] bg-black/80 border border-amber-900/50 rounded-xl flex flex-col items-center justify-center mb-6 relative overflow-hidden transition-colors">
               
-              {activeForgeMode === "VIDEO" && (
+              {(activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && (
                   <video 
                     ref={liveVideoRef} 
                     autoPlay 
                     playsInline 
                     muted 
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${recordState === "RECORDING" ? 'opacity-100' : 'opacity-20'}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${(recordState === "RECORDING" || recordState === "CAMERA_READY") ? 'opacity-100' : 'opacity-20'}`}
                   />
               )}
 
@@ -184,6 +195,17 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                   </button>
                   <span className="text-amber-500/80 font-bold uppercase tracking-wider text-[10px]">
                     Iniciar Permissão e Captura
+                  </span>
+                </div>
+              )}
+
+              {recordState === "CAMERA_READY" && activeForgeMode === "PHOTO" && (
+                <div className="flex flex-col items-center gap-4 relative z-10 pt-10">
+                  <button onClick={capturePhoto} className="w-16 h-16 bg-white/20 border-4 border-white text-white rounded-full flex items-center justify-center hover:bg-white/40 transition-all shadow-[0_0_20px_rgba(255,255,255,0.8)] backdrop-blur-sm">
+                      <Camera size={24} fill="currentColor" />
+                  </button>
+                  <span className="text-white drop-shadow-md font-mono font-bold tracking-widest text-xs z-10 bg-black/50 px-3 py-1 rounded-md border border-white/10 uppercase">
+                      Tirar Foto
                   </span>
                 </div>
               )}
@@ -221,7 +243,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                       <CheckCircle2 size={32}/>
                     </div>
                     <span className="text-emerald-400 font-bold uppercase tracking-wider text-xs text-center px-4">
-                      {activeForgeMode === "AUDIO" ? "Áudio" : "Filme"} Capturado com Sucesso!
+                      {activeForgeMode === "AUDIO" ? "Áudio" : activeForgeMode === "PHOTO" ? "Fotografia" : "Filme"} Capturado com Sucesso!
                     </span>
                     <span className="text-white/60 font-mono text-[10px] bg-black/30 px-2 py-1 rounded truncate max-w-[200px]">
                       {formatSize(capturedFile.size)} 
@@ -235,7 +257,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
         )}
 
         {/* O MODO UPLOAD UNIVERSAL */}
-        {(forgeSubMode === "UPLOAD" || activeForgeMode === "PHOTO") && (
+        {forgeSubMode === "UPLOAD" && (
           <label htmlFor="file-upload" className={`w-full h-[220px] flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-all mb-6 cursor-pointer relative z-20 overflow-hidden ${forgeFile ? 'bg-amber-900/20 border-amber-500' : 'bg-white/5 border-amber-900/50 hover:bg-white/10 hover:border-amber-500/50'}`}>
             {forgeFile ? (
                 <motion.div initial={{scale:0}} animate={{scale:1}} className="flex flex-col items-center text-amber-500 w-full h-full relative">

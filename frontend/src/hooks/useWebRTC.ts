@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { ItemType } from "@/types/capsule";
 
 export function useWebRTC() {
-  const [recordState, setRecordState] = useState<"IDLE" | "RECORDING" | "DONE" | "ERROR">("IDLE");
+  const [recordState, setRecordState] = useState<"IDLE" | "RECORDING" | "CAMERA_READY" | "DONE" | "ERROR">("IDLE");
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
 
@@ -44,9 +44,14 @@ export function useWebRTC() {
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
 
-      if (mode === "VIDEO" && liveVideoRef.current) {
+      if ((mode === "VIDEO" || mode === "PHOTO") && liveVideoRef.current) {
         liveVideoRef.current.srcObject = stream;
         liveVideoRef.current.muted = true; // prevent local feedback loop
+      }
+
+      if (mode === "PHOTO") {
+          setRecordState("CAMERA_READY");
+          return;
       }
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType: mode === "VIDEO" ? 'video/webm' : 'audio/webm' });
@@ -82,6 +87,26 @@ export function useWebRTC() {
     }
   }, []);
 
+  const capturePhoto = useCallback(() => {
+      if (!liveVideoRef.current || !streamRef.current) return;
+      const video = liveVideoRef.current;
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob((blob) => {
+              if (blob) {
+                  const fakeFile = new File([blob], `foto_${Date.now()}.jpg`, { type: "image/jpeg" });
+                  setCapturedFile(fakeFile);
+                  setRecordState("DONE");
+                  cleanupHardwareTracks();
+              }
+          }, "image/jpeg", 0.9);
+      }
+  }, [cleanupHardwareTracks]);
+
   const resetRecordingState = useCallback(() => {
     setRecordState("IDLE");
     setRecordSeconds(0);
@@ -96,6 +121,7 @@ export function useWebRTC() {
     liveVideoRef,
     startHardwareRecording,
     stopHardwareRecording,
+    capturePhoto,
     resetRecordingState,
     cleanupHardwareTracks
   };

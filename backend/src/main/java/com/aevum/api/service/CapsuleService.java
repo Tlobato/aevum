@@ -6,9 +6,9 @@ import com.aevum.api.domain.MemoryItem;
 import com.aevum.api.domain.User;
 import com.aevum.api.dto.CapsuleCreateRequest;
 import com.aevum.api.dto.CapsuleResponse;
-import com.aevum.api.exception.CapsuleLockedException;
 import com.aevum.api.repository.CapsuleRepository;
 import com.aevum.api.repository.UserRepository;
+import com.aevum.api.dto.MemoryResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +34,8 @@ public class CapsuleService {
             throw new IllegalArgumentException("A data de abertura deve estar no futuro.");
         }
 
-        // Lookup real do usuário — lança exceção se não encontrado (não deveria acontecer)
+        // Lookup real do usuário — lança exceção se não encontrado (não deveria
+        // acontecer)
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + userId));
 
@@ -78,7 +79,8 @@ public class CapsuleService {
     }
 
     @Transactional(readOnly = true)
-    public com.aevum.api.service.PricingService.PricingSummary calculateSummary(UUID id, com.aevum.api.service.PricingService pricingService) {
+    public com.aevum.api.service.PricingService.PricingSummary calculateSummary(UUID id,
+            com.aevum.api.service.PricingService pricingService) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
         return pricingService.calculateSealSummary(capsule);
@@ -121,11 +123,37 @@ public class CapsuleService {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
 
-        // A Regra de Ouro do Aevum protegendo as Memórias será aplicada no endpoint 
-        // futuro de download de arquivos (ex: GET /capsules/{id}/memories), 
-        // já que este endpoint principal devolve apenas metadados necessários para renderizar o baú 3D visualmente na UI.
+        // A Regra de Ouro do Aevum protegendo as Memórias será aplicada no endpoint
+        // futuro de download de arquivos (ex: GET /capsules/{id}/memories),
+        // já que este endpoint principal devolve apenas metadados necessários para
+        // renderizar o baú 3D visualmente na UI.
 
         return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemoryResponse> getMemoriesWithUrls(UUID id, String userId, com.aevum.api.service.StorageService storageService) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+
+        if (!capsule.getOwnerId().equals(userId)) {
+            // Se for o recebedor, a validação de acesso ao Vault será feita por outra lógica no futuro (ex: link mágico),
+            // mas por enquanto, na MVP o criador/testador é o owner.
+            throw new IllegalArgumentException("Acesso negado às memórias desta cápsula.");
+        }
+
+        if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
+            throw new IllegalArgumentException("As memórias ainda estão congeladas no tempo e não podem ser lidas.");
+        }
+
+        return capsule.getItems().stream().map(item -> {
+            String presignedUrl = null;
+            // Se for arquivo físico, gera a URL temporária no S3
+            if (item.getFileName() != null && !item.getFileName().isBlank()) {
+                presignedUrl = storageService.generatePresignedGetUrl(capsule.getId().toString(), item.getFileName());
+            }
+            return MemoryResponse.fromEntity(item, presignedUrl);
+        }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -133,5 +161,23 @@ public class CapsuleService {
         return repository.findByOwner_Id(userId).stream()
                 .map(CapsuleResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void debugUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+        
+        // Garante que se estava em draft, os arquivos sejam passados para a pasta sealed/
+        if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT) {
+            storageService.freezeCapsuleFiles(capsule);
+            capsule.setStatus(com.aevum.api.domain.CapsuleStatus.SEALED);
+        }
+        
+        // Remove DEEP_ARCHIVE tiering em modo debug para liberar o download imediato
+        storageService.forceStandardForDebug(capsule);
+        
+        capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.AVAILABLE);
+        repository.save(capsule);
     }
 }

@@ -8,6 +8,7 @@ import { THEME_REGISTRY } from "@/config/themes";
 import { PhysicalRelic } from "./relics/PhysicalRelic";
 import { ForgeModal } from "./forge/ForgeModal";
 import { StorageBar } from "./StorageBar";
+import { RelicGallery } from "./RelicGallery";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -47,6 +48,11 @@ export function CinematicCapsule({
   const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
   const [isSealingVideoPlaying, setIsSealingVideoPlaying] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+
+  // Estados de Despertar
+  const [viewMode, setViewMode] = useState<"VAULT" | "GALLERY">("VAULT");
+  const [isUnsealingVideoPlaying, setIsUnsealingVideoPlaying] = useState(false);
+  const [memoriesList, setMemoriesList] = useState<Memory[]>([]);
 
   const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
@@ -173,7 +179,29 @@ export function CinematicCapsule({
     }
   };
 
-  const isBlurMode = activeForgeMode !== null;
+  const unsealVault = async () => {
+    setIsUnsealingVideoPlaying(true);
+    // Em paralelo, carrega as memórias do backend para estarem prontas quando o vídeo acabar.
+    if (capsuleId && user) {
+        try {
+            const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+                headers: { "X-User-Id": user.id }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMemoriesList(data);
+            }
+        } catch (e) {
+            console.error("Erro ao carregar relíquias", e);
+        }
+    }
+  };
+
+  const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal;
+
+  if (viewMode === "GALLERY") {
+    return <RelicGallery memories={memoriesList} title={title} />;
+  }
 
   return (
     <div className="flex flex-col items-center w-full min-h-[650px] relative pointer-events-auto">
@@ -246,7 +274,7 @@ export function CinematicCapsule({
               animate={{ opacity: isChomping ? 0 : 1 }} transition={{ duration: 0 }} />
             <motion.img
               src={activeTheme.assets.vault.opened} className="absolute w-full max-h-full object-contain"
-              animate={{ opacity: (isChomping || storageStatus === "AVAILABLE") ? 1 : 0 }} transition={{ duration: 0 }} />
+              animate={{ opacity: isChomping ? 1 : 0 }} transition={{ duration: 0 }} />
 
             {/* Camada de Gelo se estiver Restoring */}
             <AnimatePresence>
@@ -314,11 +342,13 @@ export function CinematicCapsule({
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
                       Receptáculo protegido pelo selo da eternidade
                     </span>
-                    <button
-                      onClick={() => setShowEarlyUnlockModal(true)}
-                      className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
-                      Solicitar Resgate Imediato
-                    </button>
+                    {storageStatus !== "AVAILABLE" && (
+                        <button
+                          onClick={() => setShowEarlyUnlockModal(true)}
+                          className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
+                          Solicitar Resgate Imediato
+                        </button>
+                    )}
                   </div>
 
                 </div>
@@ -359,6 +389,20 @@ export function CinematicCapsule({
           </motion.div>
         );
       })()}
+
+      {/* Botão de Quebrar o Selo */}
+      {storageStatus === "AVAILABLE" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 transition-all pointer-events-auto"
+          >
+            <button onClick={unsealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
+              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> QUEBRAR O SELO DO TEMPO</div>
+            </button>
+          </motion.div>
+      )}
 
       {/* ======================================================== */}
       {/* COMPONENTE FILHO INJETADO: O MODAL DA FORJA INTELIGENTE  */}
@@ -417,9 +461,19 @@ export function CinematicCapsule({
                   Cancelar
                 </button>
                 <button
-                  onClick={() => {
-                    alert("Integração de pagamento pendente. \nNeste momento da aplicação, simularíamos o checkout do Stripe para quebrar o selo!");
-                    setShowEarlyUnlockModal(false);
+                  onClick={async () => {
+                    try {
+                      if (capsuleId && user) {
+                         await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+                            method: 'POST',
+                            headers: { "X-User-Id": user.id }
+                         });
+                      }
+                      setStorageStatus("AVAILABLE");
+                      setShowEarlyUnlockModal(false);
+                    } catch(e) {
+                      console.error("Failed to unlock", e);
+                    }
                   }}
                   className="flex-1 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-red-500/20">
                   Processar
@@ -479,6 +533,42 @@ export function CinematicCapsule({
                exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeOut" } }}
                className="fixed inset-0 z-[300] bg-black pointer-events-none"
             />
+         )}
+      </AnimatePresence>
+
+      {/* ======================================================== */}
+      {/* Cutscene de Abertura (The Awakening)                       */}
+      {/* ======================================================== */}
+      <AnimatePresence>
+         {isUnsealingVideoPlaying && (
+            <motion.div
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl px-4"
+            >
+               <div className="relative w-full max-w-3xl aspect-video rounded-3xl overflow-hidden shadow-[0_0_120px_rgba(245,158,11,0.15)] bg-black flex items-center justify-center border border-white/5">
+                  <video 
+                     autoPlay muted playsInline
+                     onEnded={() => {
+                        setShowFlash(true);
+                        setTimeout(() => {
+                           setIsUnsealingVideoPlaying(false);
+                           setViewMode("GALLERY");
+                        }, 200); // peak of flash
+                        setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
+                     }}
+                     src="/themes/bau-classico/bau-classico-video-selado.webm" 
+                     className="w-full h-full object-contain max-h-[75vh] px-4"
+                  />
+                  {/* Overlay Cinematográfico */}
+                  <div className="absolute bottom-8 w-full text-center pointer-events-none">
+                     <span className="text-amber-500/70 text-xs md:text-sm tracking-[0.5em] uppercase font-bold animate-pulse">
+                        Despertando Relíquias
+                     </span>
+                  </div>
+               </div>
+            </motion.div>
          )}
       </AnimatePresence>
 

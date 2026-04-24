@@ -2,6 +2,7 @@ package com.aevum.api.controller;
 
 import com.aevum.api.dto.CapsuleCreateRequest;
 import com.aevum.api.dto.CapsuleResponse;
+import com.aevum.api.dto.MemoryResponse;
 import com.aevum.api.service.CapsuleService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -56,6 +57,14 @@ public class CapsuleController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/memories")
+    public ResponseEntity<List<MemoryResponse>> getMemories(
+            @RequestHeader("X-User-Id") String userId,
+            @PathVariable UUID id) {
+        List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, userId, storageService);
+        return ResponseEntity.ok(memories);
+    }
+
     @GetMapping("/{id}/calculate-seal")
     public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> calculateSeal(@PathVariable UUID id) {
         com.aevum.api.service.PricingService.PricingSummary summary = capsuleService.calculateSummary(id, pricingService);
@@ -91,5 +100,12 @@ public class CapsuleController {
     @GetMapping
     public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@RequestHeader("X-User-Id") String userId) {
         return ResponseEntity.ok(capsuleService.listMyCapsules(userId));
+    }
+
+    // Endpoint Exclusivo para Modo Desenvolvedor
+    @PostMapping("/{id}/debug-unlock")
+    public ResponseEntity<Void> forceUnlockCapsule(@PathVariable UUID id) {
+        capsuleService.debugUnlockCapsule(id, storageService);
+        return ResponseEntity.ok().build();
     }
 }

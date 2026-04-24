@@ -49,6 +49,7 @@ export default function Dashboard() {
     });
     const [planType, setPlanType]           = useState("ESQUIRE_1GB");
     const [recipientEmail, setRecipientEmail] = useState("");
+    const [isCustomEmail, setIsCustomEmail] = useState(false);
     const [themeId, setThemeId]             = useState("bau-classico");
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
@@ -57,6 +58,16 @@ export default function Dashboard() {
         if (!user) { router.push("/"); return; }
         fetchCapsules();
     }, [user, router]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && showCreateForm) {
+                setShowCreateForm(false);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [showCreateForm]);
 
     const fetchCapsules = useCallback(async () => {
         setIsLoading(true);
@@ -157,7 +168,11 @@ export default function Dashboard() {
                         </h1>
                     </div>
                     <button
-                        onClick={() => setShowCreateForm(!showCreateForm)}
+                        onClick={() => {
+                            setIsCustomEmail(false);
+                            setRecipientEmail(user?.email || "");
+                            setShowCreateForm(!showCreateForm);
+                        }}
                         className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all"
                     >
                         <Plus className="w-4 h-4" />
@@ -191,10 +206,29 @@ export default function Dashboard() {
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all" />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Portador (E-mail)</label>
-                                            <input type="email" required value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)}
-                                                placeholder="herdeiro@futuro.com"
-                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700" />
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Portador (E-mail)</label>
+                                                {!isCustomEmail && (
+                                                    <button type="button" onClick={() => { setIsCustomEmail(true); setRecipientEmail(""); }} className="text-[10px] text-amber-500 hover:text-amber-400 uppercase tracking-widest font-bold">
+                                                        Usar Outro Email
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {isCustomEmail ? (
+                                                <div className="relative">
+                                                    <input type="email" required value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)}
+                                                        placeholder="herdeiro@futuro.com" autoFocus
+                                                        className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700" />
+                                                    <button type="button" onClick={() => { setIsCustomEmail(false); setRecipientEmail(user?.email || ""); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-neutral-500 hover:text-white uppercase font-bold tracking-wider">
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-300 flex items-center justify-between">
+                                                    <span>{user?.email}</span>
+                                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-neutral-500 uppercase tracking-wider font-bold">Meu Email</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
