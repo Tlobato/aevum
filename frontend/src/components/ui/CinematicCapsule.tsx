@@ -558,7 +558,7 @@ export function CinematicCapsule({
                         }, 200); // peak of flash
                         setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
                      }}
-                     src="/themes/bau-classico/bau-classico-video-selado.webm" 
+                     src="/themes/bau-classico/bau-classico-video-abrindo.webm" 
                      className="w-full h-full object-contain max-h-[75vh] px-4"
                   />
                   {/* Overlay Cinematográfico */}
