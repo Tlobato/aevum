@@ -8,6 +8,12 @@ spring:
     password: aevum_secret
     driver-class-name: org.postgresql.Driver
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://enjoyed-airedale-42.clerk.accounts.dev
+
   jpa:
     hibernate:
       ddl-auto: update

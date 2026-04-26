@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,9 +32,19 @@ public class CapsuleController {
 
     @PostMapping
     public ResponseEntity<CapsuleResponse> createDraft(
-            @RequestHeader("X-User-Id") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CapsuleCreateRequest request) {
-        CapsuleResponse response = capsuleService.createDraft(request, userId);
+        
+        String userId = jwt.getSubject();
+        
+        // Clerk places primary email in the JWT claims under the "email" property if configured, 
+        // or we can extract it if needed. However, since the user already exists in JIT,
+        // we can just fall back to getting it from claims. Clerk usually puts it under "email" or "email_addresses".
+        // Let's use getClaimAsString("email") if available, otherwise unknown.
+        String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = "unknown";
+        
+        CapsuleResponse response = capsuleService.createDraft(request, userId, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -44,10 +56,10 @@ public class CapsuleController {
 
     @PostMapping("/{id}/memories")
     public ResponseEntity<CapsuleResponse> addMemory(
-            @RequestHeader("X-User-Id") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
             @Valid @RequestBody com.aevum.api.dto.AddMemoryRequest request) {
-        CapsuleResponse response = capsuleService.addMemory(id, request, userId);
+        CapsuleResponse response = capsuleService.addMemory(id, request, jwt.getSubject());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -59,9 +71,9 @@ public class CapsuleController {
 
     @GetMapping("/{id}/memories")
     public ResponseEntity<List<MemoryResponse>> getMemories(
-            @RequestHeader("X-User-Id") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
-        List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, userId, storageService);
+        List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, jwt.getSubject(), storageService);
         return ResponseEntity.ok(memories);
     }
 
@@ -98,8 +110,8 @@ public class CapsuleController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@RequestHeader("X-User-Id") String userId) {
-        return ResponseEntity.ok(capsuleService.listMyCapsules(userId));
+    public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));
     }
 
     // Endpoint Exclusivo para Modo Desenvolvedor

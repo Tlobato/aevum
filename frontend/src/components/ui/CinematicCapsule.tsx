@@ -12,7 +12,7 @@ import { RelicGallery } from "./RelicGallery";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
-import { useAuth } from "@/components/auth/AuthContext";
+import { useUser, useAuth } from "@clerk/nextjs";
 
 export function CinematicCapsule({
   capsuleId,
@@ -33,7 +33,8 @@ export function CinematicCapsule({
   recipientEmail?: string,
   unlockDate?: string
 }) {
-  const { user } = useAuth();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
   const [localMemoriesCount, setLocalMemoriesCount] = useState(initialUsedBytes > 0 ? 1 : 0);
   const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
@@ -103,9 +104,10 @@ export function CinematicCapsule({
 
       if (actualFile) {
         uploadedFileName = newMemory.fileName || `media_${Date.now()}`;
+        const token = await getToken();
         // Pede URL Assinada
         const presignRes = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
-          headers: { "X-User-Id": user.id }
+          headers: { "Authorization": `Bearer ${token}` }
         });
 
         if (!presignRes.ok) throw new Error("Falha ao obter URL assinada.");
@@ -123,10 +125,11 @@ export function CinematicCapsule({
         if (!s3Res.ok) throw new Error("A conexão dimensional falhou durante a transferência.");
       }
 
+      const token = await getToken();
       // Consolida Memória no Banco Postgres
       await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-User-Id": user.id },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
           type: newMemory.type,
           textContent: textContent,
@@ -164,9 +167,10 @@ export function CinematicCapsule({
       // Abre a cutscene e escurece a tela, mas mantemos o baú visualmente focado e intacto atrás
       setIsSealingVideoPlaying(true);
 
+      const token = await getToken();
       const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
         method: "POST",
-        headers: { "X-User-Id": user.id }
+        headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (!res.ok) {
@@ -184,8 +188,9 @@ export function CinematicCapsule({
     // Em paralelo, carrega as memórias do backend para estarem prontas quando o vídeo acabar.
     if (capsuleId && user) {
         try {
+            const token = await getToken();
             const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
-                headers: { "X-User-Id": user.id }
+                headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
                 const data = await res.json();
@@ -317,7 +322,7 @@ export function CinematicCapsule({
 
                   <div className="flex items-center gap-4 border-t border-white/5 pt-4">
                     <div className="w-10 h-10 rounded-full bg-amber-500/10 flex flex-shrink-0 items-center justify-center border border-amber-500/30">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M19 21v-2a4 4 string 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     </div>
                     <div className="flex flex-col truncate">
                       <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Destinado Para</span>
@@ -464,9 +469,10 @@ export function CinematicCapsule({
                   onClick={async () => {
                     try {
                       if (capsuleId && user) {
+                         const token = await getToken();
                          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
                             method: 'POST',
-                            headers: { "X-User-Id": user.id }
+                            headers: { "Authorization": `Bearer ${token}` }
                          });
                       }
                       setStorageStatus("AVAILABLE");

@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
 
 export default function VaultPage() {
-    const { user } = useAuth();
+    const { isLoaded, user } = useUser();
+    const { getToken } = useAuth();
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
@@ -16,14 +17,15 @@ export default function VaultPage() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!user) {
-            router.push("/");
-            return;
-        }
-
+        if (!isLoaded) return;
+        if (!user) { router.push("/"); return; }
+        
         const fetchCapsule = async () => {
             try {
-                const res = await fetch(`http://localhost:8080/api/v1/capsules/${id}`);
+                const token = await getToken();
+                const res = await fetch(`http://localhost:8080/api/v1/capsules/${id}`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
                 if (res.ok) {
                     const data = await res.json();
                     setCapsuleData(data);

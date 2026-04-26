@@ -29,15 +29,19 @@ public class CapsuleService {
     }
 
     @Transactional
-    public CapsuleResponse createDraft(CapsuleCreateRequest request, String userId) {
+    public CapsuleResponse createDraft(CapsuleCreateRequest request, String userId, String userEmail) {
         if (request.unlockDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("A data de abertura deve estar no futuro.");
         }
 
-        // Lookup real do usuário — lança exceção se não encontrado (não deveria
-        // acontecer)
+        // Lazy creation do usuário vindo do Clerk (se não existir, cria na hora)
         User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + userId));
+                .orElseGet(() -> {
+                    User newUser = new User();
+                    newUser.setId(userId);
+                    newUser.setEmail(userEmail);
+                    return userRepository.save(newUser);
+                });
 
         Capsule capsule = new Capsule();
         if (request.themeId() != null && !request.themeId().isBlank()) {

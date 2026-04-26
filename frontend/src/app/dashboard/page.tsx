@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/auth/AuthContext";
+import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
@@ -33,7 +33,8 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 export default function Dashboard() {
-    const { user, logout } = useAuth();
+    const { isLoaded, user } = useUser();
+    const { getToken } = useAuth();
     const router = useRouter();
 
     const [capsules, setCapsules] = useState<CapsuleCard[]>([]);
@@ -54,10 +55,7 @@ export default function Dashboard() {
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
 
-    useEffect(() => {
-        if (!user) { router.push("/"); return; }
-        fetchCapsules();
-    }, [user, router]);
+
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -72,8 +70,9 @@ export default function Dashboard() {
     const fetchCapsules = useCallback(async () => {
         setIsLoading(true);
         try {
+            const token = await getToken();
             const res = await fetch("http://localhost:8080/api/v1/capsules", {
-                headers: { "X-User-Id": user!.id }
+                headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) setCapsules(await res.json());
         } catch (e) {
@@ -83,14 +82,23 @@ export default function Dashboard() {
         }
     }, [user]);
 
+    useEffect(() => {
+        if (isLoaded && !user) { router.push("/"); return; }
+        if (isLoaded && user) fetchCapsules();
+    }, [isLoaded, user, router, fetchCapsules]);
+
     // Busca estimativa de preço dinamicamente
     useEffect(() => {
         if (!showCreateForm || !user) return;
         const fetchEstimate = async () => {
             try {
+                const token = await getToken();
                 const res = await fetch("http://localhost:8080/api/v1/capsules/estimate", {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
                     body: JSON.stringify({ planType, unlockDate: new Date(unlockDate).toISOString() })
                 });
                 if (res.ok) { const d = await res.json(); setEstimatedPrice(d.priceInCents); }
@@ -103,9 +111,13 @@ export default function Dashboard() {
         e.preventDefault();
         setIsSaving(true);
         try {
+            const token = await getToken();
             const res = await fetch("http://localhost:8080/api/v1/capsules", {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "X-User-Id": user!.id },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     themeId, title, description,
                     unlockDate: new Date(unlockDate).toISOString(),
@@ -147,12 +159,9 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center gap-6">
                         <span className="text-xs font-mono text-neutral-500 bg-neutral-900/80 px-3 py-1.5 rounded-full border border-neutral-800 hidden md:block">
-                            {user?.email}
+                            {user?.primaryEmailAddress?.emailAddress}
                         </span>
-                        <button onClick={() => { logout(); router.push("/"); }}
-                            className="text-xs text-neutral-500 hover:text-amber-500 transition-colors font-bold uppercase tracking-widest">
-                            Sair
-                        </button>
+                        <UserButton />
                     </div>
                 </div>
             </header>
@@ -170,7 +179,7 @@ export default function Dashboard() {
                     <button
                         onClick={() => {
                             setIsCustomEmail(false);
-                            setRecipientEmail(user?.email || "");
+                            setRecipientEmail(user?.primaryEmailAddress?.emailAddress || "");
                             setShowCreateForm(!showCreateForm);
                         }}
                         className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all"
@@ -219,13 +228,13 @@ export default function Dashboard() {
                                                     <input type="email" required value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)}
                                                         placeholder="herdeiro@futuro.com" autoFocus
                                                         className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700" />
-                                                    <button type="button" onClick={() => { setIsCustomEmail(false); setRecipientEmail(user?.email || ""); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-neutral-500 hover:text-white uppercase font-bold tracking-wider">
+                                                    <button type="button" onClick={() => { setIsCustomEmail(false); setRecipientEmail(user?.primaryEmailAddress?.emailAddress || ""); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-neutral-500 hover:text-white uppercase font-bold tracking-wider">
                                                         Cancelar
                                                     </button>
                                                 </div>
                                             ) : (
                                                 <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-300 flex items-center justify-between">
-                                                    <span>{user?.email}</span>
+                                                    <span>{user?.primaryEmailAddress?.emailAddress}</span>
                                                     <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-neutral-500 uppercase tracking-wider font-bold">Meu Email</span>
                                                 </div>
                                             )}
