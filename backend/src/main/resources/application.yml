@@ -46,9 +46,9 @@ aws:
   s3:
     bucket: ${AWS_BUCKET:aevum-storage-bucket}
     region: ${AWS_REGION:us-east-1}
-    endpoint: ${AWS_ENDPOINT:http://localhost:4566}
-    access-key: ${AWS_ACCESS_KEY:test}
-    secret-key: ${AWS_SECRET_KEY:test}
+    endpoint: ${AWS_ENDPOINT:}
+    access-key: ${AWS_ACCESS_KEY:}
+    secret-key: ${AWS_SECRET_KEY:}
 
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:}
