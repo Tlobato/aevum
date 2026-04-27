@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 
@@ -49,7 +50,17 @@ public class CapsuleController {
     }
 
     @PostMapping("/{id}/seal")
-    public ResponseEntity<CapsuleResponse> sealCapsule(@PathVariable UUID id) {
+    public ResponseEntity<CapsuleResponse> sealCapsule(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
+        
+        String userEmail = jwt.getClaimAsString("email");
+        boolean isAdmin = userEmail != null && List.of(adminEmailsStr.split(",")).contains(userEmail);
+        
+        if (!isAdmin) {
+            return ResponseEntity.status(403).build(); // Apenas Admin pode usar o fallback manual de selagem
+        }
+
         CapsuleResponse response = capsuleService.sealCapsule(id, storageService);
         return ResponseEntity.ok(response);
     }
@@ -118,9 +129,22 @@ public class CapsuleController {
         return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));
     }
 
+    @Value("${aevum.admin-emails:}")
+    private String adminEmailsStr;
+
     // O POST /debug-unlock agora é usado tanto para o bypass (admin) quanto para o sucesso do frontend (Stripe fallback)
     @PostMapping("/{id}/debug-unlock")
-    public ResponseEntity<Void> forceUnlockCapsule(@PathVariable UUID id) {
+    public ResponseEntity<Void> forceUnlockCapsule(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Jwt jwt) {
+        
+        String userEmail = jwt.getClaimAsString("email");
+        boolean isAdmin = userEmail != null && List.of(adminEmailsStr.split(",")).contains(userEmail);
+        
+        if (!isAdmin) {
+            return ResponseEntity.status(403).build(); // Forbidden
+        }
+
         capsuleService.earlyUnlockCapsule(id, storageService);
         return ResponseEntity.ok().build();
     }

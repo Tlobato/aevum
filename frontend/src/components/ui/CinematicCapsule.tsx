@@ -56,6 +56,11 @@ export function CinematicCapsule({
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
+  // Modo Admin (Bypass de Pagamentos e Tempo)
+  const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+  const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
+  const isAdmin = adminEmails.includes(userEmail);
+
   // Estados de Despertar
   const [viewMode, setViewMode] = useState<"VAULT" | "GALLERY">("VAULT");
   const [isUnsealingVideoPlaying, setIsUnsealingVideoPlaying] = useState(false);
@@ -476,7 +481,7 @@ export function CinematicCapsule({
         return (
           <motion.div
             animate={{ opacity: canSeal ? 1 : 0, scale: canSeal ? 1 : 0.8 }}
-            className={`mt-8 transition-all ${canSeal ? 'pointer-events-auto' : 'pointer-events-none opacity-0'}`}
+            className={`mt-8 transition-all flex flex-col items-center gap-4 ${canSeal ? 'pointer-events-auto' : 'pointer-events-none opacity-0'}`}
           >
             <button disabled={isRedirectingToStripe} onClick={sealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300 disabled:opacity-50 disabled:transform-none">
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
@@ -485,6 +490,24 @@ export function CinematicCapsule({
                   {isRedirectingToStripe ? "CONECTANDO AO COFRE CENTRAL..." : "LACRAR PERMANENTEMENTE"}
               </div>
             </button>
+            {isAdmin && (
+               <button 
+                  onClick={async () => {
+                     try {
+                        setIsSealingVideoPlaying(true);
+                        const token = await getToken();
+                        await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+                           method: "POST",
+                           headers: { "Authorization": `Bearer ${token}` }
+                        });
+                     } catch(e) { console.error(e); }
+                  }}
+                  className="flex items-center gap-2 text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest"
+               >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  [Admin] Forçar Selagem Grátis
+               </button>
+            )}
           </motion.div>
         );
       })()}
@@ -590,6 +613,27 @@ export function CinematicCapsule({
                   {isRedirectingToStripe ? "CONECTANDO..." : "ACEITAR CONSEQUÊNCIAS"}
                 </button>
               </div>
+
+              {isAdmin && (
+                  <button 
+                    onClick={async () => {
+                        try {
+                          setShowEarlyUnlockModal(false);
+                          setIsUnsealingVideoPlaying(true);
+                          const token = await getToken();
+                          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+                              method: 'POST',
+                              headers: { "Authorization": `Bearer ${token}` }
+                          });
+                        } catch(e) { console.error(e); }
+                    }}
+                    className="mt-6 w-full flex justify-center items-center gap-2 py-2 text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest border border-purple-500/30 rounded-xl bg-purple-500/10"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    [Admin] Forçar Abertura Grátis
+                  </button>
+              )}
+
             </div>
           </motion.div>
         )}
