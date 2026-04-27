@@ -14,6 +14,7 @@ const DEFAULT_THEME_ID = "bau-classico";
 
 import { useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
+import { API_URL } from "@/lib/api";
 
 export function CinematicCapsule({
   capsuleId,
@@ -72,7 +73,7 @@ export function CinematicCapsule({
       const fetchMemories = async () => {
         try {
           const token = await getToken();
-          const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+          const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) {
@@ -104,7 +105,7 @@ export function CinematicCapsule({
         try {
           setIsSealingVideoPlaying(true);
           const token = await getToken();
-          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+          await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
              method: "POST",
              headers: { "Authorization": `Bearer ${token}` }
           });
@@ -126,7 +127,7 @@ export function CinematicCapsule({
           // Play the opening video
           setIsUnsealingVideoPlaying(true);
           const token = await getToken();
-          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+          await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
              method: "POST",
              headers: { "Authorization": `Bearer ${token}` }
           });
@@ -189,7 +190,7 @@ export function CinematicCapsule({
         uploadedFileName = newMemory.fileName || `media_${Date.now()}`;
         const token = await getToken();
         // Pede URL Assinada
-        const presignRes = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
+        const presignRes = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
 
@@ -210,7 +211,7 @@ export function CinematicCapsule({
 
       const token = await getToken();
       // Consolida Memória no Banco Postgres
-      await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+      await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({
@@ -248,7 +249,7 @@ export function CinematicCapsule({
       setIsRedirectingToStripe(true);
       // Pedimos ao backend a sessão segura do Stripe
       const token = await getToken();
-      const res = await fetch(`http://localhost:8080/api/v1/payments/create-checkout/${capsuleId}`, {
+      const res = await fetch(`${API_URL}/api/v1/payments/create-checkout/${capsuleId}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -278,7 +279,7 @@ export function CinematicCapsule({
     if (capsuleId && user) {
         try {
             const token = await getToken();
-            const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+            const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -496,7 +497,7 @@ export function CinematicCapsule({
                      try {
                         setIsSealingVideoPlaying(true);
                         const token = await getToken();
-                        await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+                        await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                            method: "POST",
                            headers: { "Authorization": `Bearer ${token}` }
                         });
@@ -589,7 +590,7 @@ export function CinematicCapsule({
                       setIsRedirectingToStripe(true);
                       if (capsuleId && user) {
                          const token = await getToken();
-                         const res = await fetch(`http://localhost:8080/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
+                         const res = await fetch(`${API_URL}/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
                             method: 'POST',
                             headers: { "Authorization": `Bearer ${token}` }
                          });
@@ -621,7 +622,7 @@ export function CinematicCapsule({
                           setShowEarlyUnlockModal(false);
                           setIsUnsealingVideoPlaying(true);
                           const token = await getToken();
-                          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+                          await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
                               method: 'POST',
                               headers: { "Authorization": `Bearer ${token}` }
                           });

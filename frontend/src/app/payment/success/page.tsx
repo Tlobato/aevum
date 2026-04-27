@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
+import { API_URL } from "@/lib/api";
 
 export default function PaymentSuccessPage() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function PaymentSuccessPage() {
             sealed.current = true;
             try {
                 const token = await getToken();
-                await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+                await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                     method: "POST",
                     headers: { "Authorization": `Bearer ${token}` }
                 });

@@ -6,6 +6,7 @@ import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
+import { API_URL } from "@/lib/api";
 
 type CapsuleCard = {
     id: string;
@@ -71,7 +72,7 @@ export default function Dashboard() {
         setIsLoading(true);
         try {
             const token = await getToken();
-            const res = await fetch("http://localhost:8080/api/v1/capsules", {
+            const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) setCapsules(await res.json());
@@ -93,7 +94,7 @@ export default function Dashboard() {
         const fetchEstimate = async () => {
             try {
                 const token = await getToken();
-                const res = await fetch("http://localhost:8080/api/v1/capsules/estimate", {
+                const res = await fetch(`${API_URL}/api/v1/capsules/estimate`, {
                     method: "POST",
                     headers: { 
                         "Content-Type": "application/json",
@@ -112,7 +113,7 @@ export default function Dashboard() {
         setIsSaving(true);
         try {
             const token = await getToken();
-            const res = await fetch("http://localhost:8080/api/v1/capsules", {
+            const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json", 

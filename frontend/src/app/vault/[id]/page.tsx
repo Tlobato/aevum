@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
+import { API_URL } from "@/lib/api";
 
 export default function VaultPage() {
     const { isLoaded, user } = useUser();
@@ -29,7 +30,7 @@ export default function VaultPage() {
         const fetchCapsule = async () => {
             try {
                 const token = await getToken();
-                const res = await fetch(`http://localhost:8080/api/v1/capsules/${id}`, {
+                const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 if (res.ok) {
