@@ -56,33 +56,33 @@ public class PreemptiveRestoreJob {
         log.info("Job de Desgelo finalizado.");
     }
 
-    // Executa a cada 10 segundos para testarmos localmente (em prod seria 0 0 0 * * ?)
-    @Scheduled(cron = "0/10 * * * * ?") 
+    // Executa uma vez por dia, à meia-noite
+    @Scheduled(cron = "0 0 0 * * ?")
     public void awakenRipeCapsules() {
-        // Busca cápsulas seladas que o tempo de destranca já chegou ou passou
+        log.info("Iniciando Job de Despertar de Cápsulas Maduras...");
+
+        // Busca cápsulas seladas cuja data de destranca já chegou ou passou
         LocalDateTime now = LocalDateTime.now();
-        // Para testes locais: vamos fingir que já avançamos 7 dias no futuro!
-        LocalDateTime timeMachine = now.plusDays(7);
 
         List<Capsule> ripeCapsules = capsuleRepository.findAll().stream()
                 .filter(c -> c.getStatus() == CapsuleStatus.SEALED)
                 .filter(c -> c.getStorageStatus() != StorageStatus.AVAILABLE)
-                .filter(c -> !c.getUnlockDate().isAfter(timeMachine))
+                .filter(c -> !c.getUnlockDate().isAfter(now))
                 .toList();
 
         for (Capsule capsule : ripeCapsules) {
             log.info("O tempo chegou! Despertando a cápsula: {}", capsule.getId());
             try {
-                // Aqui na vida real a AWS mudaria de RESTORING para AVAILABLE assincronamente, 
-                // mas para MVP nós forçamos o status para AVAILABLE quando o tempo passa.
                 capsule.setStorageStatus(StorageStatus.AVAILABLE);
                 capsuleRepository.save(capsule);
-                
+
                 // Dispara o Mensageiro!
                 emailService.sendAwakeningEmail(capsule);
             } catch (Exception e) {
                 log.error("Falha ao despertar a cápsula {}", capsule.getId(), e);
             }
         }
+
+        log.info("Job de Despertar finalizado. {} cápsulas acordadas.", ripeCapsules.size());
     }
 }
