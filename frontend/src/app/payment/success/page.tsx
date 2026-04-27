@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
 import { API_URL } from "@/lib/api";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const capsuleId = searchParams.get("capsule_id");
@@ -79,5 +79,13 @@ export default function PaymentSuccessPage() {
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }

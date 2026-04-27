@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
 import { API_URL } from "@/lib/api";
 
-export default function VaultPage() {
+function VaultContent() {
     const { isLoaded, user } = useUser();
     const { getToken } = useAuth();
     const router = useRouter();
@@ -92,5 +92,13 @@ export default function VaultPage() {
                 earlyUnlockSuccess={earlyUnlockSuccess}
             />
         </main>
+    );
+}
+
+export default function VaultPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-amber-500">Invocando Câmara...</div>}>
+            <VaultContent />
+        </Suspense>
     );
 }
