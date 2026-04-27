@@ -3,16 +3,28 @@ spring:
     name: Aevum
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/aevum_db
-    username: aevum
-    password: aevum_secret
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/aevum_db}
+    username: ${DB_USERNAME:aevum}
+    password: ${DB_PASSWORD:aevum_secret}
     driver-class-name: org.postgresql.Driver
+  
+  mail:
+    host: ${MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://enjoyed-airedale-42.clerk.accounts.dev
+          issuer-uri: ${CLERK_ISSUER_URI:https://enjoyed-airedale-42.clerk.accounts.dev}
 
   jpa:
     hibernate:
@@ -28,25 +40,15 @@ server:
 
 aws:
   s3:
-    bucket: aevum-storage-bucket
-    region: us-east-1
-    # Para dev local com LocalStack, defina: aws.s3.endpoint=http://localhost:4566
-    # Em produção, remova a linha abaixo (será null e o SDK usará AWS real)
-    endpoint: http://localhost:4566
+    bucket: ${AWS_BUCKET:aevum-storage-bucket}
+    region: ${AWS_REGION:us-east-1}
+    endpoint: ${AWS_ENDPOINT:http://localhost:4566}
+    access-key: ${AWS_ACCESS_KEY:test}
+    secret-key: ${AWS_SECRET_KEY:test}
 
----
-# Profile de Dev Local (LocalStack)
-spring:
-  config:
-    activate:
-      on-profile: dev
-  datasource:
-    url: jdbc:postgresql://localhost:5432/aevum_db
-    username: aevum
-    password: aevum_secret
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
 
-aws:
-  s3:
-    endpoint: http://localhost:4566
-    access-key: test
-    secret-key: test
+aevum:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}

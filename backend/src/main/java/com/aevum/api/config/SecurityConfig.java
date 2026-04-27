@@ -22,9 +22,11 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable()) // Desabilitado para chamadas REST API e LocalStack mock
             .authorizeHttpRequests(authz -> authz
-                // Permite acesso público ao endpoint de estimate, dependendo do design. 
-                // Mas geralmente cápsulas são protegidas
+                // Webhook do Stripe: vem do servidor deles, não do browser. Liberado aqui, a segurança é pelo HMAC.
+                .requestMatchers("/api/v1/payments/webhook").permitAll()
+                // Todos os outros endpoints de cápsulas e pagamentos exigem JWT válido do Clerk
                 .requestMatchers("/api/v1/capsules/**").authenticated()
+                .requestMatchers("/api/v1/payments/**").authenticated()
                 .anyRequest().permitAll()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
