@@ -26,12 +26,14 @@ spring:
     oauth2:
       resourceserver:
         jwt:
+          # Sem fallback — deve ser explicitamente definida no ambiente de produção
           issuer-uri: ${CLERK_ISSUER_URI:https://enjoyed-airedale-42.clerk.accounts.dev}
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    # Em produção: false (não expor SQL nos logs)
+    show-sql: false
     properties:
       hibernate:
         format_sql: true

@@ -16,8 +16,10 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
                         "http://localhost:3000",
-                        frontendUrl,           // ex: https://aevum.vercel.app
-                        "https://*.vercel.app" // Permite previews da Vercel
+                        "https://myaevum.space",       // Domínio de produção
+                        "https://www.myaevum.space",   // Com www
+                        frontendUrl,                   // Lido da variável de ambiente
+                        "https://*.vercel.app"         // Previews da Vercel
                 )
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
