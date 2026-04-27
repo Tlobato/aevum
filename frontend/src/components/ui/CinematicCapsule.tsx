@@ -24,7 +24,8 @@ export function CinematicCapsule({
   title = "Sinal Transversal",
   recipientEmail = "herdeiro@futuro.com",
   unlockDate = "2050-01-01",
-  paymentSuccess = false
+  paymentSuccess = false,
+  earlyUnlockSuccess = false
 }: {
   capsuleId?: string,
   themeId?: string,
@@ -34,7 +35,8 @@ export function CinematicCapsule({
   title?: string,
   recipientEmail?: string,
   unlockDate?: string,
-  paymentSuccess?: boolean
+  paymentSuccess?: boolean,
+  earlyUnlockSuccess?: boolean
 }) {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -64,28 +66,43 @@ export function CinematicCapsule({
   useEffect(() => {
     if (paymentSuccess && !hasProcessedPayment.current && capsuleId) {
       hasProcessedPayment.current = true;
-      
       const processPaymentSuccess = async () => {
         try {
-          // Play the video!
           setIsSealingVideoPlaying(true);
-          
-          // Force seal in backend (Localhost fallback since webhooks don't reach us here)
           const token = await getToken();
           await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
              method: "POST",
              headers: { "Authorization": `Bearer ${token}` }
           });
-          
-          // We don't set status here, we let the video onEnded do it for visual sync
         } catch (e) {
           console.error("Erro ao confirmar selagem automática pós-pagamento:", e);
         }
       };
-
       processPaymentSuccess();
     }
   }, [paymentSuccess, capsuleId, getToken]);
+
+  const hasProcessedEarlyUnlock = useRef(false);
+
+  useEffect(() => {
+    if (earlyUnlockSuccess && !hasProcessedEarlyUnlock.current && capsuleId) {
+      hasProcessedEarlyUnlock.current = true;
+      const processEarlyUnlock = async () => {
+        try {
+          // Play the opening video
+          setIsUnsealingVideoPlaying(true);
+          const token = await getToken();
+          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+             method: "POST",
+             headers: { "Authorization": `Bearer ${token}` }
+          });
+        } catch (e) {
+          console.error("Erro ao confirmar quebra de selo pós-pagamento:", e);
+        }
+      };
+      processEarlyUnlock();
+    }
+  }, [earlyUnlockSuccess, capsuleId, getToken]);
 
   const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
@@ -485,18 +502,18 @@ export function CinematicCapsule({
               </p>
 
               <div className="bg-black/50 border border-neutral-800 rounded-2xl p-5 mt-6 mb-8 flex flex-col gap-3">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-500">Multa de Resgate AWS Glacier</span>
-                  <span className="text-white font-mono">R$ 45,00</span>
+                <div className="flex flex-col gap-1 text-sm">
+                  <span className="text-neutral-500">Taxa de Recuperação Emergencial AWS</span>
+                  <span className="text-white font-mono">50% do valor do plano</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-500">Taxa de Reintegração Aevum</span>
-                  <span className="text-white font-mono">R$ 24,90</span>
+                  <span className="text-neutral-500">Taxa Mínima</span>
+                  <span className="text-white font-mono">R$ 29,90</span>
                 </div>
                 <div className="h-[1px] w-full bg-neutral-800 my-1" />
                 <div className="flex justify-between items-center font-bold">
                   <span className="text-neutral-300">Total a Pagar</span>
-                  <span className="text-amber-500 font-mono text-xl">R$ 69,90</span>
+                  <span className="text-amber-500 font-mono text-xs uppercase tracking-widest">Calculado no Checkout</span>
                 </div>
               </div>
 
@@ -507,23 +524,34 @@ export function CinematicCapsule({
                   Cancelar
                 </button>
                 <button
+                  disabled={isRedirectingToStripe}
                   onClick={async () => {
                     try {
+                      setIsRedirectingToStripe(true);
                       if (capsuleId && user) {
                          const token = await getToken();
-                         await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/debug-unlock`, {
+                         const res = await fetch(`http://localhost:8080/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
                             method: 'POST',
                             headers: { "Authorization": `Bearer ${token}` }
                          });
+                         
+                         if (!res.ok) throw new Error("Falha ao gerar multa.");
+                         
+                         const data = await res.json();
+                         if (data.checkoutUrl) {
+                             window.location.href = data.checkoutUrl;
+                         } else {
+                             setIsRedirectingToStripe(false);
+                         }
                       }
-                      setStorageStatus("AVAILABLE");
-                      setShowEarlyUnlockModal(false);
                     } catch(e) {
                       console.error("Failed to unlock", e);
+                      setIsRedirectingToStripe(false);
+                      alert("O Cofre Central negou a quebra do selo temporal.");
                     }
                   }}
-                  className="flex-1 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-red-500/20">
-                  Processar
+                  className="flex-1 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50">
+                  {isRedirectingToStripe ? "CONECTANDO..." : "ACEITAR CONSEQUÊNCIAS"}
                 </button>
               </div>
             </div>

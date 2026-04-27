@@ -90,6 +90,13 @@ public class CapsuleService {
         return pricingService.calculateSealSummary(capsule);
     }
 
+    @Transactional(readOnly = true)
+    public long calculateEarlyUnlockPenalty(UUID id, com.aevum.api.service.PricingService pricingService) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+        return pricingService.calculateEarlyUnlockPenaltyInCents(capsule);
+    }
+
     @Transactional
     public CapsuleResponse addMemory(UUID id, com.aevum.api.dto.AddMemoryRequest request, String userId) {
         Capsule capsule = repository.findById(id)
@@ -171,7 +178,7 @@ public class CapsuleService {
     }
 
     @Transactional
-    public void debugUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
+    public void earlyUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
         

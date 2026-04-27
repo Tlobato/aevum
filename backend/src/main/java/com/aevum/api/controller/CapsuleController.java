@@ -118,10 +118,10 @@ public class CapsuleController {
         return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));
     }
 
-    // Endpoint Exclusivo para Modo Desenvolvedor
+    // O POST /debug-unlock agora é usado tanto para o bypass (admin) quanto para o sucesso do frontend (Stripe fallback)
     @PostMapping("/{id}/debug-unlock")
     public ResponseEntity<Void> forceUnlockCapsule(@PathVariable UUID id) {
-        capsuleService.debugUnlockCapsule(id, storageService);
+        capsuleService.earlyUnlockCapsule(id, storageService);
         return ResponseEntity.ok().build();
     }
 }

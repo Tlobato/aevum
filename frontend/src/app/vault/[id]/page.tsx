@@ -14,8 +14,10 @@ export default function VaultPage() {
     const searchParams = useSearchParams();
     const id = params.id as string;
     
-    // Parâmetro injetado pelo Stripe ao retornar
+    // Parâmetro injetado pelo Stripe ao retornar da compra de selagem
     const paymentSuccess = searchParams.get("payment_success") === "true";
+    // Parâmetro injetado pelo Stripe ao retornar da multa de quebra de selo
+    const earlyUnlockSuccess = searchParams.get("early_unlock_success") === "true";
 
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -86,6 +88,7 @@ export default function VaultPage() {
                 recipientEmail={capsuleData.recipientEmail}
                 unlockDate={capsuleData.unlockDate}
                 paymentSuccess={paymentSuccess}
+                earlyUnlockSuccess={earlyUnlockSuccess}
             />
         </main>
     );

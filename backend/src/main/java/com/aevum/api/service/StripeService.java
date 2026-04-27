@@ -57,10 +57,49 @@ public class StripeService {
                 )
                 // Metadados para identificarmos a cápsula quando o webhook chegar
                 .putMetadata("capsule_id", capsuleId)
+                .putMetadata("action", "seal")
                 .build();
 
         Session session = Session.create(params);
-        log.info("Checkout Session criada para cápsula {}: {}", capsuleId, session.getId());
+        log.info("Checkout Session (SEAL) criada para cápsula {}: {}", capsuleId, session.getId());
+        return session.getUrl();
+    }
+
+    /**
+     * Cria uma Sessão de Checkout no Stripe para pagar a multa de Desbloqueio Antecipado.
+     */
+    public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle) throws StripeException {
+        Stripe.apiKey = secretKey;
+
+        SessionCreateParams params = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                // Redireciona direto de volta para o cofre com parâmetro de destranca paga
+                .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?early_unlock_success=true")
+                .setCancelUrl(frontendUrl + "/vault/" + capsuleId + "?unlock=cancelled")
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("brl")
+                                                .setUnitAmount(penaltyInCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Aevum — Multa de Quebra: " + capsuleTitle)
+                                                                .setDescription("Violação de selo temporal. Abertura forçada da cápsula antes da data estipulada.")
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                )
+                // Metadados para identificarmos a cápsula quando o webhook chegar
+                .putMetadata("capsule_id", capsuleId)
+                .putMetadata("action", "early_unlock")
+                .build();
+
+        Session session = Session.create(params);
+        log.info("Checkout Session (EARLY UNLOCK) criada para cápsula {}: {}", capsuleId, session.getId());
         return session.getUrl();
     }
 }

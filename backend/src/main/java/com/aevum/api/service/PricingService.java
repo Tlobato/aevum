@@ -49,6 +49,19 @@ public class PricingService {
         );
     }
 
+    // Calcula a multa para quebrar o selo antes do tempo
+    public long calculateEarlyUnlockPenaltyInCents(Capsule capsule) {
+        TimeTier timeTier = TimeTier.determineTier(capsule.getUnlockDate());
+        long originalPrice = calculatePriceInCents(capsule.getPlanType(), timeTier);
+        
+        // Multa de 50% do valor pago originalmente, com valor mínimo de R$ 29,90
+        long penalty = (long) (originalPrice * 0.5);
+        if (penalty < 2990L) {
+            penalty = 2990L;
+        }
+        return penalty;
+    }
+
     public record PricingSummary(
         String planType,
         long maxSizeBytes,

@@ -62,6 +62,30 @@ public class PaymentController {
     }
 
     /**
+     * O Frontend chama este endpoint ao clicar em "Quebrar Selo (Desbloqueio Antecipado)".
+     */
+    @PostMapping("/create-early-unlock-checkout/{capsuleId}")
+    public ResponseEntity<Map<String, String>> createEarlyUnlockCheckout(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID capsuleId) {
+        try {
+            // Verifica permissão (se o usuário não for dono nem recipient, vai lançar exception)
+            var response = capsuleService.openCapsule(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
+            
+            long penaltyInCents = capsuleService.calculateEarlyUnlockPenalty(capsuleId, pricingService);
+            String checkoutUrl = stripeService.createEarlyUnlockCheckoutSession(
+                    capsuleId.toString(),
+                    penaltyInCents,
+                    response.title()
+            );
+            return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
+        } catch (Exception e) {
+            log.error("Erro ao criar checkout de multa para cápsula {}", capsuleId, e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
      * Webhook do Stripe — Chamado automaticamente pelo Stripe quando o pagamento é confirmado.
      * NÃO requer autenticação JWT (vem do servidor do Stripe, não do navegador do usuário).
      * A segurança é feita pela assinatura HMAC do Stripe (webhookSecret).
@@ -79,8 +103,17 @@ public class PaymentController {
                         .orElseThrow();
 
                 String capsuleId = session.getMetadata().get("capsule_id");
-                log.info("Pagamento confirmado! Selando cápsula: {}", capsuleId);
-                capsuleService.sealCapsule(UUID.fromString(capsuleId), storageService);
+                String action = session.getMetadata().get("action");
+
+                if ("seal".equals(action)) {
+                    log.info("Pagamento confirmado! Selando cápsula: {}", capsuleId);
+                    capsuleService.sealCapsule(UUID.fromString(capsuleId), storageService);
+                } else if ("early_unlock".equals(action)) {
+                    log.info("Pagamento de multa confirmado! Quebrando selo da cápsula: {}", capsuleId);
+                    capsuleService.earlyUnlockCapsule(UUID.fromString(capsuleId), storageService);
+                } else {
+                    log.warn("Ação desconhecida no webhook do Stripe: {}", action);
+                }
             }
 
             return ResponseEntity.ok("ok");
