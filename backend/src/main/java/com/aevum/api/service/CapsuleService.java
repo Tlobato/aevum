@@ -123,26 +123,29 @@ public class CapsuleService {
     }
 
     @Transactional(readOnly = true)
-    public CapsuleResponse openCapsule(UUID id) {
+    public CapsuleResponse openCapsule(UUID id, String userId, String userEmail) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
 
-        // A Regra de Ouro do Aevum protegendo as Memórias será aplicada no endpoint
-        // futuro de download de arquivos (ex: GET /capsules/{id}/memories),
-        // já que este endpoint principal devolve apenas metadados necessários para
-        // renderizar o baú 3D visualmente na UI.
+        boolean isOwner = capsule.getOwnerId().equals(userId);
+        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        if (!isOwner && !isRecipient) {
+            throw new IllegalArgumentException("Acesso negado. Você não é o forjador nem o portador destinado desta cápsula.");
+        }
 
         return CapsuleResponse.fromEntity(capsule);
     }
 
     @Transactional(readOnly = true)
-    public List<MemoryResponse> getMemoriesWithUrls(UUID id, String userId, com.aevum.api.service.StorageService storageService) {
+    public List<MemoryResponse> getMemoriesWithUrls(UUID id, String userId, String userEmail, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
 
-        if (!capsule.getOwnerId().equals(userId)) {
-            // Se for o recebedor, a validação de acesso ao Vault será feita por outra lógica no futuro (ex: link mágico),
-            // mas por enquanto, na MVP o criador/testador é o owner.
+        boolean isOwner = capsule.getOwnerId().equals(userId);
+        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        if (!isOwner && !isRecipient) {
             throw new IllegalArgumentException("Acesso negado às memórias desta cápsula.");
         }
 

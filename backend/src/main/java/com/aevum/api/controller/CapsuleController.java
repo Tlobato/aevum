@@ -64,8 +64,10 @@ public class CapsuleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CapsuleResponse> openCapsule(@PathVariable UUID id) {
-        CapsuleResponse response = capsuleService.openCapsule(id);
+    public ResponseEntity<CapsuleResponse> openCapsule(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+        String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = "unknown";
+        CapsuleResponse response = capsuleService.openCapsule(id, jwt.getSubject(), userEmail);
         return ResponseEntity.ok(response);
     }
 
@@ -73,7 +75,9 @@ public class CapsuleController {
     public ResponseEntity<List<MemoryResponse>> getMemories(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
-        List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, jwt.getSubject(), storageService);
+        String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = "unknown";
+        List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, jwt.getSubject(), userEmail, storageService);
         return ResponseEntity.ok(memories);
     }
 
