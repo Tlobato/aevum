@@ -12,6 +12,7 @@ import { RelicGallery } from "./RelicGallery";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
+import { useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 
 export function CinematicCapsule({
@@ -22,7 +23,8 @@ export function CinematicCapsule({
   initialStorageStatus = "DRAFT",
   title = "Sinal Transversal",
   recipientEmail = "herdeiro@futuro.com",
-  unlockDate = "2050-01-01"
+  unlockDate = "2050-01-01",
+  paymentSuccess = false
 }: {
   capsuleId?: string,
   themeId?: string,
@@ -31,7 +33,8 @@ export function CinematicCapsule({
   initialStorageStatus?: string,
   title?: string,
   recipientEmail?: string,
-  unlockDate?: string
+  unlockDate?: string,
+  paymentSuccess?: boolean
 }) {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -48,12 +51,41 @@ export function CinematicCapsule({
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
   const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
   const [isSealingVideoPlaying, setIsSealingVideoPlaying] = useState(false);
+  const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
   // Estados de Despertar
   const [viewMode, setViewMode] = useState<"VAULT" | "GALLERY">("VAULT");
   const [isUnsealingVideoPlaying, setIsUnsealingVideoPlaying] = useState(false);
   const [memoriesList, setMemoriesList] = useState<Memory[]>([]);
+
+  const hasProcessedPayment = useRef(false);
+
+  useEffect(() => {
+    if (paymentSuccess && !hasProcessedPayment.current && capsuleId) {
+      hasProcessedPayment.current = true;
+      
+      const processPaymentSuccess = async () => {
+        try {
+          // Play the video!
+          setIsSealingVideoPlaying(true);
+          
+          // Force seal in backend (Localhost fallback since webhooks don't reach us here)
+          const token = await getToken();
+          await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+             method: "POST",
+             headers: { "Authorization": `Bearer ${token}` }
+          });
+          
+          // We don't set status here, we let the video onEnded do it for visual sync
+        } catch (e) {
+          console.error("Erro ao confirmar selagem automática pós-pagamento:", e);
+        }
+      };
+
+      processPaymentSuccess();
+    }
+  }, [paymentSuccess, capsuleId, getToken]);
 
   const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
@@ -159,27 +191,33 @@ export function CinematicCapsule({
     setActiveForgeMode(null);
   };
 
-
-
   const sealVault = async () => {
     if (!capsuleId || !user) return;
     try {
-      // Abre a cutscene e escurece a tela, mas mantemos o baú visualmente focado e intacto atrás
-      setIsSealingVideoPlaying(true);
-
+      setIsRedirectingToStripe(true);
+      // Pedimos ao backend a sessão segura do Stripe
       const token = await getToken();
-      const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/seal`, {
+      const res = await fetch(`http://localhost:8080/api/v1/payments/create-checkout/${capsuleId}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
 
       if (!res.ok) {
-        throw new Error("A anomalia temporal impediu a selagem.");
+        setIsRedirectingToStripe(false);
+        throw new Error("Falha ao se conectar com o Cofre Central (Stripe).");
       }
-      // Sucesso no backend. A cutscene se encarregará da troca de estados com o onEnded.
+      
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        // Redireciona o usuário fisicamente para o domínio do Stripe para ele pagar
+        window.location.href = data.checkoutUrl;
+      } else {
+          setIsRedirectingToStripe(false);
+      }
     } catch (e) {
-      setIsSealingVideoPlaying(false);
-      console.log("Error sealing:", e);
+      console.error(e);
+      alert("A anomalia temporal impediu a conexão financeira. Tente novamente.");
+      setIsRedirectingToStripe(false);
     }
   };
 
@@ -387,9 +425,12 @@ export function CinematicCapsule({
             animate={{ opacity: canSeal ? 1 : 0, scale: canSeal ? 1 : 0.8 }}
             className={`mt-8 transition-all ${canSeal ? 'pointer-events-auto' : 'pointer-events-none opacity-0'}`}
           >
-            <button onClick={sealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
+            <button disabled={isRedirectingToStripe} onClick={sealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300 disabled:opacity-50 disabled:transform-none">
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
-              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> LACRAR PERMANENTEMENTE</div>
+              <div className="flex items-center gap-2 relative z-10">
+                  <Lock className={`w-5 h-5 ${isRedirectingToStripe ? "animate-spin" : ""}`} /> 
+                  {isRedirectingToStripe ? "CONECTANDO AO COFRE CENTRAL..." : "LACRAR PERMANENTEMENTE"}
+              </div>
             </button>
           </motion.div>
         );

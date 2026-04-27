@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
@@ -11,7 +11,11 @@ export default function VaultPage() {
     const { getToken } = useAuth();
     const router = useRouter();
     const params = useParams();
+    const searchParams = useSearchParams();
     const id = params.id as string;
+    
+    // Parâmetro injetado pelo Stripe ao retornar
+    const paymentSuccess = searchParams.get("payment_success") === "true";
 
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -81,6 +85,7 @@ export default function VaultPage() {
                 title={capsuleData.title}
                 recipientEmail={capsuleData.recipientEmail}
                 unlockDate={capsuleData.unlockDate}
+                paymentSuccess={paymentSuccess}
             />
         </main>
     );

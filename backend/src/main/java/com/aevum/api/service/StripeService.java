@@ -35,7 +35,8 @@ public class StripeService {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(frontendUrl + "/payment/success?capsule_id=" + capsuleId + "&session_id={CHECKOUT_SESSION_ID}")
+                // Redireciona direto de volta para o cofre para ativarmos o vídeo cinematográfico
+                .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?payment_success=true")
                 .setCancelUrl(frontendUrl + "/dashboard?payment=cancelled")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
