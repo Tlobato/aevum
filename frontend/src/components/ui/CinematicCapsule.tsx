@@ -61,6 +61,35 @@ export function CinematicCapsule({
   const [isUnsealingVideoPlaying, setIsUnsealingVideoPlaying] = useState(false);
   const [memoriesList, setMemoriesList] = useState<Memory[]>([]);
 
+  // Fetch memories when we switch to GALLERY view
+  useEffect(() => {
+    if (viewMode === "GALLERY" && capsuleId) {
+      const fetchMemories = async () => {
+        try {
+          const token = await getToken();
+          const res = await fetch(`http://localhost:8080/api/v1/capsules/${capsuleId}/memories`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            // Maps the backend MemoryResponse to our frontend Memory interface
+            const mappedMemories: Memory[] = data.map((m: any) => ({
+              id: m.id,
+              type: m.type as ItemType,
+              label: m.fileName || "Memória",
+              payload: m.presignedUrl || m.textContent || "",
+              fileName: m.fileName
+            }));
+            setMemoriesList(mappedMemories);
+          }
+        } catch (e) {
+          console.error("Failed to fetch memories", e);
+        }
+      };
+      fetchMemories();
+    }
+  }, [viewMode, capsuleId, getToken]);
+
   const hasProcessedPayment = useRef(false);
 
   useEffect(() => {
@@ -406,7 +435,14 @@ export function CinematicCapsule({
                         <button
                           onClick={() => setShowEarlyUnlockModal(true)}
                           className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
-                          Solicitar Resgate Imediato
+                          Quebrar Selo Antecipadamente
+                        </button>
+                    )}
+                    {storageStatus === "AVAILABLE" && (
+                        <button
+                          onClick={() => setViewMode("GALLERY")}
+                          className="w-full py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-xl text-xs font-bold text-green-400 uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]">
+                          Explorar Relíquias
                         </button>
                     )}
                   </div>
@@ -496,15 +532,15 @@ export function CinematicCapsule({
                 <Lock className="w-8 h-8 text-red-500" />
               </div>
 
-              <h3 className="text-2xl font-serif text-white font-light text-center mb-2">Quebra do Paradoxo Temporal</h3>
+              <h3 className="text-2xl font-serif text-white font-light text-center mb-2">Quebra do Selo Temporal</h3>
               <p className="text-sm text-neutral-400 text-center leading-relaxed">
-                Extrair esses artefatos do arquivamento profundo antes da data acordada exige recursos computacionais de recuperação acelerada de nosso provedor físico subjacente.
+                Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético.
               </p>
 
               <div className="bg-black/50 border border-neutral-800 rounded-2xl p-5 mt-6 mb-8 flex flex-col gap-3">
-                <div className="flex flex-col gap-1 text-sm">
-                  <span className="text-neutral-500">Taxa de Recuperação Emergencial AWS</span>
-                  <span className="text-white font-mono">50% do valor do plano</span>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-neutral-500">Multa de Resgate Antecipado</span>
+                  <span className="text-white font-mono">50% do Selo Original</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-neutral-500">Taxa Mínima</span>
