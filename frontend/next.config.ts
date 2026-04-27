@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Necessário para o Dockerfile de produção (gera bundle mínimo autocontido)
+  output: "standalone",
 };
 
 export default nextConfig;

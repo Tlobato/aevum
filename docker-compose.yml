@@ -1,6 +1,21 @@
 version: '3.9'
 
+# ============================================================
+# MODO DE USO:
+#
+# Desenvolvimento local (apenas infra — backend/frontend rodam via IDE):
+#   docker compose up
+#
+# Staging completo (toda a stack em container):
+#   docker compose --profile full up --build
+# ============================================================
+
 services:
+
+  # ──────────────────────────────────────────────────────────
+  # INFRAESTRUTURA (sempre disponível no dev local)
+  # ──────────────────────────────────────────────────────────
+
   postgres:
     image: postgres:16-alpine
     container_name: aevum-postgres
@@ -40,6 +55,50 @@ services:
       timeout: 10s
       retries: 5
       start_period: 20s
+
+  # ──────────────────────────────────────────────────────────
+  # APLICAÇÃO (apenas no perfil "full" — staging local)
+  # ──────────────────────────────────────────────────────────
+
+  backend:
+    profiles: ["full"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aevum-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env.properties   # nunca vai pro GitHub
+    environment:
+      # Sobrescreve a URL do banco para apontar para o container postgres
+      DB_URL: jdbc:postgresql://postgres:5432/aevum_db
+      # Localstack acessível via nome do container
+      AWS_ENDPOINT: http://localstack:4566
+    depends_on:
+      postgres:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
+  frontend:
+    profiles: ["full"]
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Variáveis públicas do Next.js precisam ser injetadas em build time
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_ADMIN_EMAILS: ${NEXT_PUBLIC_ADMIN_EMAILS}
+    container_name: aevum-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   aevum_pg_data:
