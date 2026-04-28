@@ -545,19 +545,7 @@ export function CinematicCapsule({
           </motion.div>
       )}
 
-      {/* Botão de Quebrar o Selo FROZEN — abertura antecipada paga */}
-      {storageStatus === "FROZEN" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 transition-all pointer-events-auto"
-          >
-            <button onClick={unsealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
-              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> QUEBRAR O SELO DO TEMPO</div>
-            </button>
-          </motion.div>
-      )}
+
 
       {/* ======================================================== */}
       {/* COMPONENTE FILHO INJETADO: O MODAL DA FORJA INTELIGENTE  */}
