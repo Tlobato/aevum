@@ -287,15 +287,19 @@ export default function Dashboard() {
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Plano Dimensional</label>
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Plano Dimensional</label>
+                                                <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">Fase Alpha: Apenas 1GB</span>
+                                            </div>
                                             <select value={planType} onChange={e => setPlanType(e.target.value)}
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none">
-                                                <option value="ESQUIRE_1GB">Esquire — 1GB</option>
-                                                <option value="KNIGHT_5GB">Knight — 5GB</option>
-                                                <option value="BARON_10GB">Baron — 10GB</option>
-                                                <option value="MARQUIS_25GB">Marquis — 25GB</option>
-                                                <option value="KING_50GB">King — 50GB</option>
+                                                <option value="ESQUIRE_1GB">Esquire — 1GB (Disponível)</option>
+                                                <option value="KNIGHT_5GB" disabled className="text-neutral-600">Knight — 5GB (Indisponível na Fase Alpha)</option>
+                                                <option value="BARON_10GB" disabled className="text-neutral-600">Baron — 10GB (Indisponível na Fase Alpha)</option>
+                                                <option value="MARQUIS_25GB" disabled className="text-neutral-600">Marquis — 25GB (Indisponível na Fase Alpha)</option>
+                                                <option value="KING_50GB" disabled className="text-neutral-600">King — 50GB (Indisponível na Fase Alpha)</option>
                                             </select>
+                                            <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
                                         </div>
                                     </div>
                                     <div className="pt-2">
