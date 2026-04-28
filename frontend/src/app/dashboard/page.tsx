@@ -98,7 +98,7 @@ export default function Dashboard() {
         if (!confirm("Tem certeza que deseja apagar esta relíquia permanentemente? Esta ação não pode ser desfeita.")) return;
 
         try {
-            const token = await getToken();
+            const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }

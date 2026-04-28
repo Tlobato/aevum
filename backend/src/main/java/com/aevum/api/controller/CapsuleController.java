@@ -7,13 +7,14 @@ import com.aevum.api.service.CapsuleService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,7 +28,15 @@ public class CapsuleController {
     private final com.aevum.api.service.PricingService pricingService;
     private final com.aevum.api.service.StorageService storageService;
 
-    public CapsuleController(CapsuleService capsuleService, 
+    // Lista de e-mails de administradores (ex: thyagollobato@gmail.com)
+    @Value("${aevum.admin-emails:}")
+    private String adminEmailsStr;
+
+    // Lista de IDs de usuários administradores do Clerk (ex: user_3CxmnfILFnmHqllWZPvbMIQUjuG)
+    @Value("${aevum.admin-user-ids:}")
+    private String adminUserIdsStr;
+
+    public CapsuleController(CapsuleService capsuleService,
                              com.aevum.api.service.PricingService pricingService,
                              com.aevum.api.service.StorageService storageService) {
         this.capsuleService = capsuleService;
@@ -35,20 +44,43 @@ public class CapsuleController {
         this.storageService = storageService;
     }
 
+    /**
+     * Verifica se o usuário autenticado é um administrador.
+     * A checagem aceita tanto o e-mail quanto o ID do usuário (sub),
+     * configurados via variáveis de ambiente separadas no Render.
+     */
+    private boolean isAdmin(Jwt jwt) {
+        final String userId = jwt.getSubject();
+
+        String rawEmail = jwt.getClaimAsString("email");
+        if (rawEmail == null) rawEmail = jwt.getClaimAsString("primary_email_address");
+        final String userEmail = rawEmail;
+
+        log.debug("Checando permissão Admin — UserID: '{}' | Email: '{}'", userId, userEmail);
+
+        boolean adminByEmail = !adminEmailsStr.isBlank() && userEmail != null &&
+                Arrays.stream(adminEmailsStr.split(","))
+                        .map(String::trim)
+                        .anyMatch(e -> e.equalsIgnoreCase(userEmail));
+
+        boolean adminById = !adminUserIdsStr.isBlank() && userId != null &&
+                Arrays.stream(adminUserIdsStr.split(","))
+                        .map(String::trim)
+                        .anyMatch(id -> id.equalsIgnoreCase(userId));
+
+        return adminByEmail || adminById;
+    }
+
     @PostMapping
     public ResponseEntity<CapsuleResponse> createDraft(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody CapsuleCreateRequest request) {
-        
+
         String userId = jwt.getSubject();
-        
-        // Clerk places primary email in the JWT claims under the "email" property if configured, 
-        // or we can extract it if needed. However, since the user already exists in JIT,
-        // we can just fall back to getting it from claims. Clerk usually puts it under "email" or "email_addresses".
-        // Let's use getClaimAsString("email") if available, otherwise unknown.
         String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
         if (userEmail == null) userEmail = "unknown";
-        
+
         CapsuleResponse response = capsuleService.createDraft(request, userId, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -57,30 +89,10 @@ public class CapsuleController {
     public ResponseEntity<CapsuleResponse> sealCapsule(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
-        
-        // Log de diagnóstico para entender o que o Clerk envia no JWT em produção
-        log.info("JWT claims recebidos no /seal: {}", jwt.getClaims().keySet());
-        
-        // O Clerk pode enviar o email em diferentes claims dependendo da configuração
-        String extractedEmail = jwt.getClaimAsString("email");
-        if (extractedEmail == null) extractedEmail = jwt.getClaimAsString("primary_email_address");
-        
-        final String finalUserEmail = extractedEmail;
 
-        if (finalUserEmail == null) {
-            log.warn("Claim 'email' não encontrado no JWT. Claims disponíveis: {}", jwt.getClaims());
-        }
-        
-        log.info("Email extraído do JWT: '{}' | Admin emails configurados: '{}'", finalUserEmail, adminEmailsStr);
-        
-        boolean isAdmin = finalUserEmail != null && !adminEmailsStr.isBlank() 
-                && List.of(adminEmailsStr.split(",")).stream()
-                        .map(String::trim)
-                        .anyMatch(e -> e.equalsIgnoreCase(finalUserEmail));
-        
-        if (!isAdmin) {
-            log.warn("Acesso negado ao /seal. Email '{}' não está na lista de admins.", finalUserEmail);
-            return ResponseEntity.status(403).build();
+        if (!isAdmin(jwt)) {
+            log.warn("Acesso negado ao /seal para o usuário '{}'.", jwt.getSubject());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         CapsuleResponse response = capsuleService.sealCapsule(id, storageService);
@@ -97,7 +109,9 @@ public class CapsuleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CapsuleResponse> openCapsule(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
+    public ResponseEntity<CapsuleResponse> openCapsule(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
         String userEmail = jwt.getClaimAsString("email");
         if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
         CapsuleResponse response = capsuleService.openCapsule(id, jwt.getSubject(), userEmail);
@@ -108,18 +122,8 @@ public class CapsuleController {
     public ResponseEntity<Void> deleteCapsule(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
-        
-        String extractedEmail = jwt.getClaimAsString("email");
-        if (extractedEmail == null) extractedEmail = jwt.getClaimAsString("primary_email_address");
-        
-        final String finalUserEmail = extractedEmail;
-        
-        boolean isAdmin = finalUserEmail != null && !adminEmailsStr.isBlank() 
-                && List.of(adminEmailsStr.split(",")).stream()
-                        .map(String::trim)
-                        .anyMatch(e -> e.equalsIgnoreCase(finalUserEmail));
 
-        capsuleService.deleteCapsule(id, jwt.getSubject(), isAdmin, storageService);
+        capsuleService.deleteCapsule(id, jwt.getSubject(), isAdmin(jwt), storageService);
         return ResponseEntity.noContent().build();
     }
 
@@ -128,6 +132,7 @@ public class CapsuleController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
         String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
         if (userEmail == null) userEmail = "unknown";
         List<MemoryResponse> memories = capsuleService.getMemoriesWithUrls(id, jwt.getSubject(), userEmail, storageService);
         return ResponseEntity.ok(memories);
@@ -159,8 +164,10 @@ public class CapsuleController {
     }
 
     @GetMapping("/{id}/presign")
-    public ResponseEntity<String> getPresignedUrl(@PathVariable UUID id, @RequestParam String fileName, @RequestParam long sizeBytes) {
-        // Assume user validation etc in real life
+    public ResponseEntity<String> getPresignedUrl(
+            @PathVariable UUID id,
+            @RequestParam String fileName,
+            @RequestParam long sizeBytes) {
         String url = storageService.generatePresignedUploadUrl(id.toString(), fileName, sizeBytes);
         return ResponseEntity.ok(url);
     }
@@ -170,20 +177,14 @@ public class CapsuleController {
         return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));
     }
 
-    @Value("${aevum.admin-emails:}")
-    private String adminEmailsStr;
-
-    // O POST /debug-unlock agora é usado tanto para o bypass (admin) quanto para o sucesso do frontend (Stripe fallback)
     @PostMapping("/{id}/debug-unlock")
     public ResponseEntity<Void> forceUnlockCapsule(
             @PathVariable UUID id,
             @AuthenticationPrincipal Jwt jwt) {
-        
-        String userEmail = jwt.getClaimAsString("email");
-        boolean isAdmin = userEmail != null && List.of(adminEmailsStr.split(",")).contains(userEmail);
-        
-        if (!isAdmin) {
-            return ResponseEntity.status(403).build(); // Forbidden
+
+        if (!isAdmin(jwt)) {
+            log.warn("Acesso negado ao /debug-unlock para o usuário '{}'.", jwt.getSubject());
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         capsuleService.earlyUnlockCapsule(id, storageService);
