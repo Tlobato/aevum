@@ -152,15 +152,22 @@ public class StorageService {
     }
 
     public void deleteDraftFolder(String capsuleId) {
-        String prefix = "drafts/" + capsuleId + "/";
+        deleteFolderWithPrefix("drafts/" + capsuleId + "/");
+    }
+
+    public void deleteSealedFolder(String capsuleId) {
+        deleteFolderWithPrefix("sealed/" + capsuleId + "/");
+    }
+
+    private void deleteFolderWithPrefix(String prefix) {
         try {
             var listRes = s3Client.listObjectsV2(b -> b.bucket(bucketName).prefix(prefix));
             for (var obj : listRes.contents()) {
                 s3Client.deleteObject(b -> b.bucket(bucketName).key(obj.key()));
-                log.info("Lixeira (AWS): Deletado objeto abandonado {}", obj.key());
+                log.info("Lixeira (AWS): Deletado objeto {}", obj.key());
             }
         } catch (Exception e) {
-            log.error("Erro ao deletar pasta draft da cápsula {}", capsuleId, e);
+            log.error("Erro ao deletar prefixo {} na S3", prefix, e);
         }
     }
 }

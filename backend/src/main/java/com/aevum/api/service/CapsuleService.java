@@ -215,4 +215,28 @@ public class CapsuleService {
         }
         log.info("Varredura concluída. {} cápsulas apagadas.", abandoned.size());
     }
+
+    @Transactional
+    public void deleteCapsule(UUID id, String userId, boolean isAdmin, StorageService storageService) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+
+        boolean isOwner = capsule.getOwnerId().equals(userId);
+
+        if (!isAdmin && !isOwner) {
+            throw new IllegalArgumentException("Você não tem permissão para apagar esta cápsula.");
+        }
+
+        if (capsule.getStatus() == CapsuleStatus.SEALED && !isAdmin) {
+            throw new IllegalArgumentException("Apenas administradores podem apagar cápsulas já lacradas.");
+        }
+
+        log.info("Deletando cápsula {} (Solicitante: {} | Admin: {})", id, userId, isAdmin);
+
+        // Limpeza na AWS
+        storageService.deleteDraftFolder(id.toString());
+        storageService.deleteSealedFolder(id.toString());
+
+        repository.delete(capsule);
+    }
 }

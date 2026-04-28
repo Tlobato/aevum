@@ -99,9 +99,28 @@ public class CapsuleController {
     @GetMapping("/{id}")
     public ResponseEntity<CapsuleResponse> openCapsule(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         String userEmail = jwt.getClaimAsString("email");
-        if (userEmail == null) userEmail = "unknown";
+        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
         CapsuleResponse response = capsuleService.openCapsule(id, jwt.getSubject(), userEmail);
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCapsule(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
+        
+        String extractedEmail = jwt.getClaimAsString("email");
+        if (extractedEmail == null) extractedEmail = jwt.getClaimAsString("primary_email_address");
+        
+        final String finalUserEmail = extractedEmail;
+        
+        boolean isAdmin = finalUserEmail != null && !adminEmailsStr.isBlank() 
+                && List.of(adminEmailsStr.split(",")).stream()
+                        .map(String::trim)
+                        .anyMatch(e -> e.equalsIgnoreCase(finalUserEmail));
+
+        capsuleService.deleteCapsule(id, jwt.getSubject(), isAdmin, storageService);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}/memories")
