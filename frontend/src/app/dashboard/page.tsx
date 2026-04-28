@@ -56,7 +56,8 @@ export default function Dashboard() {
     });
     const [planType, setPlanType]           = useState("ESQUIRE_1GB");
     const [recipientEmail, setRecipientEmail] = useState("");
-    const [isCustomEmail, setIsCustomEmail] = useState(false);
+    const [isGift, setIsGift]               = useState(false);
+    const [ownerMessage, setOwnerMessage]   = useState("");
     const [themeId, setThemeId]             = useState("bau-classico");
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
@@ -164,7 +165,9 @@ export default function Dashboard() {
                 body: JSON.stringify({
                     themeId, title, description,
                     unlockDate: `${unlockDate}T00:00:00`,
-                    recipientEmail, planType, isTestMode: false
+                    recipientEmail: isGift ? recipientEmail : userEmail,
+                    planType, isTestMode: false,
+                    isGift, ownerMessage: isGift ? ownerMessage : null
                 })
             });
             if (res.ok) {
@@ -221,8 +224,9 @@ export default function Dashboard() {
                     </div>
                     <button
                         onClick={() => {
-                            setIsCustomEmail(false);
-                            setRecipientEmail(user?.primaryEmailAddress?.emailAddress || "");
+                            setIsGift(false);
+                            setOwnerMessage("");
+                            setRecipientEmail("");
                             setShowCreateForm(!showCreateForm);
                         }}
                         className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all"
@@ -250,35 +254,56 @@ export default function Dashboard() {
                             <div className="grid lg:grid-cols-3 gap-8 items-start">
                                 {/* Form */}
                                 <form onSubmit={handleCreateCapsule} className="lg:col-span-2 space-y-5">
-                                    <h2 className="text-xl font-light tracking-tight mb-6">Definir os Parâmetros da Relíquia</h2>
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <div className="space-y-2 md:col-span-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Gravura / Título</label>
+                                    <h2 className="text-xl font-light tracking-tight mb-2">Definir os Parâmetros da Relíquia</h2>
+
+                                {/* Seletor de Fluxo: Para Mim vs Presente */}
+                                <div className="flex gap-3 mb-6 p-1 bg-black/40 rounded-2xl border border-neutral-800">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsGift(false); setRecipientEmail(""); setOwnerMessage(""); }}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
+                                            !isGift
+                                                ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-inner"
+                                                : "text-neutral-600 hover:text-neutral-400"
+                                        }`}
+                                    >
+                                        <Lock className="w-4 h-4" /> Para Mim
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsGift(true); setRecipientEmail(""); }}
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
+                                            isGift
+                                                ? "bg-rose-500/20 border border-rose-500/40 text-rose-300 shadow-inner"
+                                                : "text-neutral-600 hover:text-neutral-400"
+                                        }`}
+                                    >
+                                        🎁 Presente
+                                    </button>
+                                </div>
+
+                                <div className="grid md:grid-cols-2 gap-5">
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Gravura / Título</label>
                                             <input type="text" required value={title} onChange={e => setTitle(e.target.value)}
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all" />
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Portador (E-mail)</label>
-                                                {!isCustomEmail && (
-                                                    <button type="button" onClick={() => { setIsCustomEmail(true); setRecipientEmail(""); }} className="text-[10px] text-amber-500 hover:text-amber-400 uppercase tracking-widest font-bold">
-                                                        Usar Outro Email
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {isCustomEmail ? (
-                                                <div className="relative">
-                                                    <input type="email" required value={recipientEmail} onChange={e => setRecipientEmail(e.target.value)}
-                                                        placeholder="herdeiro@futuro.com" autoFocus
-                                                        className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700" />
-                                                    <button type="button" onClick={() => { setIsCustomEmail(false); setRecipientEmail(user?.primaryEmailAddress?.emailAddress || ""); }} className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-neutral-500 hover:text-white uppercase font-bold tracking-wider">
-                                                        Cancelar
-                                                    </button>
-                                                </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
+                                                {isGift ? "E-mail do Destinatário" : "Portador (E-mail)"}
+                                            </label>
+                                            {isGift ? (
+                                                <input
+                                                    type="email" required
+                                                    value={recipientEmail}
+                                                    onChange={e => setRecipientEmail(e.target.value)}
+                                                    placeholder="herdeiro@futuro.com"
+                                                    className="w-full bg-black/50 border border-neutral-800 focus:border-rose-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700"
+                                                />
                                             ) : (
-                                                <div className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-300 flex items-center justify-between">
-                                                    <span>{user?.primaryEmailAddress?.emailAddress}</span>
-                                                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-neutral-500 uppercase tracking-wider font-bold">Meu Email</span>
+                                                <div className="w-full bg-neutral-900/80 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-400 flex items-center justify-between cursor-not-allowed">
+                                                    <span>{userEmail}</span>
+                                                    <span className="text-[10px] bg-amber-500/10 text-amber-500/70 px-2 py-1 rounded font-bold uppercase tracking-wider">Bloqueado</span>
                                                 </div>
                                             )}
                                         </div>
@@ -307,6 +332,23 @@ export default function Dashboard() {
                                             <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
                                         </div>
                                     </div>
+
+                                    {/* Campo de Mensagem Especial — aparece apenas em modo Presente */}
+                                    {isGift && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Mensagem Especial 💌</label>
+                                            <textarea
+                                                value={ownerMessage}
+                                                onChange={e => setOwnerMessage(e.target.value)}
+                                                maxLength={1000}
+                                                rows={4}
+                                                placeholder="Escreva algo para o destinatário ler quando o baú abrir..."
+                                                className="w-full bg-black/50 border border-neutral-800 focus:border-rose-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-600 resize-none"
+                                            />
+                                            <p className="text-[10px] text-neutral-600 text-right">{ownerMessage.length}/1000</p>
+                                        </div>
+                                    )}
+
                                     <div className="pt-2">
                                         <ThemePicker selectedThemeId={themeId} onChange={setThemeId} />
                                     </div>

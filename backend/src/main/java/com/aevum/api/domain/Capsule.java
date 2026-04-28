@@ -38,6 +38,14 @@ public class Capsule {
     @Column(nullable = false)
     private String recipientEmail;
 
+    // Indica se a cápsula é um presente para outra pessoa (vs. uma cápsula pessoal)
+    @Column(nullable = false)
+    private boolean isGift = false;
+
+    // Mensagem especial do criador para o destinatário (visível apenas ao abrir)
+    @Column(columnDefinition = "TEXT")
+    private String ownerMessage;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CapsuleStatus status = CapsuleStatus.DRAFT;
@@ -150,6 +158,22 @@ public class Capsule {
 
     public void setRecipientEmail(String recipientEmail) {
         this.recipientEmail = recipientEmail;
+    }
+
+    public boolean isGift() {
+        return isGift;
+    }
+
+    public void setGift(boolean gift) {
+        isGift = gift;
+    }
+
+    public String getOwnerMessage() {
+        return ownerMessage;
+    }
+
+    public void setOwnerMessage(String ownerMessage) {
+        this.ownerMessage = ownerMessage;
     }
 
     public CapsuleStatus getStatus() {

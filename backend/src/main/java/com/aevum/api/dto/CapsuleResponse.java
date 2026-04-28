@@ -17,7 +17,9 @@ public record CapsuleResponse(
     String planType,
     String storageStatus,
     long totalSizeBytes,
-    boolean isTestMode
+    boolean isTestMode,
+    boolean isGift,
+    String ownerMessage
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
@@ -32,7 +34,9 @@ public record CapsuleResponse(
             capsule.getPlanType().name(),
             capsule.getStorageStatus().name(),
             capsule.getTotalSizeBytes(),
-            capsule.isTestMode()
+            capsule.isTestMode(),
+            capsule.isGift(),
+            capsule.getOwnerMessage()
         );
     }
 }

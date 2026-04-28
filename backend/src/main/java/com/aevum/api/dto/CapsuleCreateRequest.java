@@ -23,9 +23,16 @@ public record CapsuleCreateRequest(
     String recipientEmail,
 
     String themeId, // Optional field for the Capsule theme
-    
+
     @NotNull(message = "Plan type is required")
     String planType,
 
-    boolean isTestMode
+    boolean isTestMode,
+
+    // Indica se é um presente (true) ou cápsula pessoal (false)
+    boolean isGift,
+
+    // Mensagem especial do criador para o destinatário (apenas para presentes)
+    @Size(max = 1000, message = "Owner message too long")
+    String ownerMessage
 ) {}

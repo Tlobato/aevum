@@ -58,6 +58,8 @@ public class CapsuleService {
         capsule.setUnlockDate(request.unlockDate());
         capsule.setRecipientEmail(request.recipientEmail());
         capsule.setTestMode(request.isTestMode());
+        capsule.setGift(request.isGift());
+        capsule.setOwnerMessage(request.ownerMessage());
         capsule.setStatus(CapsuleStatus.DRAFT);
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.DRAFT);
 
