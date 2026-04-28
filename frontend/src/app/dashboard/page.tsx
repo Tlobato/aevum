@@ -100,7 +100,7 @@ export default function Dashboard() {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${token}`
                     },
-                    body: JSON.stringify({ planType, unlockDate: new Date(unlockDate).toISOString() })
+                    body: JSON.stringify({ planType, unlockDate: `${unlockDate}T00:00:00` })
                 });
                 if (res.ok) { const d = await res.json(); setEstimatedPrice(d.priceInCents); }
             } catch (e) { console.error(e); }
@@ -121,7 +121,7 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify({
                     themeId, title, description,
-                    unlockDate: new Date(unlockDate).toISOString(),
+                    unlockDate: `${unlockDate}T00:00:00`,
                     recipientEmail, planType, isTestMode: false
                 })
             });
