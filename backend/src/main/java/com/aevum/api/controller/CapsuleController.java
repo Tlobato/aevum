@@ -62,22 +62,24 @@ public class CapsuleController {
         log.info("JWT claims recebidos no /seal: {}", jwt.getClaims().keySet());
         
         // O Clerk pode enviar o email em diferentes claims dependendo da configuração
-        String userEmail = jwt.getClaimAsString("email");
-        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
-        if (userEmail == null) {
-            // Tenta extrair do subject (formato: user_xxx) - fallback via userId
+        String extractedEmail = jwt.getClaimAsString("email");
+        if (extractedEmail == null) extractedEmail = jwt.getClaimAsString("primary_email_address");
+        
+        final String finalUserEmail = extractedEmail;
+
+        if (finalUserEmail == null) {
             log.warn("Claim 'email' não encontrado no JWT. Claims disponíveis: {}", jwt.getClaims());
         }
         
-        log.info("Email extraído do JWT: '{}' | Admin emails configurados: '{}'", userEmail, adminEmailsStr);
+        log.info("Email extraído do JWT: '{}' | Admin emails configurados: '{}'", finalUserEmail, adminEmailsStr);
         
-        boolean isAdmin = userEmail != null && !adminEmailsStr.isBlank() 
+        boolean isAdmin = finalUserEmail != null && !adminEmailsStr.isBlank() 
                 && List.of(adminEmailsStr.split(",")).stream()
                         .map(String::trim)
-                        .anyMatch(e -> e.equalsIgnoreCase(userEmail));
+                        .anyMatch(e -> e.equalsIgnoreCase(finalUserEmail));
         
         if (!isAdmin) {
-            log.warn("Acesso negado ao /seal. Email '{}' não está na lista de admins.", userEmail);
+            log.warn("Acesso negado ao /seal. Email '{}' não está na lista de admins.", finalUserEmail);
             return ResponseEntity.status(403).build();
         }
 
