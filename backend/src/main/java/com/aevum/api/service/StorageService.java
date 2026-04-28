@@ -89,8 +89,12 @@ public class StorageService {
                         .build();
 
                 s3Client.copyObject(copyReq);
+                
+                // Remove o rascunho original para evitar cobrança em dobro e manter o S3 limpo
+                s3Client.deleteObject(d -> d.bucket(bucketName).key(sourceKey));
+                log.info("Selo (AWS): Arquivo movido para o gelo e rascunho deletado: {}", sourceKey);
             } catch (NoSuchKeyException e) {
-                // Ignore failure if file wasn't uploaded or was textual memory
+                log.warn("Selo (AWS): Arquivo não encontrado em drafts para movimentar: {}", sourceKey);
             }
         }
     }
