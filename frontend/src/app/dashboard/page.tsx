@@ -60,10 +60,10 @@ export default function Dashboard() {
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
 
-    // Calculando a data de amanhã para servir de limite mínimo
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const minDate = tomorrow.toISOString().split("T")[0];
+    // Calculando a data mínima de 185 dias (6 meses) para maturação e custo AWS Glacier
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 185);
+    const minDateStr = minDate.toISOString().split("T")[0];
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape" && showCreateForm) {
@@ -144,10 +144,10 @@ export default function Dashboard() {
         }
 
         const selectedDate = new Date(`${unlockDate}T00:00:00`);
-        const tomorrowDate = new Date(`${minDate}T00:00:00`);
+        const limitDate = new Date(`${minDateStr}T00:00:00`);
 
-        if (selectedDate < tomorrowDate) {
-            alert("A cápsula é uma jornada no tempo. A data do despertar deve ser no mínimo para o dia de amanhã.");
+        if (selectedDate < limitDate) {
+            alert("A cápsula é uma jornada no tempo. A data do despertar deve ser no mínimo 6 meses no futuro para garantir a maturação.");
             return;
         }
 
@@ -282,9 +282,13 @@ export default function Dashboard() {
                                             )}
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
-                                            <input type="date" required min={minDate} value={unlockDate} onChange={e => setUnlockDate(e.target.value)}
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
+                                                <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 6 meses</span>
+                                            </div>
+                                            <input type="date" required min={minDateStr} value={unlockDate} onChange={e => setUnlockDate(e.target.value)}
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm" />
+                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 180 dias.</p>
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
                                             <div className="flex items-center justify-between">
