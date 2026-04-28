@@ -101,21 +101,14 @@ export function CinematicCapsule({
   useEffect(() => {
     if (paymentSuccess && !hasProcessedPayment.current && capsuleId) {
       hasProcessedPayment.current = true;
-      const processPaymentSuccess = async () => {
-        try {
-          setIsSealingVideoPlaying(true);
-          const token = await getToken();
-          await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
-             method: "POST",
-             headers: { "Authorization": `Bearer ${token}` }
-          });
-        } catch (e) {
-          console.error("Erro ao confirmar selagem automática pós-pagamento:", e);
-        }
-      };
-      processPaymentSuccess();
+      // O Stripe já notificou o backend via webhook quando o pagamento foi confirmado.
+      // O backend chamou sealCapsule() e enviou os arquivos para o Glacier.
+      // Aqui apenas tocamos o vídeo de selagem e atualizamos a UI para refletir o estado FROZEN.
+      setStorageStatus("FROZEN");
+      setIsSealed(true);
+      setIsSealingVideoPlaying(true);
     }
-  }, [paymentSuccess, capsuleId, getToken]);
+  }, [paymentSuccess, capsuleId]);
 
   const hasProcessedEarlyUnlock = useRef(false);
 
