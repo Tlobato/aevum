@@ -13,7 +13,7 @@ public class User {
     @Column(length = 255)
     private String id;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(nullable = true, unique = false, length = 150)
     private String email;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
