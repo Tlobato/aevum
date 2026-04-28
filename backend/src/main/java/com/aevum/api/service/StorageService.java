@@ -145,7 +145,6 @@ public class StorageService {
                  System.out.println("Erro no override de debug para " + destinationKey + ": " + e.getMessage());
             }
         }
-        }
     }
 
     public void deleteDraftFolder(String capsuleId) {
