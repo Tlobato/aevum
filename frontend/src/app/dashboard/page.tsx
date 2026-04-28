@@ -56,8 +56,10 @@ export default function Dashboard() {
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
 
-
-
+    // Calculando a data de amanhã para servir de limite mínimo
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDate = tomorrow.toISOString().split("T")[0];
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape" && showCreateForm) {
@@ -90,7 +92,7 @@ export default function Dashboard() {
 
     // Busca estimativa de preço dinamicamente
     useEffect(() => {
-        if (!showCreateForm || !user) return;
+        if (!showCreateForm || !user || !unlockDate) return;
         const fetchEstimate = async () => {
             try {
                 const token = await getToken();
@@ -110,6 +112,20 @@ export default function Dashboard() {
 
     const handleCreateCapsule = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!unlockDate) {
+            alert("A data do despertar é obrigatória.");
+            return;
+        }
+
+        const selectedDate = new Date(`${unlockDate}T00:00:00`);
+        const tomorrowDate = new Date(`${minDate}T00:00:00`);
+
+        if (selectedDate < tomorrowDate) {
+            alert("A cápsula é uma jornada no tempo. A data do despertar deve ser no mínimo para o dia de amanhã.");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const token = await getToken();
@@ -242,7 +258,7 @@ export default function Dashboard() {
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
-                                            <input type="date" required value={unlockDate} onChange={e => setUnlockDate(e.target.value)}
+                                            <input type="date" required min={minDate} value={unlockDate} onChange={e => setUnlockDate(e.target.value)}
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm" />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
