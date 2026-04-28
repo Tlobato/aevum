@@ -47,7 +47,7 @@ export function CinematicCapsule({
 
   const [storageStatus, setStorageStatus] = useState(initialStorageStatus);
   const [isOpened, setIsOpened] = useState(storageStatus !== "DRAFT");
-  const [isSealed, setIsSealed] = useState(storageStatus === "FROZEN" || storageStatus === "AVAILABLE");
+  const [isSealed, setIsSealed] = useState(storageStatus === "FROZEN" || storageStatus === "AVAILABLE" || storageStatus === "RESTORING");
   const [isChomping, setIsChomping] = useState(false);
   const [flyingItem, setFlyingItem] = useState<Memory | null>(null);
 
@@ -122,22 +122,13 @@ export function CinematicCapsule({
   useEffect(() => {
     if (earlyUnlockSuccess && !hasProcessedEarlyUnlock.current && capsuleId) {
       hasProcessedEarlyUnlock.current = true;
-      const processEarlyUnlock = async () => {
-        try {
-          // Play the opening video
-          setIsUnsealingVideoPlaying(true);
-          const token = await getToken();
-          await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
-             method: "POST",
-             headers: { "Authorization": `Bearer ${token}` }
-          });
-        } catch (e) {
-          console.error("Erro ao confirmar quebra de selo pós-pagamento:", e);
-        }
-      };
-      processEarlyUnlock();
+      // O Stripe já notificou o backend via webhook quando o pagamento foi confirmado.
+      // O backend chamou triggerRestoreTask e definiu storageStatus = RESTORING.
+      // Aqui apenas atualizamos a UI para refletir esse estado.
+      setStorageStatus("RESTORING");
+      setIsUnsealingVideoPlaying(true);
     }
-  }, [earlyUnlockSuccess, capsuleId, getToken]);
+  }, [earlyUnlockSuccess, capsuleId]);
 
   const handleLaunchMemory = async (newMemoryData: Partial<Memory>) => {
     setActiveForgeMode(null);
@@ -513,8 +504,41 @@ export function CinematicCapsule({
         );
       })()}
 
-      {/* Botão de Quebrar o Selo */}
+      {/* Botão de Quebrar o Selo — só aparece quando disponível para abertura antecipada */}
       {storageStatus === "AVAILABLE" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 transition-all pointer-events-auto"
+          >
+            <button onClick={unsealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
+              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
+              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> QUEBRAR O SELO DO TEMPO</div>
+            </button>
+          </motion.div>
+      )}
+
+      {/* Estado RESTORING — Desgelo em andamento */}
+      {storageStatus === "RESTORING" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 flex flex-col items-center gap-3 text-center"
+          >
+            <div className="flex items-center gap-2 text-amber-400">
+              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="text-sm font-bold uppercase tracking-widest">Desgelo em Andamento</span>
+            </div>
+            <p className="text-xs text-neutral-500 max-w-xs leading-relaxed">
+              Suas relíquias estão sendo descongeladas do Gelo Eterno. Este processo leva até 48 horas. Você receberá acesso em breve.
+            </p>
+          </motion.div>
+      )}
+
+      {/* Botão de Quebrar o Selo FROZEN — abertura antecipada paga */}
+      {storageStatus === "FROZEN" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

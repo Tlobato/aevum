@@ -123,34 +123,31 @@ public class StorageService {
         }
     }
 
+    /**
+     * Força os arquivos de volta para STANDARD.
+     * APENAS para uso via botão Admin (debug/testes).
+     * NÃO usar via Stripe webhook — para isso usar triggerRestoreTask.
+     */
     public void forceStandardForDebug(Capsule capsule) {
         String capsuleIdStr = capsule.getId().toString();
         for (MemoryItem item : capsule.getItems()) {
             if (item.getFileName() == null || item.getFileName().isBlank()) continue;
-            String sourceKey = "drafts/" + capsuleIdStr + "/" + item.getFileName();
-            String destinationKey = "sealed/" + capsuleIdStr + "/" + item.getFileName();
-            
-            // Delete the DEEP_ARCHIVE object first to avoid LocalStack/S3 state errors during overwrite
-            try {
-                s3Client.deleteObject(DeleteObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(destinationKey)
-                        .build());
-            } catch (Exception e) {
-                 // ignore delete error
-            }
+            // Arquivos selados ficam em sealed/, não em drafts/
+            String sourceKey = "sealed/" + capsuleIdStr + "/" + item.getFileName();
 
             try {
                 CopyObjectRequest copyReq = CopyObjectRequest.builder()
                         .sourceBucket(bucketName)
                         .sourceKey(sourceKey)
                         .destinationBucket(bucketName)
-                        .destinationKey(destinationKey)
+                        .destinationKey(sourceKey) // copia sobre si mesmo mudando a storage class
                         .storageClass(StorageClass.STANDARD)
+                        .metadataDirective(MetadataDirective.COPY)
                         .build();
                 s3Client.copyObject(copyReq);
+                log.info("Debug Unlock (AWS): Arquivo movido para Standard: {}", sourceKey);
             } catch (Exception e) {
-                 System.out.println("Erro no override de debug para " + destinationKey + ": " + e.getMessage());
+                log.error("Erro no override de debug para {}: {}", sourceKey, e.getMessage());
             }
         }
     }

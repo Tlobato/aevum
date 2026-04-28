@@ -185,18 +185,21 @@ public class CapsuleService {
     public void earlyUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
-        
-        // Garante que se estava em draft, os arquivos sejam passados para a pasta sealed/
-        if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT) {
-            storageService.freezeCapsuleFiles(capsule);
-            capsule.setStatus(com.aevum.api.domain.CapsuleStatus.SEALED);
+
+        if (capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.SEALED) {
+            log.warn("Tentativa de desbloqueio antecipado em cápsula com status inválido: {}", capsule.getStatus());
+            return;
         }
-        
-        // Remove DEEP_ARCHIVE tiering em modo debug para liberar o download imediato
-        storageService.forceStandardForDebug(capsule);
-        
-        capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.AVAILABLE);
+
+        // Solicita o desgelo do Glacier (leva até 48h).
+        // O storageStatus permanece FROZEN até o PreemptiveRestoreJob confirmar que está pronto.
+        storageService.triggerRestoreTask(capsule);
+
+        // Marca que o desgelo foi solicitado (o job diário vai marcar como AVAILABLE quando pronto)
+        capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.RESTORING);
         repository.save(capsule);
+
+        log.info("Desbloqueio antecipado solicitado para cápsula {}. Desgelo iniciado no Glacier.", id);
     }
 
     public void cleanupAbandonedDrafts(StorageService storageService) {
