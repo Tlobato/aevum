@@ -194,4 +194,21 @@ public class CapsuleService {
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.AVAILABLE);
         repository.save(capsule);
     }
+
+    public void cleanupAbandonedDrafts(StorageService storageService) {
+        log.info("Iniciando varredura por rascunhos abandonados (DRAFT > 24h)...");
+        LocalDateTime limit = LocalDateTime.now().minusHours(24);
+        
+        List<Capsule> abandoned = repository.findAll().stream()
+                .filter(c -> c.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT)
+                .filter(c -> c.getCreatedAt().isBefore(limit))
+                .toList();
+                
+        for (Capsule c : abandoned) {
+            log.info("Limpando cápsula abandonada: {} (Dono: {})", c.getId(), c.getOwnerId());
+            storageService.deleteDraftFolder(c.getId().toString());
+            repository.delete(c);
+        }
+        log.info("Varredura concluída. {} cápsulas apagadas.", abandoned.size());
+    }
 }

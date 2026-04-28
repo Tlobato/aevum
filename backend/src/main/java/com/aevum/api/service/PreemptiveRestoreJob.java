@@ -20,11 +20,13 @@ public class PreemptiveRestoreJob {
     private final CapsuleRepository capsuleRepository;
     private final StorageService storageService;
     private final EmailService emailService;
+    private final CapsuleService capsuleService;
 
-    public PreemptiveRestoreJob(CapsuleRepository capsuleRepository, StorageService storageService, EmailService emailService) {
+    public PreemptiveRestoreJob(CapsuleRepository capsuleRepository, StorageService storageService, EmailService emailService, CapsuleService capsuleService) {
         this.capsuleRepository = capsuleRepository;
         this.storageService = storageService;
         this.emailService = emailService;
+        this.capsuleService = capsuleService;
     }
 
     // Executa diariamente à meia-noite (0 0 0 * * ?) -> Podemos setar para rodar a cada hora por precaução.
@@ -54,6 +56,13 @@ public class PreemptiveRestoreJob {
         }
         
         log.info("Job de Desgelo finalizado.");
+        
+        // Em seguida, varre e apaga os Rascunhos Abandonados
+        try {
+            capsuleService.cleanupAbandonedDrafts(storageService);
+        } catch (Exception e) {
+            log.error("Erro durante a limpeza de Rascunhos Abandonados", e);
+        }
     }
 
     // Executa uma vez por dia, à meia-noite

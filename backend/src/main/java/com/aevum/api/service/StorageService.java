@@ -145,5 +145,19 @@ public class StorageService {
                  System.out.println("Erro no override de debug para " + destinationKey + ": " + e.getMessage());
             }
         }
+        }
+    }
+
+    public void deleteDraftFolder(String capsuleId) {
+        String prefix = "drafts/" + capsuleId + "/";
+        try {
+            var listRes = s3Client.listObjectsV2(b -> b.bucket(bucketName).prefix(prefix));
+            for (var obj : listRes.contents()) {
+                s3Client.deleteObject(b -> b.bucket(bucketName).key(obj.key()));
+                log.info("Lixeira (AWS): Deletado objeto abandonado {}", obj.key());
+            }
+        } catch (Exception e) {
+            log.error("Erro ao deletar pasta draft da cápsula {}", capsuleId, e);
+        }
     }
 }
