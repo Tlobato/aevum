@@ -243,7 +243,7 @@ export default function Dashboard() {
                             className="mb-12 bg-neutral-900/60 border border-neutral-700/50 rounded-3xl p-8 backdrop-blur-sm relative"
                         >
                             <button onClick={() => setShowCreateForm(false)}
-                                className="absolute top-6 right-6 text-neutral-500 hover:text-white transition-colors">
+                                className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20">
                                 <X className="w-5 h-5" />
                             </button>
 
