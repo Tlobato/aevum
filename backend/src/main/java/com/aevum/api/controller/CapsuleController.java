@@ -5,6 +5,8 @@ import com.aevum.api.dto.CapsuleResponse;
 import com.aevum.api.dto.MemoryResponse;
 import com.aevum.api.service.CapsuleService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/capsules")
 public class CapsuleController {
+
+    private static final Logger log = LoggerFactory.getLogger(CapsuleController.class);
 
     private final CapsuleService capsuleService;
     private final com.aevum.api.service.PricingService pricingService;
@@ -54,11 +58,27 @@ public class CapsuleController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id) {
         
+        // Log de diagnóstico para entender o que o Clerk envia no JWT em produção
+        log.info("JWT claims recebidos no /seal: {}", jwt.getClaims().keySet());
+        
+        // O Clerk pode enviar o email em diferentes claims dependendo da configuração
         String userEmail = jwt.getClaimAsString("email");
-        boolean isAdmin = userEmail != null && List.of(adminEmailsStr.split(",")).contains(userEmail);
+        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
+        if (userEmail == null) {
+            // Tenta extrair do subject (formato: user_xxx) - fallback via userId
+            log.warn("Claim 'email' não encontrado no JWT. Claims disponíveis: {}", jwt.getClaims());
+        }
+        
+        log.info("Email extraído do JWT: '{}' | Admin emails configurados: '{}'", userEmail, adminEmailsStr);
+        
+        boolean isAdmin = userEmail != null && !adminEmailsStr.isBlank() 
+                && List.of(adminEmailsStr.split(",")).stream()
+                        .map(String::trim)
+                        .anyMatch(e -> e.equalsIgnoreCase(userEmail));
         
         if (!isAdmin) {
-            return ResponseEntity.status(403).build(); // Apenas Admin pode usar o fallback manual de selagem
+            log.warn("Acesso negado ao /seal. Email '{}' não está na lista de admins.", userEmail);
+            return ResponseEntity.status(403).build();
         }
 
         CapsuleResponse response = capsuleService.sealCapsule(id, storageService);
