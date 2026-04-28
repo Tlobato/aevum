@@ -317,7 +317,7 @@ export default function Dashboard() {
                                 </form>
 
                                 {/* Estimativa de Preço */}
-                                <div className="bg-amber-900/10 border border-amber-500/10 rounded-2xl p-6 space-y-4">
+                                <div className="bg-amber-900/10 border border-amber-500/10 rounded-2xl p-6 space-y-4 mt-8 lg:mt-12">
                                     <div className="flex items-center gap-2 text-amber-500">
                                         <Wallet className="w-4 h-4" />
                                         <span className="text-xs font-bold uppercase tracking-widest">Custo do Selo</span>
