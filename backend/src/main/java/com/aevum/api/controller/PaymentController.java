@@ -98,12 +98,22 @@ public class PaymentController {
             Event event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
 
             if ("checkout.session.completed".equals(event.getType())) {
-                Session session = (Session) event.getDataObjectDeserializer()
-                        .getObject()
-                        .orElseThrow();
+                // Usa Gson para parsear o JSON bruto, evitando incompatibilidade de versão
+                // entre a lib Stripe e a versão da API configurada no webhook.
+                com.google.gson.JsonObject sessionJson = com.google.gson.JsonParser
+                        .parseString(event.getDataObjectDeserializer().getRawJson())
+                        .getAsJsonObject();
 
-                String capsuleId = session.getMetadata().get("capsule_id");
-                String action = session.getMetadata().get("action");
+                com.google.gson.JsonObject metadata = sessionJson.has("metadata") && !sessionJson.get("metadata").isJsonNull()
+                        ? sessionJson.getAsJsonObject("metadata") : null;
+
+                String capsuleId = (metadata != null && metadata.has("capsule_id")) ? metadata.get("capsule_id").getAsString() : null;
+                String action    = (metadata != null && metadata.has("action"))     ? metadata.get("action").getAsString()     : null;
+
+                if (capsuleId == null || action == null) {
+                    log.warn("Webhook sem capsule_id ou action nos metadados. Ignorando.");
+                    return ResponseEntity.ok("ok");
+                }
 
                 if ("seal".equals(action)) {
                     log.info("Pagamento confirmado! Selando cápsula: {}", capsuleId);
@@ -120,6 +130,10 @@ public class PaymentController {
         } catch (SignatureVerificationException e) {
             log.error("Assinatura do Stripe inválida!", e);
             return ResponseEntity.badRequest().body("Assinatura inválida");
+        } catch (IllegalArgumentException e) {
+            // Cápsula não encontrada (pode ter sido deletada antes do webhook chegar)
+            log.warn("Webhook ignorado: {}", e.getMessage());
+            return ResponseEntity.ok("ok"); // retorna 200 para o Stripe não ficar retentando
         } catch (Exception e) {
             log.error("Erro ao processar webhook", e);
             return ResponseEntity.internalServerError().body("Erro interno");

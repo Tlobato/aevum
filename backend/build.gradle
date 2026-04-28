@@ -29,6 +29,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'software.amazon.awssdk:s3:2.21.20'
 	implementation 'com.stripe:stripe-java:26.3.0'
+	implementation 'com.google.code.gson:gson:2.10.1'
 	runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
