@@ -9,6 +9,8 @@ import com.aevum.api.dto.CapsuleResponse;
 import com.aevum.api.repository.CapsuleRepository;
 import com.aevum.api.repository.UserRepository;
 import com.aevum.api.dto.MemoryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class CapsuleService {
+
+    private static final Logger log = LoggerFactory.getLogger(CapsuleService.class);
 
     private final CapsuleRepository repository;
     private final UserRepository userRepository;

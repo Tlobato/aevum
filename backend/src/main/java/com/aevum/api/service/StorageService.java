@@ -2,6 +2,8 @@ package com.aevum.api.service;
 
 import com.aevum.api.domain.Capsule;
 import com.aevum.api.domain.MemoryItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -16,6 +18,8 @@ import java.time.Duration;
 
 @Service
 public class StorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(StorageService.class);
 
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
