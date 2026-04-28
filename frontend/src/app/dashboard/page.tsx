@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X } from "lucide-react";
+import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2 } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
 import { API_URL } from "@/lib/api";
 
@@ -37,6 +37,10 @@ export default function Dashboard() {
     const { isLoaded, user } = useUser();
     const { getToken } = useAuth();
     const router = useRouter();
+
+    const userEmail = user?.primaryEmailAddress?.emailAddress || "";
+    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
+    const isAdmin = adminEmails.includes(userEmail);
 
     const [capsules, setCapsules] = useState<CapsuleCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +93,27 @@ export default function Dashboard() {
         if (isLoaded && !user) { router.push("/"); return; }
         if (isLoaded && user) fetchCapsules();
     }, [isLoaded, user, router, fetchCapsules]);
+
+    const handleDeleteCapsule = async (id: string) => {
+        if (!confirm("Tem certeza que deseja apagar esta relíquia permanentemente? Esta ação não pode ser desfeita.")) return;
+
+        try {
+            const token = await getToken();
+            const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                setCapsules(prev => prev.filter(c => c.id !== id));
+            } else {
+                alert("Falha ao apagar a cápsula. Verifique suas permissões.");
+            }
+        } catch (error) {
+            console.error("Erro ao apagar:", error);
+            alert("Erro de conexão ao tentar apagar.");
+        }
+    };
 
     // Busca estimativa de preço dinamicamente
     useEffect(() => {
@@ -332,9 +357,20 @@ export default function Dashboard() {
                                             <h3 className="font-serif text-lg font-light leading-tight">{cap.title}</h3>
                                             <p className="text-xs text-neutral-500 mt-1 truncate">{cap.recipientEmail}</p>
                                         </div>
-                                        <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
-                                            {cap.status}
-                                        </span>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
+                                                {cap.status}
+                                            </span>
+                                            {(cap.status === "DRAFT" || isAdmin) && (
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteCapsule(cap.id); }}
+                                                    className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                                                    title="Apagar Relíquia"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* Barra de Quota */}
