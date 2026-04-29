@@ -83,16 +83,16 @@ public class CapsuleService {
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.FROZEN);
         capsule.setSealedAt(LocalDateTime.now());
 
-        capsule = repository.save(capsule);
+        capsule = repository.saveAndFlush(capsule);
 
-        // Dispara e-mails de confirmação e presente
+        // Trigger background or sync freeze to S3 Glacier
+        storageService.freezeCapsuleFiles(capsule);
+
+        // Dispara e-mails de confirmação e presente (threads separadas)
         emailService.sendSealingConfirmation(capsule);
         if (capsule.isGift()) {
             emailService.sendGiftNotification(capsule);
         }
-
-        // Trigger background or sync freeze to S3 Glacier
-        storageService.freezeCapsuleFiles(capsule);
 
         return CapsuleResponse.fromEntity(capsule);
     }

@@ -22,6 +22,7 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
+    @org.springframework.scheduling.annotation.Async
     public void sendSealingConfirmation(Capsule capsule) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -44,6 +45,7 @@ public class EmailService {
         }
     }
 
+    @org.springframework.scheduling.annotation.Async
     public void sendGiftNotification(Capsule capsule) {
         if (!capsule.isGift()) return;
         try {
@@ -66,6 +68,7 @@ public class EmailService {
         }
     }
 
+    @org.springframework.scheduling.annotation.Async
     public void sendAwakeningEmail(Capsule capsule) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
