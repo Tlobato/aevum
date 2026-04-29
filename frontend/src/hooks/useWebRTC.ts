@@ -39,7 +39,10 @@ export function useWebRTC() {
     try {
       chunksRef.current = [];
       setCapturedFile(null); // Limpa caso houvesse algum no state
-      const constraints = { audio: true, video: mode === "VIDEO" };
+      const constraints = { 
+        audio: mode === "AUDIO" || mode === "VIDEO", 
+        video: mode === "VIDEO" || mode === "PHOTO" 
+      };
       
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;

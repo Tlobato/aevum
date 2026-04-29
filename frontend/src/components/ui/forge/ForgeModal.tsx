@@ -199,58 +199,92 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                 </div>
               )}
 
-              {recordState === "CAMERA_READY" && activeForgeMode === "PHOTO" && (
-                <div className="flex flex-col items-center gap-4 relative z-10 pt-10">
-                  <button onClick={capturePhoto} className="w-16 h-16 bg-white/20 border-4 border-white text-white rounded-full flex items-center justify-center hover:bg-white/40 transition-all shadow-[0_0_20px_rgba(255,255,255,0.8)] backdrop-blur-sm">
-                      <Camera size={24} fill="currentColor" />
-                  </button>
-                  <span className="text-white drop-shadow-md font-mono font-bold tracking-widest text-xs z-10 bg-black/50 px-3 py-1 rounded-md border border-white/10 uppercase">
-                      Tirar Foto
-                  </span>
-                </div>
-              )}
-
-              {recordState === "RECORDING" && (
-                <div className="flex flex-col items-center gap-4 relative z-10 pt-10">
-                  <button onClick={stopHardwareRecording} className="w-16 h-16 bg-red-600 border-2 border-white text-white rounded-full flex items-center justify-center animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.8)] hover:bg-red-700 transition-all">
-                      <Square size={20} fill="currentColor" />
-                  </button>
-                  <span className="text-white drop-shadow-md font-mono font-bold tracking-widest text-lg z-10 bg-black/50 px-3 py-1 rounded-md border border-white/10">{formatTime(recordSeconds)}</span>
-                  
-                  {activeForgeMode === "AUDIO" && (
-                      <div className="absolute inset-x-0 bottom-4 flex items-end justify-center gap-[2px] opacity-80 px-8 z-0">
-                        {[...Array(30)].map((_, i) => (
-                          <motion.div key={i} className="w-full bg-gradient-to-t from-red-600 to-amber-500 rounded-t-sm"
-                              animate={{ height: [`${Math.random() * 15 + 5}px`, `${Math.random() * 45 + 15}px`, `${Math.random() * 15 + 5}px`] }}
-                              transition={{ duration: 0.3 + Math.random(), repeat: Infinity, ease: "easeInOut" }}
-                          />
-                        ))}
+              {/* MODO GRAVANDO / CAMERA PRONTA */}
+              {(recordState === "RECORDING" || (recordState === "CAMERA_READY" && activeForgeMode === "PHOTO")) && (
+                <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none">
+                  {/* Top Bar (REC info) */}
+                  <div className="flex justify-between items-start">
+                    {activeForgeMode === "VIDEO" && recordState === "RECORDING" && (
+                      <div className="flex items-center gap-2 bg-red-600 px-2 py-1 rounded shadow-lg animate-pulse">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                        <span className="text-white text-[10px] font-black uppercase tracking-widest">REC</span>
                       </div>
-                  )}
-                  
-                  {activeForgeMode === "VIDEO" && (
-                    <div className="absolute top-4 right-4 flex items-center gap-2 z-10 bg-black/60 px-2 py-1 rounded">
-                        <div className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
-                        <span className="text-red-500 text-[10px] font-bold uppercase tracking-widest">REC</span>
-                    </div>
-                  )}
+                    )}
+                    <div /> {/* Spacer */}
+                  </div>
+
+                  {/* Bottom Controls (Timer + Stop/Capture) */}
+                  <div className="flex flex-col items-center gap-4 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent pb-2 pt-10 pointer-events-auto">
+                    {recordState === "RECORDING" && (
+                      <div className="flex flex-col items-center">
+                        <span className="text-white font-mono font-bold tracking-[0.2em] text-xl mb-3 drop-shadow-lg">
+                          {formatTime(recordSeconds)}
+                        </span>
+                        <button 
+                          onClick={stopHardwareRecording} 
+                          className="w-14 h-14 bg-white hover:bg-red-500 rounded-full flex items-center justify-center transition-all shadow-xl hover:scale-110 active:scale-95 group"
+                        >
+                          <Square size={20} className="text-red-600 group-hover:text-white transition-colors" fill="currentColor" />
+                        </button>
+                      </div>
+                    )}
+
+                    {recordState === "CAMERA_READY" && activeForgeMode === "PHOTO" && (
+                      <button 
+                        onClick={capturePhoto} 
+                        className="w-16 h-16 bg-white border-4 border-white/30 text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-90 transition-all shadow-2xl"
+                      >
+                        <Camera size={28} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
+              {/* MODO REVISÃO (PREVIEW) */}
               {recordState === "DONE" && capturedFile && (
-                <div className="flex flex-col items-center gap-3 relative z-10">
-                    <div className="w-16 h-16 bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                      <CheckCircle2 size={32}/>
+                <div className="absolute inset-0 z-30 bg-black flex flex-col">
+                    <div className="flex-1 w-full bg-neutral-900 relative flex items-center justify-center overflow-hidden">
+                      {activeForgeMode === "PHOTO" && (
+                        <img src={URL.createObjectURL(capturedFile)} className="w-full h-full object-contain" alt="Preview" />
+                      )}
+                      {activeForgeMode === "VIDEO" && (
+                        <video src={URL.createObjectURL(capturedFile)} controls className="w-full h-full object-contain" />
+                      )}
+                      {activeForgeMode === "AUDIO" && (
+                        <div className="flex flex-col items-center gap-6 p-8">
+                          <div className="w-20 h-20 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center animate-pulse border border-indigo-500/30">
+                            <Mic size={40} />
+                          </div>
+                          <audio src={URL.createObjectURL(capturedFile)} controls className="w-full max-w-xs h-10" />
+                        </div>
+                      )}
                     </div>
-                    <span className="text-emerald-400 font-bold uppercase tracking-wider text-xs text-center px-4">
-                      {activeForgeMode === "AUDIO" ? "Áudio" : activeForgeMode === "PHOTO" ? "Fotografia" : "Filme"} Capturado com Sucesso!
-                    </span>
-                    <span className="text-white/60 font-mono text-[10px] bg-black/30 px-2 py-1 rounded truncate max-w-[200px]">
-                      {formatSize(capturedFile.size)} 
-                    </span>
-                    <button onClick={resetRecordingState} className="text-[10px] text-amber-500/80 hover:text-amber-500 uppercase tracking-wider mt-2 border-b border-amber-500/50">
-                      Descartar Mídia Bruta
-                    </button>
+                    
+                    {/* Ações de Revisão */}
+                    <div className="p-3 bg-neutral-950 flex gap-2 border-t border-white/5">
+                      <button 
+                        onClick={resetRecordingState} 
+                        className="flex-1 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-white transition-colors border border-white/5 rounded-lg"
+                      >
+                        Descartar e Refazer
+                      </button>
+                      <div className="flex-1 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
+                        Pronto para Selar
+                      </div>
+                    </div>
+                </div>
+              )}
+
+              {/* Visualizer de Áudio (Durante Gravação) */}
+              {recordState === "RECORDING" && activeForgeMode === "AUDIO" && (
+                <div className="absolute inset-x-0 bottom-24 flex items-end justify-center gap-[2px] opacity-80 px-8 z-10 pointer-events-none">
+                  {[...Array(24)].map((_, i) => (
+                    <motion.div key={i} className="w-full bg-gradient-to-t from-indigo-600 to-purple-500 rounded-t-sm"
+                        animate={{ height: [`${Math.random() * 10 + 5}px`, `${Math.random() * 50 + 10}px`, `${Math.random() * 10 + 5}px`] }}
+                        transition={{ duration: 0.3 + Math.random(), repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  ))}
                 </div>
               )}
             </div>
