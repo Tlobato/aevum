@@ -104,8 +104,6 @@ export default function Dashboard() {
     }, [isLoaded, user, router, fetchCapsules]);
 
     const handleDeleteCapsule = async (id: string) => {
-        if (!confirm("Tem certeza que deseja apagar esta relíquia permanentemente? Esta ação não pode ser desfeita.")) return;
-
         // Optimistic UI: Remove da lista local imediatamente
         const originalCapsules = [...capsules];
         setCapsules(prev => prev.filter(c => c.id !== id));
