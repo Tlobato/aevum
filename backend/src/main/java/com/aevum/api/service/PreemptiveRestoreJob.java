@@ -86,7 +86,13 @@ public class PreemptiveRestoreJob {
                 capsuleRepository.save(capsule);
 
                 // Dispara o Mensageiro!
-                emailService.sendAwakeningEmail(capsule);
+                emailService.sendAwakeningEmail(
+                    capsule.getRecipientEmail(),
+                    capsule.getTitle(),
+                    capsule.getOwnerMessage(),
+                    capsule.getId(),
+                    capsule.getAccessToken()
+                );
             } catch (Exception e) {
                 log.error("Falha ao despertar a cápsula {}", capsule.getId(), e);
             }

@@ -89,9 +89,14 @@ public class CapsuleService {
         storageService.freezeCapsuleFiles(capsule);
 
         // Dispara e-mails de confirmação e presente (threads separadas)
-        emailService.sendSealingConfirmation(capsule);
+        // Extraímos os dados antes para evitar LazyInitialization na thread do e-mail
+        String ownerEmail = capsule.getOwner().getEmail();
+        String capsuleTitle = capsule.getTitle();
+        java.time.LocalDate unlockDate = capsule.getUnlockDate().toLocalDate();
+
+        emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate);
         if (capsule.isGift()) {
-            emailService.sendGiftNotification(capsule);
+            emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate);
         }
 
         return CapsuleResponse.fromEntity(capsule);
