@@ -99,6 +99,10 @@ export default function Dashboard() {
     const handleDeleteCapsule = async (id: string) => {
         if (!confirm("Tem certeza que deseja apagar esta relíquia permanentemente? Esta ação não pode ser desfeita.")) return;
 
+        // Optimistic UI: Remove da lista local imediatamente
+        const originalCapsules = [...capsules];
+        setCapsules(prev => prev.filter(c => c.id !== id));
+
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
@@ -106,13 +110,14 @@ export default function Dashboard() {
                 headers: { "Authorization": `Bearer ${token}` }
             });
 
-            if (res.ok) {
-                setCapsules(prev => prev.filter(c => c.id !== id));
-            } else {
-                alert("Falha ao apagar a cápsula. Verifique suas permissões.");
+            if (!res.ok) {
+                // Se falhar no servidor, restaura a lista e avisa
+                setCapsules(originalCapsules);
+                alert("Falha ao apagar a cápsula no Registro Temporal. Verifique suas permissões.");
             }
         } catch (error) {
             console.error("Erro ao apagar:", error);
+            setCapsules(originalCapsules);
             alert("Erro de conexão ao tentar apagar.");
         }
     };
