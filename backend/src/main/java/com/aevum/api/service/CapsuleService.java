@@ -97,7 +97,7 @@ public class CapsuleService {
         log.info("Tentando disparar e-mails para selagem. Dono: {}, Título: {}", ownerEmail, capsuleTitle);
 
         if (ownerEmail != null) {
-            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate);
+            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate, capsule.isGift(), capsule.getRecipientEmail());
         } else {
             log.warn("Não foi possível enviar e-mail de confirmação: Dono sem e-mail cadastrado.");
         }

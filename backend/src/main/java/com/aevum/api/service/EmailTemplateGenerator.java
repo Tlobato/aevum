@@ -38,12 +38,21 @@ public class EmailTemplateGenerator {
              + "</html>";
     }
 
-    public String sealingConfirmation(String capsuleTitle, String unlockDate) {
-        String content = "Saudações, Forjador do Tempo.<br><br>"
-                + "Seu pagamento foi confirmado e o selo da cápsula <span class='highlight'>'" + capsuleTitle + "'</span> foi ativado com sucesso.<br><br>"
-                + "Seu legado agora reside no <span class='highlight'>Gelo Eterno</span>, protegido contra o desgaste dos anos até o dia <span class='highlight'>"
-                + unlockDate + "</span>.<br><br>"
-                + "Você pode monitorar a integridade da sua relíquia através do seu painel de controle.";
+    public String sealingConfirmation(String capsuleTitle, String unlockDate, boolean isGift, String recipientEmail) {
+        String content;
+        if (isGift) {
+            content = "Saudações, Forjador do Tempo.<br><br>"
+                    + "Seu pagamento foi confirmado e o presente <span class='highlight'>'" + capsuleTitle + "'</span> foi selado com sucesso.<br><br>"
+                    + "Nós cuidaremos para que este legado seja entregue a <span class='highlight'>" + recipientEmail + "</span> no dia <span class='highlight'>"
+                    + unlockDate + "</span>.<br><br>"
+                    + "Obrigado por confiar ao Aevum a entrega dessa memória.";
+        } else {
+            content = "Saudações, Forjador do Tempo.<br><br>"
+                    + "Seu pagamento foi confirmado e o selo da sua cápsula pessoal <span class='highlight'>'" + capsuleTitle + "'</span> foi ativado com sucesso.<br><br>"
+                    + "Seu legado agora reside no <span class='highlight'>Gelo Eterno</span>, protegido contra o desgaste dos anos até o dia <span class='highlight'>"
+                    + unlockDate + "</span>.<br><br>"
+                    + "Você pode monitorar a integridade da sua relíquia através do seu painel de controle.";
+        }
         
         return generateBaseTemplate("Relíquia Selada", content);
     }

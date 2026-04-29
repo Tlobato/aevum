@@ -67,9 +67,9 @@ public class EmailService {
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate) {
+    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail) {
         String subject = "Selo da Eternidade Ativado: " + capsuleTitle;
-        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString());
+        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString(), isGift, recipientEmail);
         sendViaApi(ownerEmail, subject, html);
     }
 
