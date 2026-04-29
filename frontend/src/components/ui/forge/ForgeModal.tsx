@@ -202,39 +202,37 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
               {/* MODO GRAVANDO / CAMERA PRONTA */}
               {(recordState === "RECORDING" || (recordState === "CAMERA_READY" && activeForgeMode === "PHOTO")) && (
                 <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none">
-                  {/* Top Bar (REC info) */}
-                  <div className="flex justify-between items-start">
-                    {activeForgeMode === "VIDEO" && recordState === "RECORDING" && (
-                      <div className="flex items-center gap-2 bg-red-600 px-2 py-1 rounded shadow-lg animate-pulse">
-                        <div className="w-2 h-2 bg-white rounded-full" />
-                        <span className="text-white text-[10px] font-black uppercase tracking-widest">REC</span>
-                      </div>
-                    )}
-                    <div /> {/* Spacer */}
-                  </div>
-
-                  {/* Bottom Controls (Timer + Stop/Capture) */}
-                  <div className="flex flex-col items-center gap-4 w-full bg-gradient-to-t from-black/80 via-black/40 to-transparent pb-2 pt-10 pointer-events-auto">
+                  {/* Top Bar (Info sutil) */}
+                  <div className="flex justify-center items-start pt-2">
                     {recordState === "RECORDING" && (
-                      <div className="flex flex-col items-center">
-                        <span className="text-white font-mono font-bold tracking-[0.2em] text-xl mb-3 drop-shadow-lg">
+                      <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 shadow-xl">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-white font-mono text-sm font-bold tracking-widest leading-none">
                           {formatTime(recordSeconds)}
                         </span>
-                        <button 
-                          onClick={stopHardwareRecording} 
-                          className="w-14 h-14 bg-white hover:bg-red-500 rounded-full flex items-center justify-center transition-all shadow-xl hover:scale-110 active:scale-95 group"
-                        >
-                          <Square size={20} className="text-red-600 group-hover:text-white transition-colors" fill="currentColor" />
-                        </button>
                       </div>
+                    )}
+                  </div>
+
+                  {/* Bottom Controls (Shutter sutil) */}
+                  <div className="flex flex-col items-center gap-4 w-full pb-4 pointer-events-auto">
+                    {recordState === "RECORDING" && (
+                      <button 
+                        onClick={stopHardwareRecording} 
+                        className="w-12 h-12 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 group backdrop-blur-sm"
+                        title="Parar Gravação"
+                      >
+                        <Square size={16} className="text-red-500" fill="currentColor" />
+                      </button>
                     )}
 
                     {recordState === "CAMERA_READY" && activeForgeMode === "PHOTO" && (
                       <button 
                         onClick={capturePhoto} 
-                        className="w-16 h-16 bg-white border-4 border-white/30 text-black rounded-full flex items-center justify-center hover:scale-110 active:scale-90 transition-all shadow-2xl"
+                        className="w-16 h-16 bg-white/10 hover:bg-white/20 border-4 border-white/40 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-90 group backdrop-blur-md shadow-2xl"
+                        title="Capturar Relíquia"
                       >
-                        <Camera size={28} />
+                        <div className="w-12 h-12 bg-white/80 group-hover:bg-white rounded-full transition-colors" />
                       </button>
                     )}
                   </div>
