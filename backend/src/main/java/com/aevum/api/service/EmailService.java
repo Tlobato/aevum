@@ -11,11 +11,16 @@ import org.springframework.http.MediaType;
 import java.util.Map;
 import java.util.List;
 
+/**
+ * Serviço responsável pelo envio técnico de e-mails via API REST do Resend.
+ * Utiliza o EmailTemplateGenerator para obter o conteúdo visual (HTML).
+ */
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final RestTemplate restTemplate = new RestTemplate();
+    private final EmailTemplateGenerator templateGenerator;
 
     @Value("${MAIL_PASSWORD:}")
     private String resendApiKey;
@@ -23,7 +28,11 @@ public class EmailService {
     @Value("${aevum.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
-    private void sendViaApi(String to, String subject, String text) {
+    public EmailService(EmailTemplateGenerator templateGenerator) {
+        this.templateGenerator = templateGenerator;
+    }
+
+    private void sendViaApi(String to, String subject, String htmlContent) {
         if (resendApiKey == null || resendApiKey.isEmpty()) {
             log.warn("RESEND_API_KEY não configurada. E-mail para {} não será enviado.", to);
             return;
@@ -41,61 +50,41 @@ public class EmailService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(resendApiKey);
 
-            // Formato simplificado: to aceita string ou array de strings
             Map<String, Object> body = Map.of(
                 "from", "Aevum <mensageiro@myaevum.space>",
                 "to", to,
                 "subject", subject,
-                "text", text
+                "html", htmlContent
             );
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
             restTemplate.postForEntity(url, entity, String.class);
             
-            log.info("E-mail via API enviado com sucesso para {}", to);
+            log.info("E-mail HTML via API enviado com sucesso para {}", to);
         } catch (Exception e) {
-            log.error("Falha crítica ao enviar e-mail via API para {}: {}", to, e.getMessage());
+            log.error("Falha crítica ao enviar e-mail HTML via API para {}: {}", to, e.getMessage());
         }
     }
 
     @org.springframework.scheduling.annotation.Async
     public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate) {
         String subject = "Selo da Eternidade Ativado: " + capsuleTitle;
-        String text = "Saudações, Forjador do Tempo.\n\n"
-                + "Seu pagamento foi confirmado e a cápsula '" + capsuleTitle + "' foi selada com sucesso.\n"
-                + "Seus arquivos foram movidos para o Gelo Eterno e estarão seguros até o dia "
-                + unlockDate + ".\n\n"
-                + "Você pode acompanhar o status da sua relíquia em seu Dashboard.\n\n"
-                + "Obrigado por confiar ao Aevum seu legado.";
-        
-        sendViaApi(ownerEmail, subject, text);
+        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString());
+        sendViaApi(ownerEmail, subject, html);
     }
 
     @org.springframework.scheduling.annotation.Async
     public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate) {
         String subject = "Alguém do passado preparou algo para você...";
-        String text = "Olá,\n\n"
-                + "Estamos escrevendo para avisar que uma cápsula do tempo foi forjada e destinada a você.\n"
-                + "Ela foi selada e só poderá ser aberta no futuro, em " + unlockDate + ".\n\n"
-                + "Não se preocupe, no dia do despertar nós lhe enviaremos um novo e-mail com a chave de acesso.\n\n"
-                + "O tempo guarda grandes histórias.";
-
-        sendViaApi(recipientEmail, subject, text);
+        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.toString());
+        sendViaApi(recipientEmail, subject, html);
     }
 
     @org.springframework.scheduling.annotation.Async
     public void sendAwakeningEmail(String recipientEmail, String capsuleTitle, String ownerMessage, java.util.UUID capsuleId, java.util.UUID accessToken) {
         String subject = "O tempo despertou: Uma relíquia espera por você";
         String publicLink = frontendUrl + "/vault/" + capsuleId + "?token=" + accessToken;
-
-        String text = "Saudações.\n\n"
-                + "Você foi definido como o herdeiro da Cápsula do Tempo '" + capsuleTitle + "'.\n"
-                + "O forjador enviou isso para você através dos anos.\n\n"
-                + (ownerMessage != null ? "Houve também uma mensagem especial deixada para você:\n\n\"" + ownerMessage + "\"\n\n" : "")
-                + "O selo temporal foi quebrado e o legado já está disponível.\n\n"
-                + "Acesse sua relíquia em: " + publicLink + "\n\n"
-                + "O Aevum agradece.";
-
-        sendViaApi(recipientEmail, subject, text);
+        String html = templateGenerator.awakeningEmail(capsuleTitle, ownerMessage, publicLink);
+        sendViaApi(recipientEmail, subject, html);
     }
 }
