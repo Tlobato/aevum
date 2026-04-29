@@ -6,6 +6,7 @@ import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2 } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { API_URL } from "@/lib/api";
 
 type CapsuleCard = {
@@ -61,6 +62,12 @@ export default function Dashboard() {
     const [themeId, setThemeId]             = useState("bau-classico");
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
+
+    // Estado para o Modal de Confirmação
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; capsuleId: string | null }>({
+        isOpen: false,
+        capsuleId: null
+    });
 
     // Calculando a data mínima de 185 dias (6 meses) para maturação e custo AWS Glacier
     const minDate = new Date();
@@ -419,7 +426,7 @@ export default function Dashboard() {
                                             </span>
                                             {(cap.status === "DRAFT" || isAdmin) && (
                                                 <button 
-                                                    onClick={(e) => { e.stopPropagation(); handleDeleteCapsule(cap.id); }}
+                                                    onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, capsuleId: cap.id }); }}
                                                     className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
                                                     title="Apagar Relíquia"
                                                 >
@@ -465,6 +472,19 @@ export default function Dashboard() {
                     </div>
                 )}
             </div>
+
+            <ConfirmationModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, capsuleId: null })}
+                onConfirm={() => {
+                    if (deleteModal.capsuleId) handleDeleteCapsule(deleteModal.capsuleId);
+                }}
+                title="Excluir Relíquia"
+                message="Tem certeza que deseja apagar esta relíquia permanentemente? Todos os arquivos e mensagens guardados serão perdidos para sempre no fluxo do tempo."
+                confirmText="Excluir Permanentemente"
+                cancelText="Manter Relíquia"
+                isDangerous={true}
+            />
         </main>
     );
 }
