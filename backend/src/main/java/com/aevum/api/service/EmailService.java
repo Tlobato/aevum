@@ -17,7 +17,7 @@ public class EmailService {
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${RESEND_API_KEY:}")
+    @Value("${MAIL_PASSWORD:}")
     private String resendApiKey;
 
     @Value("${aevum.frontend-url:http://localhost:3000}")
