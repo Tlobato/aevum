@@ -77,9 +77,18 @@ public class CapsuleController {
             @Valid @RequestBody CapsuleCreateRequest request) {
 
         String userId = jwt.getSubject();
+        
+        // Debug para entender o que o Clerk está enviando
+        log.info("Extraindo dados do JWT - Claims: {}", jwt.getClaims());
+
         String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = jwt.getClaimAsString("email_address");
         if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
-        if (userEmail == null) userEmail = "unknown";
+        
+        if (userEmail == null) {
+            log.warn("E-mail não encontrado nas claims padrões do Clerk para o usuário {}. Usando 'unknown'.", userId);
+            userEmail = "unknown";
+        }
 
         CapsuleResponse response = capsuleService.createDraft(request, userId, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

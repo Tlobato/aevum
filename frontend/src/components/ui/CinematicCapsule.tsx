@@ -80,7 +80,7 @@ export function CinematicCapsule({
             res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/memories?token=${accessToken}`);
           } else {
             // Busca autenticada (Dono)
-            const token = await getToken();
+            const token = await getToken({ template: 'aevum-session' });
             res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
               headers: { "Authorization": `Bearer ${token}` }
             });
@@ -118,7 +118,7 @@ export function CinematicCapsule({
       const verifyStatus = async () => {
         await new Promise(resolve => setTimeout(resolve, 3000)); // aguarda 3s para o webhook processar
         try {
-          const token = await getToken();
+          const token = await getToken({ template: 'aevum-session' });
           const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
@@ -197,7 +197,7 @@ export function CinematicCapsule({
 
       if (actualFile) {
         uploadedFileName = newMemory.fileName || `media_${Date.now()}`;
-        const token = await getToken();
+        const token = await getToken({ template: 'aevum-session' });
         // Pede URL Assinada
         const presignRes = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
           headers: { "Authorization": `Bearer ${token}` }
@@ -218,7 +218,7 @@ export function CinematicCapsule({
         if (!s3Res.ok) throw new Error("A conexão dimensional falhou durante a transferência.");
       }
 
-      const token = await getToken();
+      const token = await getToken({ template: 'aevum-session' });
       // Consolida Memória no Banco Postgres
       await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
         method: "POST",
@@ -257,7 +257,7 @@ export function CinematicCapsule({
     try {
       setIsRedirectingToStripe(true);
       // Pedimos ao backend a sessão segura do Stripe
-      const token = await getToken();
+      const token = await getToken({ template: 'aevum-session' });
       const res = await fetch(`${API_URL}/api/v1/payments/create-checkout/${capsuleId}`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
@@ -287,7 +287,7 @@ export function CinematicCapsule({
     // Em paralelo, carrega as memórias do backend para estarem prontas quando o vídeo acabar.
     if (capsuleId && user) {
         try {
-            const token = await getToken();
+            const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -505,7 +505,7 @@ export function CinematicCapsule({
                   onClick={async () => {
                      try {
                         setIsSealingVideoPlaying(true);
-                        const token = await getToken();
+                        const token = await getToken({ template: 'aevum-session' });
                         await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                            method: "POST",
                            headers: { "Authorization": `Bearer ${token}` }
@@ -619,7 +619,7 @@ export function CinematicCapsule({
                     try {
                       setIsRedirectingToStripe(true);
                       if (capsuleId && user) {
-                         const token = await getToken();
+                         const token = await getToken({ template: 'aevum-session' });
                          const res = await fetch(`${API_URL}/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
                             method: 'POST',
                             headers: { "Authorization": `Bearer ${token}` }
@@ -651,7 +651,7 @@ export function CinematicCapsule({
                         try {
                           setShowEarlyUnlockModal(false);
                           setIsUnsealingVideoPlaying(true);
-                          const token = await getToken();
+                          const token = await getToken({ template: 'aevum-session' });
                           await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
                               method: 'POST',
                               headers: { "Authorization": `Bearer ${token}` }

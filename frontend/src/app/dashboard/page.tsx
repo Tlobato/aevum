@@ -79,7 +79,7 @@ export default function Dashboard() {
     const fetchCapsules = useCallback(async () => {
         setIsLoading(true);
         try {
-            const token = await getToken();
+            const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -122,7 +122,7 @@ export default function Dashboard() {
         if (!showCreateForm || !user || !unlockDate) return;
         const fetchEstimate = async () => {
             try {
-                const token = await getToken();
+                const token = await getToken({ template: 'aevum-session' });
                 const res = await fetch(`${API_URL}/api/v1/capsules/estimate`, {
                     method: "POST",
                     headers: { 
@@ -155,7 +155,7 @@ export default function Dashboard() {
 
         setIsSaving(true);
         try {
-            const token = await getToken();
+            const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 method: "POST",
                 headers: { 
