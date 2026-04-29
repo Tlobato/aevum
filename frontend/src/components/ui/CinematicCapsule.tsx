@@ -321,6 +321,22 @@ export function CinematicCapsule({
   const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal;
 
   if (viewMode === "GALLERY") {
+    if (memoriesList.length === 0 && capsuleId) {
+      return (
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+            <motion.img 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                src="/logo-relic-load.webp" 
+                alt="Carregando..." 
+                className="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+            />
+            <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
+                Despertando Relíquias
+            </span>
+        </div>
+      );
+    }
     return <RelicGallery memories={memoriesList} title={title} />;
   }
 
@@ -358,7 +374,7 @@ export function CinematicCapsule({
       <div className={`flex flex-col ${isSealed ? 'md:flex-row md:items-center md:justify-center md:gap-16 w-full max-w-5xl' : 'items-center w-full'} transition-all duration-700`}>
 
         {/* Container Principal do Baú */}
-        <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 shrink-0 ${isBlurMode || showEarlyUnlockModal ? 'blur-md opacity-30 scale-95 grayscale-[50%]' : ''}`}>
+        <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 shrink-0 ${isBlurMode || showEarlyUnlockModal || isSealingVideoPlaying || isUnsealingVideoPlaying ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
           <motion.div
             className="absolute w-[80%] h-[40%] bg-amber-600/30 blur-[40px] rounded-full bottom-[20%]"
             animate={{ scale: isOpened && !isSealed ? 1.2 : 1, opacity: isOpened && !isSealed ? 1 : 0.4 }}

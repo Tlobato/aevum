@@ -193,8 +193,17 @@ export default function Dashboard() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center text-amber-500 font-mono text-sm tracking-widest">
-                Consultando o Registro Temporal...
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+                <motion.img 
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    src="/logo-relic-load.webp" 
+                    alt="Carregando..." 
+                    className="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                />
+                <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
+                    Sincronizando com o Registro Temporal
+                </span>
             </div>
         );
     }
