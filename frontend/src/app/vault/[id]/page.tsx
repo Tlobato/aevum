@@ -104,7 +104,7 @@ function VaultContent() {
                 unlockDate={capsuleData.unlockDate}
                 paymentSuccess={paymentSuccess}
                 earlyUnlockSuccess={earlyUnlockSuccess}
-                accessToken={accessToken || capsuleData.accessToken}
+                accessToken={searchParams.get("token")}
             />
         </main>
     );
