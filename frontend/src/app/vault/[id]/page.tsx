@@ -17,27 +17,41 @@ function VaultContent() {
     
     // Parâmetro injetado pelo Stripe ao retornar da compra de selagem
     const paymentSuccess = searchParams.get("payment_success") === "true";
-    // Parâmetro injetado pelo Stripe ao retornar da multa de quebra de selo
     const earlyUnlockSuccess = searchParams.get("early_unlock_success") === "true";
+    const accessToken = searchParams.get("token");
 
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (!isLoaded) return;
-        if (!user) { router.push("/"); return; }
+        
+        // Se não tem token e não tem usuário logado, redireciona pro início
+        if (!accessToken && !user) { 
+            router.push("/"); 
+            return; 
+        }
         
         const fetchCapsule = async () => {
             try {
-                const token = await getToken();
-                const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
+                let res;
+                if (accessToken) {
+                    // Busca via endpoint público
+                    res = await fetch(`${API_URL}/api/v1/public/capsules/${id}?token=${accessToken}`);
+                } else {
+                    // Busca autenticada (Dono)
+                    const token = await getToken();
+                    res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
+                        headers: { "Authorization": `Bearer ${token}` }
+                    });
+                }
+
                 if (res.ok) {
                     const data = await res.json();
                     setCapsuleData(data);
                 } else {
-                    router.push("/dashboard");
+                    // Se falhar a busca (ex: token inválido), vai pro dashboard ou home
+                    router.push(user ? "/dashboard" : "/");
                 }
             } catch (e) {
                 console.error("Failed to load capsule", e);
@@ -47,7 +61,7 @@ function VaultContent() {
         };
 
         fetchCapsule();
-    }, [id, user, router]);
+    }, [id, user, isLoaded, router, accessToken, getToken]);
 
     if (loading) {
         return <div className="min-h-screen bg-black flex items-center justify-center text-amber-500">Invocando Câmara...</div>;
@@ -90,6 +104,7 @@ function VaultContent() {
                 unlockDate={capsuleData.unlockDate}
                 paymentSuccess={paymentSuccess}
                 earlyUnlockSuccess={earlyUnlockSuccess}
+                accessToken={accessToken || capsuleData.accessToken}
             />
         </main>
     );

@@ -54,6 +54,10 @@ public class Capsule {
     @Column(nullable = false)
     private StorageStatus storageStatus = StorageStatus.DRAFT;
 
+    // Token único para acesso público do destinatário (sem login)
+    @Column(unique = true)
+    private java.util.UUID accessToken;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CapsulePlan planType = CapsulePlan.ESQUIRE_1GB;
@@ -198,6 +202,14 @@ public class Capsule {
 
     public void setStorageStatus(StorageStatus storageStatus) {
         this.storageStatus = storageStatus;
+    }
+
+    public java.util.UUID getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(java.util.UUID accessToken) {
+        this.accessToken = accessToken;
     }
 
     public CapsulePlan getPlanType() {

@@ -24,6 +24,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Webhook do Stripe: vem do servidor deles, não do browser. Liberado aqui, a segurança é pelo HMAC.
                 .requestMatchers("/api/v1/payments/webhook").permitAll()
+                // Endpoints públicos via token (acesso para destinatários sem conta)
+                .requestMatchers("/api/v1/public/**").permitAll()
                 // Todos os outros endpoints de cápsulas e pagamentos exigem JWT válido do Clerk
                 .requestMatchers("/api/v1/capsules/**").authenticated()
                 .requestMatchers("/api/v1/payments/**").authenticated()

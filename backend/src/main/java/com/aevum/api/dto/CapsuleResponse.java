@@ -19,7 +19,8 @@ public record CapsuleResponse(
     long totalSizeBytes,
     boolean isTestMode,
     boolean isGift,
-    String ownerMessage
+    String ownerMessage,
+    java.util.UUID accessToken
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
@@ -36,7 +37,8 @@ public record CapsuleResponse(
             capsule.getTotalSizeBytes(),
             capsule.isTestMode(),
             capsule.isGift(),
-            capsule.getOwnerMessage()
+            capsule.getOwnerMessage(),
+            capsule.getAccessToken()
         );
     }
 }

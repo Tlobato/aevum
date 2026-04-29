@@ -26,7 +26,8 @@ export function CinematicCapsule({
   recipientEmail = "herdeiro@futuro.com",
   unlockDate = "2050-01-01",
   paymentSuccess = false,
-  earlyUnlockSuccess = false
+  earlyUnlockSuccess = false,
+  accessToken = null
 }: {
   capsuleId?: string,
   themeId?: string,
@@ -37,7 +38,8 @@ export function CinematicCapsule({
   recipientEmail?: string,
   unlockDate?: string,
   paymentSuccess?: boolean,
-  earlyUnlockSuccess?: boolean
+  earlyUnlockSuccess?: boolean,
+  accessToken?: string | null
 }) {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -72,10 +74,18 @@ export function CinematicCapsule({
     if (viewMode === "GALLERY" && capsuleId) {
       const fetchMemories = async () => {
         try {
-          const token = await getToken();
-          const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
-            headers: { "Authorization": `Bearer ${token}` }
-          });
+          let res;
+          if (accessToken) {
+            // Busca pública via token
+            res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/memories?token=${accessToken}`);
+          } else {
+            // Busca autenticada (Dono)
+            const token = await getToken();
+            res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
+              headers: { "Authorization": `Bearer ${token}` }
+            });
+          }
+
           if (res.ok) {
             const data = await res.json();
             // Maps the backend MemoryResponse to our frontend Memory interface
@@ -94,7 +104,7 @@ export function CinematicCapsule({
       };
       fetchMemories();
     }
-  }, [viewMode, capsuleId, getToken]);
+  }, [viewMode, capsuleId, getToken, accessToken]);
 
   const hasProcessedPayment = useRef(false);
 
@@ -436,7 +446,7 @@ export function CinematicCapsule({
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
                       Receptáculo protegido pelo selo da eternidade
                     </span>
-                    {storageStatus !== "AVAILABLE" && (
+                    {storageStatus !== "AVAILABLE" && !accessToken && storageStatus === "FROZEN" && (
                         <button
                           onClick={() => setShowEarlyUnlockModal(true)}
                           className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
@@ -460,7 +470,7 @@ export function CinematicCapsule({
       </div>
 
       {/* Painel Inferior de Criação (Ações) */}
-      {storageStatus === "DRAFT" && (
+      {!accessToken && storageStatus === "DRAFT" && (
         <motion.div
           animate={{
             opacity: isSealed ? 0 : 1, y: isSealed ? 80 : 0, scale: flyingItem ? 0.95 : 1, pointerEvents: isSealed || flyingItem || isBlurMode ? "none" : "auto"
@@ -476,7 +486,7 @@ export function CinematicCapsule({
       )}
 
       {/* Botão Global de Selagem */}
-      {storageStatus === "DRAFT" && (() => {
+      {!accessToken && storageStatus === "DRAFT" && (() => {
         const canSeal = !isSealed && localMemoriesCount > 0 && !isBlurMode;
         return (
           <motion.div

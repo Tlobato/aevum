@@ -26,10 +26,12 @@ public class CapsuleService {
 
     private final CapsuleRepository repository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
-    public CapsuleService(CapsuleRepository repository, UserRepository userRepository) {
+    public CapsuleService(CapsuleRepository repository, UserRepository userRepository, EmailService emailService) {
         this.repository = repository;
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     @Transactional
@@ -60,6 +62,7 @@ public class CapsuleService {
         capsule.setTestMode(request.isTestMode());
         capsule.setGift(request.isGift());
         capsule.setOwnerMessage(request.ownerMessage());
+        capsule.setAccessToken(java.util.UUID.randomUUID());
         capsule.setStatus(CapsuleStatus.DRAFT);
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.DRAFT);
 
@@ -81,6 +84,12 @@ public class CapsuleService {
         capsule.setSealedAt(LocalDateTime.now());
 
         capsule = repository.save(capsule);
+
+        // Dispara e-mails de confirmação e presente
+        emailService.sendSealingConfirmation(capsule);
+        if (capsule.isGift()) {
+            emailService.sendGiftNotification(capsule);
+        }
 
         // Trigger background or sync freeze to S3 Glacier
         storageService.freezeCapsuleFiles(capsule);
@@ -148,6 +157,49 @@ public class CapsuleService {
         }
 
         return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional(readOnly = true)
+    public CapsuleResponse getPublicCapsule(UUID id, UUID token) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+
+        if (capsule.getAccessToken() == null || !capsule.getAccessToken().equals(token)) {
+            throw new IllegalArgumentException("Token de acesso inválido.");
+        }
+
+        // Se não estiver em modo de teste, valida a data
+        if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("O tempo desta relíquia ainda não chegou.");
+        }
+
+        return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MemoryResponse> getPublicMemories(UUID id, UUID token, com.aevum.api.service.StorageService storageService) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+
+        if (capsule.getAccessToken() == null || !capsule.getAccessToken().equals(token)) {
+            throw new IllegalArgumentException("Token de acesso inválido.");
+        }
+
+        if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("As memórias ainda estão seladas pelo tempo.");
+        }
+
+        if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
+            throw new IllegalArgumentException("As memórias estão sendo preparadas para o despertar. Tente novamente em breve.");
+        }
+
+        return capsule.getItems().stream().map(item -> {
+            String presignedUrl = null;
+            if (item.getFileName() != null && !item.getFileName().isBlank()) {
+                presignedUrl = storageService.generatePresignedGetUrl(capsule.getId().toString(), item.getFileName());
+            }
+            return MemoryResponse.fromEntity(item, presignedUrl);
+        }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
