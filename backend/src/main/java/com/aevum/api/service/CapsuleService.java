@@ -90,12 +90,19 @@ public class CapsuleService {
 
         // Dispara e-mails de confirmação e presente (threads separadas)
         // Extraímos os dados antes para evitar LazyInitialization na thread do e-mail
-        String ownerEmail = capsule.getOwner().getEmail();
+        String ownerEmail = (capsule.getOwner() != null) ? capsule.getOwner().getEmail() : null;
         String capsuleTitle = capsule.getTitle();
-        java.time.LocalDate unlockDate = capsule.getUnlockDate().toLocalDate();
+        java.time.LocalDate unlockDate = (capsule.getUnlockDate() != null) ? capsule.getUnlockDate().toLocalDate() : java.time.LocalDate.now();
 
-        emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate);
-        if (capsule.isGift()) {
+        log.info("Tentando disparar e-mails para selagem. Dono: {}, Título: {}", ownerEmail, capsuleTitle);
+
+        if (ownerEmail != null) {
+            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate);
+        } else {
+            log.warn("Não foi possível enviar e-mail de confirmação: Dono sem e-mail cadastrado.");
+        }
+
+        if (capsule.isGift() && capsule.getRecipientEmail() != null) {
             emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate);
         }
 

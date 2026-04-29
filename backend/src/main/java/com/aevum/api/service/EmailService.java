@@ -29,6 +29,11 @@ public class EmailService {
             return;
         }
 
+        if (to == null || to.isEmpty() || to.equalsIgnoreCase("unknown") || !to.contains("@")) {
+            log.warn("Endereço de e-mail inválido: {}. Abortando envio via API.", to);
+            return;
+        }
+
         try {
             String url = "https://api.resend.com/emails";
             
@@ -36,9 +41,10 @@ public class EmailService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.setBearerAuth(resendApiKey);
 
+            // Formato simplificado: to aceita string ou array de strings
             Map<String, Object> body = Map.of(
                 "from", "Aevum <mensageiro@myaevum.space>",
-                "to", List.of(to),
+                "to", to,
                 "subject", subject,
                 "text", text
             );
