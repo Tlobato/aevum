@@ -111,12 +111,23 @@ export function CinematicCapsule({
   useEffect(() => {
     if (paymentSuccess && !hasProcessedPayment.current && capsuleId) {
       hasProcessedPayment.current = true;
-      // Toca o vídeo de selagem imediatamente (feedback visual)
-      setIsSealingVideoPlaying(true);
-      setIsSealed(true);
-      // Aguarda o webhook do Stripe processar e busca o status real do backend
+      
+      // Verifica se a animação já foi vista nesta sessão para evitar repetição no F5
+      const seenKey = `aevum_seal_seen_${capsuleId}`;
+      const alreadySeen = sessionStorage.getItem(seenKey);
+
+      if (!alreadySeen) {
+          setIsSealingVideoPlaying(true);
+          setIsSealed(true);
+      } else {
+          // Se já viu, apenas atualiza o estado para o fim da animação
+          setIsSealed(true);
+          setIsOpened(false);
+          setStorageStatus("FROZEN");
+      }
+
       const verifyStatus = async () => {
-        await new Promise(resolve => setTimeout(resolve, 3000)); // aguarda 3s para o webhook processar
+        // ... (resto do código de verificação)
         try {
           const token = await getToken({ template: 'aevum-session' });
           const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
@@ -128,7 +139,7 @@ export function CinematicCapsule({
           }
         } catch (e) {
           console.error("Erro ao verificar status pós-pagamento:", e);
-          setStorageStatus("FROZEN"); // fallback visual
+          setStorageStatus("FROZEN");
         }
       };
       verifyStatus();
@@ -140,11 +151,17 @@ export function CinematicCapsule({
   useEffect(() => {
     if (earlyUnlockSuccess && !hasProcessedEarlyUnlock.current && capsuleId) {
       hasProcessedEarlyUnlock.current = true;
-      // O Stripe já notificou o backend via webhook quando o pagamento foi confirmado.
-      // O backend chamou triggerRestoreTask e definiu storageStatus = RESTORING.
-      // Aqui apenas atualizamos a UI para refletir esse estado.
-      setStorageStatus("RESTORING");
-      setIsUnsealingVideoPlaying(true);
+      
+      const seenKey = `aevum_unseal_seen_${capsuleId}`;
+      const alreadySeen = sessionStorage.getItem(seenKey);
+
+      if (!alreadySeen) {
+          setStorageStatus("RESTORING");
+          setIsUnsealingVideoPlaying(true);
+      } else {
+          setStorageStatus("RESTORING");
+          // Se já viu a animação de restauração, apenas mantém no estado correto
+      }
     }
   }, [earlyUnlockSuccess, capsuleId]);
 
@@ -686,6 +703,9 @@ export function CinematicCapsule({
                      autoPlay muted playsInline
                      onEnded={() => {
                         setShowFlash(true);
+                        // Marca como visto para não repetir no F5
+                        if (capsuleId) sessionStorage.setItem(`aevum_seal_seen_${capsuleId}`, "true");
+                        
                         setTimeout(() => {
                            setIsSealingVideoPlaying(false);
                            setStorageStatus("FROZEN");
@@ -738,6 +758,9 @@ export function CinematicCapsule({
                      autoPlay muted playsInline
                      onEnded={() => {
                         setShowFlash(true);
+                        // Marca como visto para não repetir no F5
+                        if (capsuleId) sessionStorage.setItem(`aevum_unseal_seen_${capsuleId}`, "true");
+
                         setTimeout(() => {
                            setIsUnsealingVideoPlaying(false);
                            setViewMode("GALLERY");
