@@ -26,9 +26,13 @@ export default function Home() {
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ delay: 0.5, duration: 1 }}
-                        className="mx-auto w-16 h-16 border border-amber-500/30 rounded-full flex items-center justify-center bg-black/50 shadow-[0_0_30px_rgba(245,158,11,0.15)] mb-6"
+                        className="mx-auto w-24 h-24 flex items-center justify-center mb-4"
                     >
-                        <Lock className="w-6 h-6 text-amber-500/80" />
+                        <img 
+                            src="/logo-relic.png" 
+                            alt="Aevum Relic" 
+                            className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]"
+                        />
                     </motion.div>
                     <h1 className="text-5xl md:text-6xl font-extralight tracking-tighter text-white">
                         Aevum

@@ -208,9 +208,11 @@ export default function Dashboard() {
             <header className="border-b border-white/5 px-6 lg:px-12 py-6">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 border border-amber-500/30 rounded-full flex items-center justify-center">
-                            <Lock className="w-3.5 h-3.5 text-amber-500" />
-                        </div>
+                        <img 
+                            src="/logo-relic.png" 
+                            alt="Aevum Logo" 
+                            className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                        />
                         <span className="font-serif text-xl font-light tracking-tight">Aevum</span>
                     </div>
                     <div className="flex items-center gap-6">
