@@ -64,7 +64,20 @@ function VaultContent() {
     }, [id, user, isLoaded, router, accessToken, getToken]);
 
     if (loading) {
-        return <div className="min-h-screen bg-black flex items-center justify-center text-amber-500">Invocando Câmara...</div>;
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+                <div className="w-24 h-24 overflow-hidden relative rounded-full drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">
+                    <img 
+                        src="/logo-relic-load.webp" 
+                        alt="Invocando Câmara..." 
+                        className="w-[115%] h-[115%] max-w-none object-cover -translate-x-[7%] -translate-y-[7%]" 
+                    />
+                </div>
+                <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
+                    Invocando Câmara do Tempo
+                </span>
+            </div>
+        );
     }
 
     if (!capsuleData) {
