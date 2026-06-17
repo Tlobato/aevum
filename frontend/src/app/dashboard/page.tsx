@@ -62,6 +62,7 @@ export default function Dashboard() {
     const [themeId, setThemeId]             = useState("bau-classico");
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
+    const [errors, setErrors]               = useState<Record<string, string>>({});
 
     // Estado para o Modal de Confirmação
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; capsuleId: string | null }>({
@@ -147,19 +148,42 @@ export default function Dashboard() {
         fetchEstimate();
     }, [planType, unlockDate, showCreateForm, user]);
 
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!title || title.trim() === "") {
+            newErrors.title = "O título da relíquia é obrigatório.";
+        }
+
+        if (isGift) {
+            if (!recipientEmail || recipientEmail.trim() === "") {
+                newErrors.recipientEmail = "O e-mail do destinatário é obrigatório.";
+            } else {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(recipientEmail)) {
+                    newErrors.recipientEmail = "Insira um endereço de e-mail válido.";
+                }
+            }
+        }
+
+        if (!unlockDate) {
+            newErrors.unlockDate = "A data de despertar é obrigatória.";
+        } else {
+            const selectedDate = new Date(`${unlockDate}T00:00:00`);
+            const limitDate = new Date(`${minDateStr}T00:00:00`);
+            if (selectedDate < limitDate) {
+                newErrors.unlockDate = "O despertar deve ser no mínimo 6 meses no futuro (185 dias).";
+            }
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleCreateCapsule = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        if (!unlockDate) {
-            alert("A data do despertar é obrigatória.");
-            return;
-        }
-
-        const selectedDate = new Date(`${unlockDate}T00:00:00`);
-        const limitDate = new Date(`${minDateStr}T00:00:00`);
-
-        if (selectedDate < limitDate) {
-            alert("A cápsula é uma jornada no tempo. A data do despertar deve ser no mínimo 6 meses no futuro para garantir a maturação.");
+        if (!validateForm()) {
             return;
         }
 
@@ -248,6 +272,7 @@ export default function Dashboard() {
                             setIsGift(false);
                             setOwnerMessage("");
                             setRecipientEmail("");
+                            setErrors({});
                             setShowCreateForm(!showCreateForm);
                         }}
                         className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all"
@@ -274,7 +299,7 @@ export default function Dashboard() {
 
                             <div className="grid lg:grid-cols-3 gap-8 items-start">
                                 {/* Form */}
-                                <form onSubmit={handleCreateCapsule} className="lg:col-span-2 space-y-5">
+                                <form onSubmit={handleCreateCapsule} noValidate className="lg:col-span-2 space-y-5">
                                     <h2 className="text-xl font-light tracking-tight mb-2">Definir os Parâmetros da Relíquia</h2>
 
                                 {/* Seletor de Fluxo: Para Mim vs Presente */}
@@ -306,53 +331,100 @@ export default function Dashboard() {
                                 <div className="grid md:grid-cols-2 gap-5">
                                     <div className="space-y-2 md:col-span-2">
                                         <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Gravura / Título</label>
-                                            <input type="text" required value={title} onChange={e => setTitle(e.target.value)}
-                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all" />
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
-                                                {isGift ? "E-mail do Destinatário" : "Portador (E-mail)"}
-                                            </label>
-                                            {isGift ? (
-                                                <input
-                                                    type="email" required
-                                                    value={recipientEmail}
-                                                    onChange={e => setRecipientEmail(e.target.value)}
-                                                    placeholder="herdeiro@futuro.com"
-                                                    className="w-full bg-black/50 border border-neutral-800 focus:border-rose-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700"
-                                                />
-                                            ) : (
-                                                <div className="w-full bg-neutral-900/80 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-400 flex items-center justify-between cursor-not-allowed">
-                                                    <span>{userEmail}</span>
-                                                    <span className="text-[10px] bg-amber-500/10 text-amber-500/70 px-2 py-1 rounded font-bold uppercase tracking-wider">Bloqueado</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
-                                                <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 6 meses</span>
-                                            </div>
-                                            <input type="date" required min={minDateStr} value={unlockDate} onChange={e => setUnlockDate(e.target.value)}
-                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm" />
-                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 180 dias.</p>
-                                        </div>
-                                        <div className="space-y-2 md:col-span-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Plano Dimensional</label>
-                                                <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">Fase Alpha: Apenas 1GB</span>
-                                            </div>
-                                            <select value={planType} onChange={e => setPlanType(e.target.value)}
-                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none">
-                                                <option value="ESQUIRE_1GB">Esquire — 1GB (Disponível)</option>
-                                                <option value="KNIGHT_5GB" disabled className="text-neutral-600">Knight — 5GB (Indisponível na Fase Alpha)</option>
-                                                <option value="BARON_10GB" disabled className="text-neutral-600">Baron — 10GB (Indisponível na Fase Alpha)</option>
-                                                <option value="MARQUIS_25GB" disabled className="text-neutral-600">Marquis — 25GB (Indisponível na Fase Alpha)</option>
-                                                <option value="KING_50GB" disabled className="text-neutral-600">King — 50GB (Indisponível na Fase Alpha)</option>
-                                            </select>
-                                            <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
-                                        </div>
+                                        <input 
+                                            type="text" 
+                                            value={title} 
+                                            onChange={e => {
+                                                setTitle(e.target.value);
+                                                if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
+                                            }}
+                                            className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none transition-all ${
+                                                errors.title 
+                                                    ? "border-rose-950/80 focus:border-rose-500/50" 
+                                                    : "border-neutral-800 focus:border-amber-500/50"
+                                            }`} 
+                                        />
+                                        {errors.title && (
+                                            <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                {errors.title}
+                                            </span>
+                                        )}
                                     </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
+                                            {isGift ? "E-mail do Destinatário" : "Portador (E-mail)"}
+                                        </label>
+                                        {isGift ? (
+                                            <>
+                                                <input
+                                                    type="email"
+                                                    value={recipientEmail}
+                                                    onChange={e => {
+                                                        setRecipientEmail(e.target.value);
+                                                        if (errors.recipientEmail) setErrors(prev => ({ ...prev, recipientEmail: "" }));
+                                                    }}
+                                                    placeholder="herdeiro@futuro.com"
+                                                    className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700 ${
+                                                        errors.recipientEmail
+                                                            ? "border-rose-950/80 focus:border-rose-500/50"
+                                                            : "border-neutral-800 focus:border-rose-500/50"
+                                                    }`}
+                                                />
+                                                {errors.recipientEmail && (
+                                                    <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                        {errors.recipientEmail}
+                                                    </span>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <div className="w-full bg-neutral-900/80 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-400 flex items-center justify-between cursor-not-allowed">
+                                                <span>{userEmail}</span>
+                                                <span className="text-[10px] bg-amber-500/10 text-amber-500/70 px-2 py-1 rounded font-bold uppercase tracking-wider">Bloqueado</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
+                                            <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 6 meses</span>
+                                        </div>
+                                        <input 
+                                            type="date" 
+                                            value={unlockDate} 
+                                            onChange={e => {
+                                                setUnlockDate(e.target.value);
+                                                if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
+                                            }}
+                                            className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
+                                                errors.unlockDate
+                                                    ? "border-rose-950/80 focus:border-rose-500/50"
+                                                    : "border-neutral-800 focus:border-amber-500/50"
+                                            }`} 
+                                        />
+                                        {errors.unlockDate ? (
+                                            <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                {errors.unlockDate}
+                                            </span>
+                                        ) : (
+                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 180 dias.</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Plano Dimensional</label>
+                                            <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">Fase Alpha: Apenas 1GB</span>
+                                        </div>
+                                        <select value={planType} onChange={e => setPlanType(e.target.value)}
+                                            className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none">
+                                            <option value="ESQUIRE_1GB">Esquire — 1GB (Disponível)</option>
+                                            <option value="KNIGHT_5GB" disabled className="text-neutral-600">Knight — 5GB (Indisponível na Fase Alpha)</option>
+                                            <option value="BARON_10GB" disabled className="text-neutral-600">Baron — 10GB (Indisponível na Fase Alpha)</option>
+                                            <option value="MARQUIS_25GB" disabled className="text-neutral-600">Marquis — 25GB (Indisponível na Fase Alpha)</option>
+                                            <option value="KING_50GB" disabled className="text-neutral-600">King — 50GB (Indisponível na Fase Alpha)</option>
+                                        </select>
+                                        <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
+                                    </div>
+                                </div>
 
                                     {/* Campo de Mensagem Especial — aparece apenas em modo Presente */}
                                     {isGift && (
