@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aevum - Em Manutenção",
-  description: "Estamos trabalhando para melhorar a sua experiência.",
+  title: "Aevum - Digital Time Capsule",
+  description: "Cápsula do tempo digital construída para durar gerações.",
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // Alterar para false quando quiser desativar o modo de manutenção
-  const isMaintenance = true;
+  const isMaintenance = false;
 
   if (isMaintenance) {
     return (
