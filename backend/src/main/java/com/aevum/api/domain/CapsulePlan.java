@@ -1,11 +1,11 @@
 package com.aevum.api.domain;
 
 public enum CapsulePlan {
-    ESQUIRE_1GB(1L * 1024 * 1024 * 1024),
-    KNIGHT_5GB(5L * 1024 * 1024 * 1024),
-    BARON_10GB(10L * 1024 * 1024 * 1024),
-    MARQUIS_25GB(25L * 1024 * 1024 * 1024),
-    KING_50GB(50L * 1024 * 1024 * 1024);
+    EPOCH_1GB(1L * 1024 * 1024 * 1024),
+    CHRONOS_2GB(2L * 1024 * 1024 * 1024),
+    AEON_3GB(3L * 1024 * 1024 * 1024),
+    ETERNITY_4GB(4L * 1024 * 1024 * 1024),
+    AEVUM_5GB(5L * 1024 * 1024 * 1024);
 
     private final long maxSizeBytes;
 

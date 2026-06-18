@@ -21,11 +21,11 @@ type CapsuleCard = {
 };
 
 const PLAN_LABELS: Record<string, { label: string; maxBytes: number }> = {
-    ESQUIRE_1GB:  { label: "Esquire (1GB)",  maxBytes: 1073741824     },
-    KNIGHT_5GB:   { label: "Knight (5GB)",   maxBytes: 5368709120     },
-    BARON_10GB:   { label: "Baron (10GB)",   maxBytes: 10737418240    },
-    MARQUIS_25GB: { label: "Marquis (25GB)", maxBytes: 26843545600    },
-    KING_50GB:    { label: "King (50GB)",    maxBytes: 53687091200    },
+    EPOCH_1GB:    { label: "Epoch (1GB)",    maxBytes: 1073741824     },
+    CHRONOS_2GB:  { label: "Chronos (2GB)",  maxBytes: 2147483648     },
+    AEON_3GB:     { label: "Aeon (3GB)",     maxBytes: 3221225472     },
+    ETERNITY_4GB: { label: "Eternity (4GB)", maxBytes: 4294967296     },
+    AEVUM_5GB:    { label: "Aevum (5GB)",    maxBytes: 5368709120     },
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -55,7 +55,7 @@ export default function Dashboard() {
         const d = new Date(); d.setFullYear(d.getFullYear() + 10);
         return d.toISOString().split("T")[0];
     });
-    const [planType, setPlanType]           = useState("ESQUIRE_1GB");
+    const [planType, setPlanType]           = useState("EPOCH_1GB");
     const [recipientEmail, setRecipientEmail] = useState("");
     const [isGift, setIsGift]               = useState(false);
     const [ownerMessage, setOwnerMessage]   = useState("");
@@ -416,11 +416,11 @@ export default function Dashboard() {
                                         </div>
                                         <select value={planType} onChange={e => setPlanType(e.target.value)}
                                             className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none">
-                                            <option value="ESQUIRE_1GB">Esquire — 1GB (Disponível)</option>
-                                            <option value="KNIGHT_5GB" disabled className="text-neutral-600">Knight — 5GB (Indisponível na Fase Alpha)</option>
-                                            <option value="BARON_10GB" disabled className="text-neutral-600">Baron — 10GB (Indisponível na Fase Alpha)</option>
-                                            <option value="MARQUIS_25GB" disabled className="text-neutral-600">Marquis — 25GB (Indisponível na Fase Alpha)</option>
-                                            <option value="KING_50GB" disabled className="text-neutral-600">King — 50GB (Indisponível na Fase Alpha)</option>
+                                            <option value="EPOCH_1GB">Epoch — 1GB (Disponível)</option>
+                                            <option value="CHRONOS_2GB" disabled className="text-neutral-600">Chronos — 2GB (Indisponível na Fase Alpha)</option>
+                                            <option value="AEON_3GB" disabled className="text-neutral-600">Aeon — 3GB (Indisponível na Fase Alpha)</option>
+                                            <option value="ETERNITY_4GB" disabled className="text-neutral-600">Eternity — 4GB (Indisponível na Fase Alpha)</option>
+                                            <option value="AEVUM_5GB" disabled className="text-neutral-600">Aevum — 5GB (Indisponível na Fase Alpha)</option>
                                         </select>
                                         <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
                                     </div>

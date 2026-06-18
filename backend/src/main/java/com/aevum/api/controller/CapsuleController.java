@@ -159,7 +159,7 @@ public class CapsuleController {
     public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> estimatePrice(@RequestBody EstimateRequest request) {
         com.aevum.api.domain.CapsulePlan plan = com.aevum.api.domain.CapsulePlan.valueOf(request.planType());
         com.aevum.api.domain.TimeTier timeTier = com.aevum.api.domain.TimeTier.determineTier(request.unlockDate());
-        long price = pricingService.calculatePriceInCents(plan, timeTier);
+        long price = pricingService.calculatePriceInCents(plan, request.unlockDate());
 
         com.aevum.api.service.PricingService.PricingSummary summary = new com.aevum.api.service.PricingService.PricingSummary(
                 plan.name(),

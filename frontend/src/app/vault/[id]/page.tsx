@@ -88,11 +88,11 @@ function VaultContent() {
     // (We actually updated backend to return planType, storageStatus, and totalSizeBytes).
     // Let's resolve plan bytes.
     const planLimits: Record<string, number> = {
-        "ESQUIRE_1GB": 1073741824,
-        "KNIGHT_5GB": 5368709120,
-        "BARON_10GB": 10737418240,
-        "MARQUIS_25GB": 26843545600,
-        "KING_50GB": 53687091200
+        "EPOCH_1GB": 1073741824,
+        "CHRONOS_2GB": 2147483648,
+        "AEON_3GB": 3221225472,
+        "ETERNITY_4GB": 4294967296,
+        "AEVUM_5GB": 5368709120
     };
     
     // We expect the Spring boot to return: planType, storageStatus, totalSizeBytes.

@@ -60,7 +60,7 @@ public class Capsule {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private CapsulePlan planType = CapsulePlan.ESQUIRE_1GB;
+    private CapsulePlan planType = CapsulePlan.EPOCH_1GB;
 
     @Column(nullable = false)
     private long totalSizeBytes = 0L;
