@@ -352,24 +352,6 @@ export function CinematicCapsule({
           isBlurMode={isBlurMode}
         />
       )}
-
-      {/* Alerta de Desgelo (RESTORING Storage) */}
-      <AnimatePresence>
-        {storageStatus === "RESTORING" && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-            className="absolute top-10 w-full max-w-md mx-auto bg-blue-900/60 backdrop-blur-md px-6 py-4 rounded-xl border border-blue-400/50 shadow-[0_0_30px_rgba(59,130,246,0.3)] z-[100] text-center"
-          >
-            <h4 className="text-blue-200 font-black tracking-widest uppercase mb-1">Processo de Desgelo</h4>
-            <p className="text-blue-100/70 text-sm mb-3">Sua relíquia está sendo restaurada dos confins do tempo (Glacier). Este processo requer calor contínuo.</p>
-            <div className="flex items-center justify-center gap-2 text-xl font-mono text-cyan-300">
-              <span className="animate-pulse">⏳</span>
-              <span>Tempo Restante Estimado: ~24h</span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Wrapper de Layout (Side-by-Side no Desktop quando Selado) */}
       <div className={`flex flex-col ${isSealed ? 'md:flex-row md:items-center md:justify-center md:gap-16 w-full max-w-5xl' : 'items-center w-full'} transition-all duration-700`}>
 
@@ -574,17 +556,21 @@ export function CinematicCapsule({
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-8 flex flex-col items-center gap-3 text-center"
+            className="mt-8 w-full max-w-md mx-auto bg-blue-950/40 backdrop-blur-md px-6 py-5 rounded-2xl border border-blue-500/30 shadow-[0_0_40px_rgba(59,130,246,0.15)] z-[10] text-center flex flex-col items-center gap-3"
           >
-            <div className="flex items-center gap-2 text-amber-400">
-              <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <div className="flex items-center gap-2 text-blue-400">
+              <svg className="w-5 h-5 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span className="text-sm font-bold uppercase tracking-widest">Desgelo em Andamento</span>
+              <h4 className="text-blue-200 font-bold tracking-widest uppercase text-sm">Desgelo em Andamento</h4>
             </div>
-            <p className="text-xs text-neutral-500 max-w-xs leading-relaxed">
-              Suas relíquias estão sendo descongeladas do Gelo Eterno. Este processo leva até 48 horas. Você receberá acesso em breve.
+            <p className="text-blue-100/70 text-xs leading-relaxed max-w-xs">
+              Sua relíquia está sendo restaurada dos confins do tempo (Glacier). Este processo leva até 48 horas.
             </p>
+            <div className="flex items-center justify-center gap-2 text-sm font-mono text-cyan-300 mt-1">
+              <span className="animate-pulse">⏳</span>
+              <span>Tempo Restante Estimado: ~24h</span>
+            </div>
           </motion.div>
       )}
 
@@ -779,7 +765,11 @@ export function CinematicCapsule({
 
                         setTimeout(() => {
                            setIsUnsealingVideoPlaying(false);
-                           setViewMode("GALLERY");
+                           if (storageStatus === "RESTORING") {
+                               setViewMode("VAULT");
+                           } else {
+                               setViewMode("GALLERY");
+                           }
                         }, 200); // peak of flash
                         setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
                      }}
