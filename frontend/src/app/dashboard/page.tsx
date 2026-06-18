@@ -170,9 +170,18 @@ export default function Dashboard() {
             newErrors.unlockDate = "A data de despertar é obrigatória.";
         } else {
             const selectedDate = new Date(`${unlockDate}T00:00:00`);
-            const limitDate = new Date(`${minDateStr}T00:00:00`);
-            if (selectedDate < limitDate) {
-                newErrors.unlockDate = "O despertar deve ser no mínimo 2 dias no futuro.";
+            if (isNaN(selectedDate.getTime())) {
+                newErrors.unlockDate = "Insira uma data válida.";
+            } else {
+                const limitDate = new Date(`${minDateStr}T00:00:00`);
+                if (selectedDate < limitDate) {
+                    newErrors.unlockDate = "O despertar deve ser no mínimo 2 dias no futuro.";
+                }
+                const maxDate = new Date();
+                maxDate.setFullYear(maxDate.getFullYear() + 100);
+                if (selectedDate > maxDate) {
+                    newErrors.unlockDate = "O despertar deve ser de no máximo 100 anos no futuro.";
+                }
             }
         }
 
@@ -386,11 +395,12 @@ export default function Dashboard() {
                                     <div className="space-y-2">
                                         <div className="flex items-center justify-between">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
-                                            <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 6 meses</span>
+                                            <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 2 dias</span>
                                         </div>
                                         <input 
                                             type="date" 
                                             value={unlockDate} 
+                                            max="2099-12-31"
                                             onChange={e => {
                                                 setUnlockDate(e.target.value);
                                                 if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
