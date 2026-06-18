@@ -48,6 +48,10 @@ export function CinematicCapsule({
   const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
 
   const [storageStatus, setStorageStatus] = useState(initialStorageStatus);
+  const storageStatusRef = useRef(storageStatus);
+  useEffect(() => {
+    storageStatusRef.current = storageStatus;
+  }, [storageStatus]);
   const [isOpened, setIsOpened] = useState(storageStatus !== "DRAFT");
   const [isSealed, setIsSealed] = useState(storageStatus === "FROZEN" || storageStatus === "AVAILABLE" || storageStatus === "RESTORING");
   const [isChomping, setIsChomping] = useState(false);
@@ -669,6 +673,7 @@ export function CinematicCapsule({
                     onClick={async () => {
                         try {
                           setShowEarlyUnlockModal(false);
+                          setStorageStatus("RESTORING");
                           setIsUnsealingVideoPlaying(true);
                           const token = await getToken({ template: 'aevum-session' });
                           await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
@@ -765,11 +770,11 @@ export function CinematicCapsule({
 
                         setTimeout(() => {
                            setIsUnsealingVideoPlaying(false);
-                           if (storageStatus === "RESTORING") {
+                            if (earlyUnlockSuccess || storageStatusRef.current === "RESTORING") {
                                setViewMode("VAULT");
-                           } else {
+                            } else {
                                setViewMode("GALLERY");
-                           }
+                            }
                         }, 200); // peak of flash
                         setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
                      }}
