@@ -22,17 +22,32 @@ public class PricingService {
             case AEVUM_5GB -> basePrice = 5990L;   // R$ 59,90
         }
 
-        // Calcula a duração exata em anos (mínimo de 1 ano para maturação)
-        long years = java.time.temporal.ChronoUnit.YEARS.between(java.time.LocalDateTime.now(), unlockDate);
-        if (years < 1) {
-            years = 1;
+        // Calcula a duração em dias (mínimo de 2 dias)
+        long days = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDateTime.now(), unlockDate);
+        if (days < 2) {
+            days = 2;
         }
 
-        // Taxa de armazenamento anual: R$ 0,20 por GB ao ano
-        long sizeInGB = plan.getMaxSizeBytes() / (1024L * 1024 * 1024);
-        long annualStorageFee = sizeInGB * years * 20L; // 20 centavos por GB ao ano em centavos
+        // Aplica desconto na taxa base para prazos curtos
+        double baseMultiplier = 1.0;
+        if (days < 30) {
+            baseMultiplier = 0.65; // 35% de desconto para prazos menores que 30 dias
+        } else if (days < 180) {
+            baseMultiplier = 0.80; // 20% de desconto para prazos menores que 180 dias
+        }
+        long finalBasePrice = (long) (basePrice * baseMultiplier);
 
-        return basePrice + annualStorageFee;
+        // Taxa de armazenamento anual: R$ 0,20 por GB ao ano.
+        // Sob a regra do AWS Glacier Deep Archive, o faturamento mínimo de armazenamento é de 180 dias.
+        double billingYears = days / 365.25;
+        if (days < 180) {
+            billingYears = 180.0 / 365.25; // Garante o repasse do mínimo de 180 dias cobrados pela AWS
+        }
+
+        long sizeInGB = plan.getMaxSizeBytes() / (1024L * 1024 * 1024);
+        long annualStorageFee = (long) (sizeInGB * billingYears * 20L); // 20 centavos por GB ao ano em centavos
+
+        return finalBasePrice + annualStorageFee;
     }
 
     public PricingSummary calculateSealSummary(Capsule capsule) {

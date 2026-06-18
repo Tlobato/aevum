@@ -70,9 +70,9 @@ export default function Dashboard() {
         capsuleId: null
     });
 
-    // Calculando a data mínima de 185 dias (6 meses) para maturação e custo AWS Glacier
+    // Calculando a data mínima de 2 dias para maturação e custo AWS Glacier
     const minDate = new Date();
-    minDate.setDate(minDate.getDate() + 185);
+    minDate.setDate(minDate.getDate() + 2);
     const minDateStr = minDate.toISOString().split("T")[0];
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -172,7 +172,7 @@ export default function Dashboard() {
             const selectedDate = new Date(`${unlockDate}T00:00:00`);
             const limitDate = new Date(`${minDateStr}T00:00:00`);
             if (selectedDate < limitDate) {
-                newErrors.unlockDate = "O despertar deve ser no mínimo 6 meses no futuro (185 dias).";
+                newErrors.unlockDate = "O despertar deve ser no mínimo 2 dias no futuro.";
             }
         }
 
@@ -406,7 +406,7 @@ export default function Dashboard() {
                                                 {errors.unlockDate}
                                             </span>
                                         ) : (
-                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 180 dias.</p>
+                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 2 dias.</p>
                                         )}
                                     </div>
                                     <div className="space-y-2 md:col-span-2">
