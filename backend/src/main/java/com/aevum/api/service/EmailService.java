@@ -19,6 +19,7 @@ import java.util.List;
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final java.time.format.DateTimeFormatter BR_DATE_FORMATTER = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final RestTemplate restTemplate = new RestTemplate();
     private final EmailTemplateGenerator templateGenerator;
 
@@ -70,7 +71,7 @@ public class EmailService {
     public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail, java.util.UUID capsuleId) {
         String subject = "Selo da Eternidade Ativado: " + capsuleTitle;
         String link = frontendUrl + "/vault/" + capsuleId;
-        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString(), isGift, recipientEmail, link);
+        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.format(BR_DATE_FORMATTER), isGift, recipientEmail, link);
         sendViaApi(ownerEmail, subject, html);
     }
 
@@ -78,7 +79,7 @@ public class EmailService {
     public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate, java.util.UUID capsuleId) {
         String subject = "Alguém do passado preparou algo para você...";
         String link = frontendUrl + "/vault/" + capsuleId;
-        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.toString(), link);
+        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.format(BR_DATE_FORMATTER), link);
         sendViaApi(recipientEmail, subject, html);
     }
 
