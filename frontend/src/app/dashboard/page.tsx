@@ -350,8 +350,8 @@ export default function Dashboard() {
                                         </button>
                                     </div>
 
-                                    <div className="grid md:grid-cols-2 gap-5">
-                                        <div className="space-y-2 md:col-span-2">
+                                    <div className="flex flex-col gap-5">
+                                        <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldTitle")}</label>
                                             <input 
                                                 type="text" 
@@ -374,7 +374,7 @@ export default function Dashboard() {
                                             )}
                                         </div>
 
-                                        <div className="space-y-2 md:col-span-2">
+                                        <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldDesc")}</label>
                                             <textarea 
                                                 value={description} 
@@ -388,7 +388,7 @@ export default function Dashboard() {
                                         </div>
 
                                         {isGift && (
-                                            <div className="space-y-2 md:col-span-2">
+                                            <div className="space-y-2">
                                                 <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
                                                 <input 
                                                     type="email" 
@@ -412,7 +412,7 @@ export default function Dashboard() {
                                             </div>
                                         )}
 
-                                        <div className="space-y-2 md:col-span-2">
+                                        <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldUnlock")}</label>
                                             <input 
                                                 type="date" 
@@ -433,12 +433,12 @@ export default function Dashboard() {
                                                     {errors.unlockDate}
                                                 </span>
                                             ) : (
-                                                <p className="text-[10px] text-neutral-600 italic">{t("forge.dateMin")}</p>
+                                                <p className="text-[10px] text-neutral-600 italic">{t("forge.validation.dateMin")}</p>
                                             )}
                                         </div>
 
                                          {/* Regras de Despertar Antecipado */}
-                                         <div className="space-y-3 md:col-span-2 border-t border-white/5 pt-5">
+                                         <div className="space-y-3 border-t border-white/5 pt-5">
                                              <div>
                                                  <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
                                                      {t("forge.earlyUnlockRuleTitle")}
@@ -448,7 +448,7 @@ export default function Dashboard() {
                                                  </p>
                                              </div>
 
-                                             <div className="grid md:grid-cols-3 gap-3">
+                                             <div className={`grid gap-3 ${isGift ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
                                                  {/* Bloqueio Total */}
                                                  <label className={`flex flex-col gap-1 p-4 rounded-xl border bg-black/35 cursor-pointer select-none transition-all ${
                                                      earlyUnlockRule === "TOTAL_LOCK"
@@ -468,7 +468,7 @@ export default function Dashboard() {
                                                              {t("forge.ruleTotalLock")}
                                                          </span>
                                                      </div>
-                                                     <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                     <span className="text-xs text-neutral-400 font-light leading-relaxed pl-6">
                                                          {isGift ? t("forge.ruleTotalLockDescGift") : t("forge.ruleTotalLockDescSelf")}
                                                      </span>
                                                  </label>
@@ -492,7 +492,7 @@ export default function Dashboard() {
                                                              {isGift ? t("forge.ruleCreatorOnly") : t("forge.ruleEmergencyKey")}
                                                          </span>
                                                      </div>
-                                                     <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                     <span className="text-xs text-neutral-400 font-light leading-relaxed pl-6">
                                                          {isGift ? t("forge.ruleCreatorOnlyDesc") : t("forge.ruleEmergencyKeyDesc")}
                                                      </span>
                                                  </label>
@@ -517,7 +517,7 @@ export default function Dashboard() {
                                                                  {t("forge.ruleAllowRecipient")}
                                                              </span>
                                                          </div>
-                                                         <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                         <span className="text-xs text-neutral-400 font-light leading-relaxed pl-6">
                                                              {t("forge.ruleAllowRecipientDesc")}
                                                          </span>
                                                      </label>
@@ -525,7 +525,7 @@ export default function Dashboard() {
                                              </div>
                                          </div>
 
-                                        <div className="space-y-2 md:col-span-2">
+                                        <div className="space-y-2">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldPlan")}</label>
                                                 <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">{t("forge.alphaPlanNote")}</span>
