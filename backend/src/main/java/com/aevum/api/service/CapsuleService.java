@@ -249,6 +249,17 @@ public class CapsuleService {
     }
 
     @Transactional
+    public void updateLocale(UUID id, String locale) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+        if (locale != null && !locale.isBlank()) {
+            capsule.setLocale(locale);
+            repository.save(capsule);
+            log.info("Locale da cápsula {} atualizado no checkout para: {}", id, locale);
+        }
+    }
+
+    @Transactional
     public void earlyUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));

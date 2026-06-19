@@ -48,6 +48,10 @@ public class PaymentController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID capsuleId) {
         try {
+            // Atualiza o idioma da cápsula com o idioma do momento do checkout
+            String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
+            capsuleService.updateLocale(capsuleId, requestLocale);
+
             var summary = capsuleService.calculateSummary(capsuleId, pricingService);
             String checkoutUrl = stripeService.createCheckoutSession(
                     capsuleId.toString(),
@@ -69,6 +73,10 @@ public class PaymentController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID capsuleId) {
         try {
+            // Atualiza o idioma da cápsula com o idioma do momento do resgate
+            String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
+            capsuleService.updateLocale(capsuleId, requestLocale);
+
             // Verifica permissão (se o usuário não for dono nem recipient, vai lançar exception)
             var response = capsuleService.openCapsule(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
             
