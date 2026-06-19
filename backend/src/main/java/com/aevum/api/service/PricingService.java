@@ -68,10 +68,10 @@ public class PricingService {
     public long calculateEarlyUnlockPenaltyInCents(Capsule capsule) {
         long originalPrice = calculatePriceInCents(capsule.getPlanType(), capsule.getUnlockDate());
         
-        // Multa de 50% do valor pago originalmente, com valor mínimo de R$ 29,90
-        long penalty = (long) (originalPrice * 0.5);
-        if (penalty < 2990L) {
-            penalty = 2990L;
+        // Taxa proporcional: 30% do valor pago originalmente, com piso de R$ 9,90 (990 centavos)
+        long penalty = (long) (originalPrice * 0.3);
+        if (penalty < 990L) {
+            penalty = 990L;
         }
         return penalty;
     }

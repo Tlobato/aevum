@@ -617,11 +617,11 @@ export function CinematicCapsule({
               <div className="bg-black/50 border border-neutral-800 rounded-2xl p-5 mt-6 mb-8 flex flex-col gap-3">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-neutral-500">Multa de Resgate Antecipado</span>
-                  <span className="text-white font-mono">50% do Selo Original</span>
+                  <span className="text-white font-mono">30% do Selo Original</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-neutral-500">Taxa Mínima</span>
-                  <span className="text-white font-mono">R$ 29,90</span>
+                  <span className="text-white font-mono">R$ 9,90</span>
                 </div>
                 <div className="h-[1px] w-full bg-neutral-800 my-1" />
                 <div className="flex justify-between items-center font-bold">
