@@ -73,6 +73,7 @@ public class StorageService {
         // Altera arquivos de STANDARD (em /drafts/) para DEEP_ARCHIVE (em /sealed/)
         String capsuleIdStr = capsule.getId().toString();
 
+        // 1. Copia todos os arquivos para o Glacier Deep Archive (Se falhar aqui, o banco faz rollback)
         for (MemoryItem item : capsule.getItems()) {
             if (item.getFileName() == null || item.getFileName().isBlank()) continue;
 
@@ -89,12 +90,23 @@ public class StorageService {
                         .build();
 
                 s3Client.copyObject(copyReq);
-                
-                // Remove o rascunho original para evitar cobrança em dobro e manter o S3 limpo
-                s3Client.deleteObject(d -> d.bucket(bucketName).key(sourceKey));
-                log.info("Selo (AWS): Arquivo movido para o gelo e rascunho deletado: {}", sourceKey);
+                log.info("Selo (AWS): Arquivo copiado com sucesso para o Glacier: {}", destinationKey);
             } catch (NoSuchKeyException e) {
                 log.warn("Selo (AWS): Arquivo não encontrado em drafts para movimentar: {}", sourceKey);
+            }
+        }
+
+        // 2. Remove os rascunhos originais (Operação segura, se falhar o arquivo físico já está garantido no Glacier)
+        for (MemoryItem item : capsule.getItems()) {
+            if (item.getFileName() == null || item.getFileName().isBlank()) continue;
+
+            String sourceKey = "drafts/" + capsuleIdStr + "/" + item.getFileName();
+
+            try {
+                s3Client.deleteObject(d -> d.bucket(bucketName).key(sourceKey));
+                log.info("Selo (AWS): Rascunho original deletado: {}", sourceKey);
+            } catch (Exception e) {
+                log.warn("Selo (AWS): Falha não-crítica ao remover rascunho original {} do S3: {}", sourceKey, e.getMessage());
             }
         }
     }

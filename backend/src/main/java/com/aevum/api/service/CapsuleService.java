@@ -280,6 +280,7 @@ public class CapsuleService {
         for (Capsule c : abandoned) {
             log.info("Limpando cápsula abandonada: {} (Dono: {})", c.getId(), c.getOwnerId());
             storageService.deleteDraftFolder(c.getId().toString());
+            storageService.deleteSealedFolder(c.getId().toString());
             repository.delete(c);
         }
         log.info("Varredura concluída. {} cápsulas apagadas.", abandoned.size());
