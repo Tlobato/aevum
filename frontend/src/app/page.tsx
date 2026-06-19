@@ -74,6 +74,17 @@ export default function Home() {
                 </div>
             </motion.div>
 
+            {/* Rodapé Institucional */}
+            <footer className="absolute bottom-6 left-0 right-0 text-center z-10 select-none">
+                <div className="max-w-md mx-auto flex flex-col md:flex-row items-center justify-center gap-1 md:gap-3 text-[10px] text-neutral-700 font-medium">
+                    <span>© {new Date().getFullYear()} Aevum.</span>
+                    <span className="hidden md:inline">•</span>
+                    <a href="/termos" className="hover:text-amber-500 transition-colors underline decoration-neutral-800 underline-offset-2">
+                        {t("common.termsLink", "Termos de Uso e Custódia Digital")}
+                    </a>
+                </div>
+            </footer>
+
             <style dangerouslySetInnerHTML={{__html: `
                 @keyframes shimmer {
                     100% { transform: translateX(100%); }

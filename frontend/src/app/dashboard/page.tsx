@@ -582,6 +582,16 @@ export default function Dashboard() {
                 )}
             </div>
 
+            {/* Rodapé do Dashboard */}
+            <footer className="w-full border-t border-white/5 py-8 mt-12 select-none shrink-0">
+                <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-neutral-600 font-medium">
+                    <span>© {new Date().getFullYear()} Aevum.</span>
+                    <a href="/termos" className="hover:text-amber-500 transition-colors underline decoration-neutral-800 underline-offset-2">
+                        {t("common.termsLink", "Termos de Uso e Custódia Digital")}
+                    </a>
+                </div>
+            </footer>
+
             <ConfirmationModal
                 isOpen={deleteModal.isOpen}
                 onClose={() => setDeleteModal({ isOpen: false, capsuleId: null })}

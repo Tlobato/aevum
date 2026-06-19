@@ -9,6 +9,7 @@ import { PhysicalRelic } from "./relics/PhysicalRelic";
 import { ForgeModal } from "./forge/ForgeModal";
 import { StorageBar } from "./StorageBar";
 import { RelicGallery } from "./RelicGallery";
+import { TermsModal } from "./TermsModal";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -70,6 +71,24 @@ export function CinematicCapsule({
 
   const [acceptTermsSeal, setAcceptTermsSeal] = useState(false);
   const [acceptTermsUnlock, setAcceptTermsUnlock] = useState(false);
+
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsModalTarget, setTermsModalTarget] = useState<"seal" | "unlock" | null>(null);
+
+  const openTermsModal = (target: "seal" | "unlock") => {
+    setTermsModalTarget(target);
+    setShowTermsModal(true);
+  };
+
+  const handleAgreeTerms = () => {
+    if (termsModalTarget === "seal") {
+      setAcceptTermsSeal(true);
+    } else if (termsModalTarget === "unlock") {
+      setAcceptTermsUnlock(true);
+    }
+    setShowTermsModal(false);
+    setTermsModalTarget(null);
+  };
 
   // Fetch early unlock penalty dynamically when modal opens
   useEffect(() => {
@@ -555,9 +574,17 @@ export function CinematicCapsule({
               />
               <label htmlFor="terms-seal" className="text-[10px] md:text-xs text-neutral-400 cursor-pointer leading-tight">
                 {t("common.termsCheckbox")}
-                <a href="/termos" target="_blank" className="text-amber-500 hover:underline hover:text-amber-400 font-medium">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openTermsModal("seal");
+                  }}
+                  className="text-amber-500 hover:underline hover:text-amber-400 font-medium inline-block pl-1 cursor-pointer"
+                >
                   {t("common.termsLink")}
-                </a>
+                </button>
               </label>
             </div>
 
@@ -701,9 +728,17 @@ export function CinematicCapsule({
                 />
                 <label htmlFor="terms-early-unlock" className="text-[10px] md:text-xs text-neutral-400 cursor-pointer leading-tight">
                   {t("common.termsCheckbox")}
-                  <a href="/termos" target="_blank" className="text-red-400 hover:underline hover:text-red-300 font-medium">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openTermsModal("unlock");
+                    }}
+                    className="text-red-400 hover:underline hover:text-red-300 font-medium inline-block pl-1 cursor-pointer"
+                  >
                     {t("common.termsLink")}
-                  </a>
+                  </button>
                 </label>
               </div>
 
@@ -870,6 +905,19 @@ export function CinematicCapsule({
                </div>
             </motion.div>
          )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showTermsModal && (
+          <TermsModal
+            isOpen={showTermsModal}
+            onClose={() => {
+              setShowTermsModal(false);
+              setTermsModalTarget(null);
+            }}
+            onAgree={handleAgreeTerms}
+          />
+        )}
       </AnimatePresence>
 
     </div>

@@ -21,7 +21,13 @@ export default function TermosPage() {
             <header className="w-full border-b border-white/5 px-6 lg:px-12 py-6 z-20 bg-black/60 backdrop-blur-md sticky top-0">
                 <div className="max-w-4xl mx-auto flex justify-between items-center">
                     <button 
-                        onClick={() => router.back()} 
+                        onClick={() => {
+                            if (typeof window !== "undefined" && window.history.length <= 1) {
+                                router.push("/dashboard");
+                            } else {
+                                router.back();
+                            }
+                        }} 
                         className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer"
                     >
                         <ArrowLeft className="w-4 h-4" /> {t("vault.back", "Voltar")}
