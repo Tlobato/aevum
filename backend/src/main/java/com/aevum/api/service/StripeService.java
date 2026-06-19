@@ -85,8 +85,8 @@ public class StripeService {
                                                 .setUnitAmount(penaltyInCents)
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("Aevum — Multa de Quebra: " + capsuleTitle)
-                                                                .setDescription("Violação de selo temporal. Abertura forçada da cápsula antes da data estipulada.")
+                                                                .setName("Aevum — Resgate Antecipado: " + capsuleTitle)
+                                                                .setDescription("Custo de decompressão forçada do cofre antes da data programada.")
                                                                 .build()
                                                 )
                                                 .build()

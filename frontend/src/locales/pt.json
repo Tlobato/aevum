@@ -3,7 +3,7 @@
     "subtitle": "A Forja do Tempo",
     "enterVault": "Entrar no Cofre",
     "createNewLegacy": "Criar Novo Legado",
-    "accessDashboard": "Acessar Dashboard",
+    "accessDashboard": "Entrar na Câmara",
     "securedByClerk": "Acesso seguro criptografado provido por Clerk."
   },
   "dashboard": {
@@ -117,7 +117,7 @@
     "addMemories": "Altar de Criação",
     "statusBadge": {
       "DRAFT": "Rascunho (Editável)",
-      "SEALED": "Selada (Glacier)",
+      "SEALED": "Selada",
       "RESTORING": "Desbloqueando...",
       "UNLOCKED": "Desbloqueada"
     },
@@ -143,7 +143,7 @@
     "adminForceSeal": "Forçar Selagem Grátis",
     "breakSeal": "QUEBRAR O SELO DO TEMPO",
     "restoringTitle": "Desgelo em Andamento",
-    "restoringDesc": "Sua relíquia está sendo restaurada dos confins do tempo (Glacier). Este processo leva até 48 horas.",
+    "restoringDesc": "Sua relíquia está sendo restaurada dos confins do tempo. Este processo leva até 48 horas.",
     "restoringTime": "Tempo Restante Estimado: ~24h",
     "sealingCutscene": "Forjando Relíquia no Tempo",
     "unsealingCutscene": "Despertando Relíquias",
@@ -166,7 +166,7 @@
   "earlyUnlock": {
     "modalTitle": "Quebra do Selo Temporal",
     "modalDesc": "Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético.",
-    "penaltyLabel": "Multa de Resgate Antecipado",
+    "penaltyLabel": "Resgate Antecipado",
     "penaltyPct": "30% do Selo Original",
     "penaltyMin": "Taxa Mínima",
     "penaltyTotal": "Total a Pagar",

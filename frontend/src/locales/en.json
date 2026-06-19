@@ -3,7 +3,7 @@
     "subtitle": "The Forge of Time",
     "enterVault": "Enter the Vault",
     "createNewLegacy": "Create New Legacy",
-    "accessDashboard": "Access Dashboard",
+    "accessDashboard": "Enter the Chamber",
     "securedByClerk": "Secure encrypted access provided by Clerk."
   },
   "dashboard": {
@@ -117,7 +117,7 @@
     "addMemories": "Creation Altar",
     "statusBadge": {
       "DRAFT": "Draft (Editable)",
-      "SEALED": "Sealed (Glacier)",
+      "SEALED": "Sealed",
       "RESTORING": "Restoring...",
       "UNLOCKED": "Unlocked"
     },
@@ -143,7 +143,7 @@
     "adminForceSeal": "Force Free Sealing",
     "breakSeal": "BREAK THE TIME SEAL",
     "restoringTitle": "Unfreezing in Progress",
-    "restoringDesc": "Your relic is being restored from the depths of time (Glacier). This process takes up to 48 hours.",
+    "restoringDesc": "Your relic is being restored from the depths of time. This process takes up to 48 hours.",
     "restoringTime": "Estimated Time Remaining: ~24h",
     "sealingCutscene": "Forging Relic in Time",
     "unsealingCutscene": "Awakening Relics",
@@ -166,7 +166,7 @@
   "earlyUnlock": {
     "modalTitle": "Temporal Seal Break",
     "modalDesc": "Interrupting the timeline and extracting your relics before the scheduled date requires a forced decompression of the vault. This action has an energy cost.",
-    "penaltyLabel": "Early Recovery Fee",
+    "penaltyLabel": "Early Redemption",
     "penaltyPct": "30% of the Original Seal",
     "penaltyMin": "Minimum Fee",
     "penaltyTotal": "Total to Pay",

@@ -153,6 +153,20 @@ public class CapsuleController {
         return ResponseEntity.ok(summary);
     }
 
+    @GetMapping("/{id}/early-unlock-penalty")
+    public ResponseEntity<java.util.Map<String, Long>> getEarlyUnlockPenalty(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
+        String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) userEmail = jwt.getClaimAsString("primary_email_address");
+        
+        // Valida acesso do dono ou herdeiro à cápsula
+        capsuleService.openCapsule(id, jwt.getSubject(), userEmail);
+        
+        long penaltyInCents = capsuleService.calculateEarlyUnlockPenalty(id, pricingService);
+        return ResponseEntity.ok(java.util.Map.of("penaltyInCents", penaltyInCents));
+    }
+
     public record EstimateRequest(String planType, java.time.LocalDateTime unlockDate) {}
 
     @PostMapping("/estimate")

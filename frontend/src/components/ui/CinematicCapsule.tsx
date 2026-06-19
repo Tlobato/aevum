@@ -65,6 +65,33 @@ export function CinematicCapsule({
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
+  const [earlyUnlockPenalty, setEarlyUnlockPenalty] = useState<number | null>(null);
+  const [loadingPenalty, setLoadingPenalty] = useState(false);
+
+  // Fetch early unlock penalty dynamically when modal opens
+  useEffect(() => {
+    if (showEarlyUnlockModal && capsuleId && !accessToken) {
+      const fetchPenalty = async () => {
+        setLoadingPenalty(true);
+        try {
+          const token = await getToken({ template: 'aevum-session' });
+          const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/early-unlock-penalty`, {
+            headers: getApiHeaders(token)
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setEarlyUnlockPenalty(data.penaltyInCents);
+          }
+        } catch (e) {
+          console.error("Erro ao carregar taxa de resgate antecipado:", e);
+        } finally {
+          setLoadingPenalty(false);
+        }
+      };
+      fetchPenalty();
+    }
+  }, [showEarlyUnlockModal, capsuleId, getToken, accessToken]);
+
   // Modo Admin (Bypass de Pagamentos e Tempo)
   const userEmail = user?.primaryEmailAddress?.emailAddress || "";
   const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
@@ -628,7 +655,18 @@ export function CinematicCapsule({
                 <div className="h-[1px] w-full bg-neutral-800 my-1" />
                 <div className="flex justify-between items-center font-bold">
                   <span className="text-neutral-300">{t("earlyUnlock.penaltyTotal")}</span>
-                  <span className="text-amber-500 font-mono text-xs uppercase tracking-widest">{t("earlyUnlock.checkoutEstimate")}</span>
+                  <span className="text-amber-500 font-mono text-sm">
+                    {loadingPenalty ? (
+                      <span className="text-neutral-500 text-xs animate-pulse">Calculando...</span>
+                    ) : earlyUnlockPenalty !== null ? (
+                      new Intl.NumberFormat(i18n.language || "pt-BR", {
+                        style: "currency",
+                        currency: "BRL"
+                      }).format(earlyUnlockPenalty / 100)
+                    ) : (
+                      <span className="text-xs uppercase tracking-widest">{t("earlyUnlock.checkoutEstimate")}</span>
+                    )}
+                  </span>
                 </div>
               </div>
 
