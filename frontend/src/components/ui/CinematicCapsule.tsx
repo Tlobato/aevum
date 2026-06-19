@@ -68,6 +68,9 @@ export function CinematicCapsule({
   const [earlyUnlockPenalty, setEarlyUnlockPenalty] = useState<number | null>(null);
   const [loadingPenalty, setLoadingPenalty] = useState(false);
 
+  const [acceptTermsSeal, setAcceptTermsSeal] = useState(false);
+  const [acceptTermsUnlock, setAcceptTermsUnlock] = useState(false);
+
   // Fetch early unlock penalty dynamically when modal opens
   useEffect(() => {
     if (showEarlyUnlockModal && capsuleId && !accessToken) {
@@ -541,7 +544,24 @@ export function CinematicCapsule({
             animate={{ opacity: canSeal ? 1 : 0, scale: canSeal ? 1 : 0.8 }}
             className={`mt-8 transition-all flex flex-col items-center gap-4 ${canSeal ? 'pointer-events-auto' : 'pointer-events-none opacity-0'}`}
           >
-            <button disabled={isRedirectingToStripe} onClick={sealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300 disabled:opacity-50 disabled:transform-none">
+            {/* Checkbox de Termos */}
+            <div className="flex items-center gap-2.5 max-w-xs text-left mb-2 select-none">
+              <input 
+                type="checkbox" 
+                id="terms-seal" 
+                checked={acceptTermsSeal} 
+                onChange={(e) => setAcceptTermsSeal(e.target.checked)}
+                className="w-4 h-4 rounded border-neutral-800 bg-neutral-950 text-amber-500 focus:ring-amber-500/50 cursor-pointer accent-amber-500 shrink-0 animate-fade-in"
+              />
+              <label htmlFor="terms-seal" className="text-[10px] md:text-xs text-neutral-400 cursor-pointer leading-tight">
+                {t("common.termsCheckbox")}
+                <a href="/termos" target="_blank" className="text-amber-500 hover:underline hover:text-amber-400 font-medium">
+                  {t("common.termsLink")}
+                </a>
+              </label>
+            </div>
+
+            <button disabled={isRedirectingToStripe || !acceptTermsSeal} onClick={sealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300 disabled:opacity-50 disabled:transform-none">
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
               <div className="flex items-center gap-2 relative z-10">
                   <Lock className={`w-5 h-5 ${isRedirectingToStripe ? "animate-spin" : ""}`} /> 
@@ -670,14 +690,34 @@ export function CinematicCapsule({
                 </div>
               </div>
 
+              {/* Checkbox de Termos */}
+              <div className="flex items-center gap-2.5 text-left mb-6 select-none w-full">
+                <input 
+                  type="checkbox" 
+                  id="terms-early-unlock" 
+                  checked={acceptTermsUnlock} 
+                  onChange={(e) => setAcceptTermsUnlock(e.target.checked)}
+                  className="w-4 h-4 rounded border-neutral-800 bg-neutral-950 text-red-500 focus:ring-red-500/50 cursor-pointer accent-red-500 shrink-0"
+                />
+                <label htmlFor="terms-early-unlock" className="text-[10px] md:text-xs text-neutral-400 cursor-pointer leading-tight">
+                  {t("common.termsCheckbox")}
+                  <a href="/termos" target="_blank" className="text-red-400 hover:underline hover:text-red-300 font-medium">
+                    {t("common.termsLink")}
+                  </a>
+                </label>
+              </div>
+
               <div className="flex gap-4">
                 <button
-                  onClick={() => setShowEarlyUnlockModal(false)}
+                  onClick={() => {
+                    setAcceptTermsUnlock(false);
+                    setShowEarlyUnlockModal(false);
+                  }}
                   className="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">
                   {t("earlyUnlock.btnCancel")}
                 </button>
                 <button
-                  disabled={isRedirectingToStripe}
+                  disabled={isRedirectingToStripe || !acceptTermsUnlock}
                   onClick={async () => {
                     try {
                       setIsRedirectingToStripe(true);

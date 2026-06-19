@@ -249,6 +249,8 @@
   },
   "common": {
     "confirm": "Confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "termsCheckbox": "Li e concordo com os ",
+    "termsLink": "Termos de Uso e Custódia Digital"
   }
 }
