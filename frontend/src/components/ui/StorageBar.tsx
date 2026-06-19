@@ -37,7 +37,7 @@ export function StorageBar({ usedBytes, maxBytes, isQuotaFull, isBlurMode = fals
         <motion.div
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
-            className={`absolute top-0 right-4 md:right-8 bg-black/50 px-6 py-4 rounded-xl border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)] select-none z-10 transition-all min-w-[250px] ${isBlurMode ? 'opacity-20 blur-sm' : ''}`}
+            className={`relative md:absolute top-0 right-0 left-0 md:right-8 md:left-auto w-full md:w-auto max-w-sm md:max-w-none bg-black/50 px-6 py-4 rounded-xl border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.2)] select-none z-10 transition-all min-w-[250px] mb-6 md:mb-0 ${isBlurMode ? 'opacity-20 blur-sm' : ''}`}
         >
             <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-bold text-amber-500/90 tracking-widest uppercase">

@@ -99,26 +99,28 @@ function VaultContent() {
     const maxSizeBytes = planLimits[capsuleData.planType] || 1073741824;
 
     return (
-        <main className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-center p-6">
-            <div className="absolute top-8 left-8 z-50">
+        <main className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-between md:justify-center p-4 md:p-6">
+            <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex justify-start">
                 <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors">
                     <ArrowLeft className="w-4 h-4" /> Altar de Criação
                 </button>
             </div>
             
-            <CinematicCapsule 
-                capsuleId={id}
-                themeId={capsuleData.themeId}
-                maxSizeBytes={maxSizeBytes}
-                initialUsedBytes={capsuleData.totalSizeBytes}
-                initialStorageStatus={capsuleData.storageStatus}
-                title={capsuleData.title}
-                recipientEmail={capsuleData.recipientEmail}
-                unlockDate={capsuleData.unlockDate}
-                paymentSuccess={paymentSuccess}
-                earlyUnlockSuccess={earlyUnlockSuccess}
-                accessToken={searchParams.get("token")}
-            />
+            <div className="w-full flex-1 flex items-center justify-center">
+                <CinematicCapsule 
+                    capsuleId={id}
+                    themeId={capsuleData.themeId}
+                    maxSizeBytes={maxSizeBytes}
+                    initialUsedBytes={capsuleData.totalSizeBytes}
+                    initialStorageStatus={capsuleData.storageStatus}
+                    title={capsuleData.title}
+                    recipientEmail={capsuleData.recipientEmail}
+                    unlockDate={capsuleData.unlockDate}
+                    paymentSuccess={paymentSuccess}
+                    earlyUnlockSuccess={earlyUnlockSuccess}
+                    accessToken={searchParams.get("token")}
+                />
+            </div>
         </main>
     );
 }
