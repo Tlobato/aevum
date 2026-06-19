@@ -5,13 +5,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
-import { API_URL } from "@/lib/api";
+import { useTranslation } from "react-i18next";
+import { API_URL, getApiHeaders } from "@/lib/api";
 
 function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const capsuleId = searchParams.get("capsule_id");
     const { getToken } = useAuth();
+    const { t } = useTranslation();
     const sealed = useRef(false);
 
     useEffect(() => {
@@ -27,7 +29,7 @@ function PaymentSuccessContent() {
                 const token = await getToken();
                 await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                     method: "POST",
-                    headers: { "Authorization": `Bearer ${token}` }
+                    headers: getApiHeaders(token)
                 });
             } catch (e) {
                 console.error("Erro ao selar via fallback", e);
@@ -62,15 +64,15 @@ function PaymentSuccessContent() {
                 </div>
                 
                 <h1 className="text-4xl md:text-5xl font-serif text-amber-500 font-light mb-4 tracking-wide">
-                    O Selo foi Forjado
+                    {t("paymentSuccess.title")}
                 </h1>
                 
                 <p className="text-neutral-400 max-w-md mx-auto text-lg leading-relaxed font-light mb-8">
-                    Seu pagamento foi confirmado pelo Cofre Central. A anomalia temporal está sendo estabilizada e sua cápsula foi permanentemente trancada.
+                    {t("paymentSuccess.subtitle")}
                 </p>
 
                 <div className="flex items-center gap-3 text-amber-500/70 text-sm tracking-widest uppercase font-bold animate-pulse">
-                    <span>Redirecionando para a Câmara</span>
+                    <span>{t("paymentSuccess.redirecting")}</span>
                     <span className="flex gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />

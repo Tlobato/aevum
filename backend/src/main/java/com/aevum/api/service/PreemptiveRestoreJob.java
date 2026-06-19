@@ -88,7 +88,8 @@ public class PreemptiveRestoreJob {
                     capsule.getTitle(),
                     capsule.getOwnerMessage(),
                     capsule.getId(),
-                    capsule.getAccessToken()
+                    capsule.getAccessToken(),
+                    capsule.getLocale()
                 );
             } catch (Exception e) {
                 log.error("Falha ao despertar a cápsula {}", capsule.getId(), e);

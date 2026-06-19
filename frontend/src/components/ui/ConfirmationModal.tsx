@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -20,10 +21,13 @@ export function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = "Confirmar",
-  cancelText = "Cancelar",
+  confirmText,
+  cancelText,
   isDangerous = false
 }: ConfirmationModalProps) {
+  const { t } = useTranslation();
+  const finalConfirmText = confirmText || t("common.confirm");
+  const finalCancelText = cancelText || t("common.cancel");
   return (
     <AnimatePresence>
       {isOpen && (
@@ -62,7 +66,7 @@ export function ConfirmationModal({
                   onClick={onClose}
                   className="flex-1 px-6 py-3 rounded-2xl border border-neutral-800 text-neutral-400 font-medium hover:bg-neutral-800 hover:text-white transition-all text-sm uppercase tracking-widest"
                 >
-                  {cancelText}
+                  {finalCancelText}
                 </button>
                 <button
                   onClick={() => {
@@ -75,7 +79,7 @@ export function ConfirmationModal({
                     : 'bg-amber-500 text-black hover:bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
                   }`}
                 >
-                  {confirmText}
+                  {finalConfirmText}
                 </button>
               </div>
             </div>

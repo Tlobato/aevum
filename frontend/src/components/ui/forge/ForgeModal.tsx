@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Camera, Type, Mic, FileVideo, X, FileUp, PenLine, Paperclip, CheckCircle2, Square, MonitorPlay } from "lucide-react";
 import { ItemType, SubMode, Memory } from "@/types/capsule";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import { useTranslation } from "react-i18next";
 
 interface ForgeModalProps {
   activeForgeMode: ItemType;
@@ -13,6 +14,7 @@ interface ForgeModalProps {
 }
 
 export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalProps) {
+  const { t } = useTranslation();
   const [forgeSubMode, setForgeSubMode] = useState<SubMode>("WRITE");
   const [forgeText, setForgeText] = useState("");
   const [forgeFile, setForgeFile] = useState<File | null>(null);
@@ -89,7 +91,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
     // O file físico que será entregue à cápsula
     const targetFile = (forgeSubMode === "WRITE" && (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO")) ? capturedFile : forgeFile;
     
-    const finalLabel = targetFile ? targetFile.name : (activeForgeMode === "TEXT" ? "Texto Redigido" : "Registro Temporário");
+    const finalLabel = targetFile ? targetFile.name : (activeForgeMode === "TEXT" ? t("forgeModal.draftText") : t("forgeModal.tempRegister"));
     
     // Passa os dados cruciais para cima (pro Maestro)
     onLaunch({
@@ -127,11 +129,11 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
             {activeForgeMode === "PHOTO" && <Camera size={20}/>}
             {activeForgeMode === "AUDIO" && <Mic size={20}/>}
             {activeForgeMode === "VIDEO" && <FileVideo size={20}/>}
-            {activeForgeMode === "TEXT" ? "Documento" : 
-            activeForgeMode === "PHOTO" ? "Fotografia" : 
-            activeForgeMode === "AUDIO" ? "Áudio" : "Filmagens"}
+            {activeForgeMode === "TEXT" ? t("forgeModal.titleDocument") : 
+            activeForgeMode === "PHOTO" ? t("forgeModal.titlePhoto") : 
+            activeForgeMode === "AUDIO" ? t("forgeModal.titleAudio") : t("forgeModal.titleVideo")}
         </h3>
-        <p className="text-xs text-amber-500/60 mb-6 uppercase tracking-wider relative z-20">Configure o registro eterno desta memória</p>
+        <p className="text-xs text-amber-500/60 mb-6 uppercase tracking-wider relative z-20">{t("forgeModal.subtitle")}</p>
 
         {/* ABAS (Toggles) DE MÚLTIPLOS CAMINHOS */}
         {(activeForgeMode === "TEXT" || activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && (
@@ -143,14 +145,14 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
               {activeForgeMode === "TEXT" && <PenLine size={16}/>}
               {activeForgeMode === "AUDIO" && <Mic size={16}/>}
               {(activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO") && <MonitorPlay size={16}/>}
-              {activeForgeMode === "TEXT" ? "Redigir" : (activeForgeMode === "AUDIO" ? "Gravar Áudio" : "Ligar Câmera")}
+              {activeForgeMode === "TEXT" ? t("forgeModal.write") : (activeForgeMode === "AUDIO" ? t("forgeModal.recordAudio") : t("forgeModal.startCamera"))}
             </button>
             <button 
               onClick={() => handleModeSwitch("UPLOAD")} 
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-bold uppercase transition-all ${forgeSubMode === "UPLOAD" ? 'bg-amber-600/90 text-black shadow-lg shadow-amber-900/50' : 'text-gray-500 hover:text-amber-200'}`}
             >
               <Paperclip size={16}/>
-              Anexar Arquivo
+              {t("forgeModal.attachFile")}
             </button>
           </div>
         )}
@@ -161,7 +163,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
             value={forgeText}
             onChange={e => setForgeText(e.target.value)}
             autoFocus
-            placeholder="Insira os pensamentos ou fatos que merecem perdurar pelo tempo (mínimo 3 letras)..."
+            placeholder={t("forgeModal.writePlaceholder")}
             className="w-full h-[220px] bg-white/5 border border-amber-900/50 rounded-xl p-4 text-white placeholder-gray-600 outline-none focus:border-amber-500/80 focus:ring-1 focus:ring-amber-500/80 resize-none mb-6 font-serif leading-relaxed relative z-20"
           />
         )}
@@ -183,8 +185,8 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
               {recordState === "ERROR" && (
                 <div className="flex flex-col items-center gap-4 relative z-10 px-4 text-center">
                     <div className="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center"><X size={32}/></div>
-                    <span className="text-red-400 font-bold uppercase tracking-wider text-xs">Acesso Negado ou Indisponível</span>
-                    <button onClick={resetRecordingState} className="text-[10px] text-amber-500 underline uppercase mt-2">Tentar Novamente</button>
+                    <span className="text-red-400 font-bold uppercase tracking-wider text-xs">{t("forgeModal.cameraError")}</span>
+                    <button onClick={resetRecordingState} className="text-[10px] text-amber-500 underline uppercase mt-2">{t("forgeModal.tryAgain")}</button>
                 </div>
               )}
 
@@ -194,7 +196,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                       {activeForgeMode === "AUDIO" ? <Mic size={32} /> : <Camera size={32} />}
                   </button>
                   <span className="text-amber-500/80 font-bold uppercase tracking-wider text-[10px]">
-                    Iniciar Permissão e Captura
+                    {t("forgeModal.startCapture")}
                   </span>
                 </div>
               )}
@@ -220,7 +222,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                       <button 
                         onClick={stopHardwareRecording} 
                         className="w-12 h-12 bg-red-500/20 hover:bg-red-500/40 border border-red-500/50 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 group backdrop-blur-sm"
-                        title="Parar Gravação"
+                        title={t("forgeModal.stopRecord")}
                       >
                         <Square size={16} className="text-red-500" fill="currentColor" />
                       </button>
@@ -230,7 +232,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                       <button 
                         onClick={capturePhoto} 
                         className="w-16 h-16 bg-white/10 hover:bg-white/20 border-4 border-white/40 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-90 group backdrop-blur-md shadow-2xl"
-                        title="Capturar Relíquia"
+                        title={t("forgeModal.captureRelic")}
                       >
                         <div className="w-12 h-12 bg-white/80 group-hover:bg-white rounded-full transition-colors" />
                       </button>
@@ -265,10 +267,10 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
                         onClick={resetRecordingState} 
                         className="flex-1 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:text-white transition-colors border border-white/5 rounded-lg"
                       >
-                        Descartar e Refazer
+                        {t("forgeModal.discard")}
                       </button>
                       <div className="flex-1 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-400 text-[10px] font-bold uppercase tracking-widest">
-                        Pronto para Selar
+                        {t("forgeModal.readyToSeal")}
                       </div>
                     </div>
                 </div>
@@ -318,8 +320,8 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
             ) : (
               <div className="flex flex-col items-center text-amber-500/40">
                   <FileUp size={40} className="mb-3" />
-                  <p className="uppercase text-xs font-bold tracking-widest text-center px-4">Clique ou Arraste o Arquivo Aqui</p>
-                  <p className="text-[10px] mt-2 font-mono uppercase opacity-50 px-2 text-center">Formatos: {getAcceptString()}</p>
+                  <p className="uppercase text-xs font-bold tracking-widest text-center px-4">{t("forgeModal.dragText")}</p>
+                  <p className="text-[10px] mt-2 font-mono uppercase opacity-50 px-2 text-center">{t("forgeModal.formats")} {getAcceptString()}</p>
               </div>
             )}
             <input id="file-upload" type="file" className="hidden" accept={getAcceptString()} onChange={handleFileChange} />
@@ -331,7 +333,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
           disabled={!isValidToForge()}
           className="w-full py-5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 disabled:from-white/10 disabled:to-white/10 disabled:text-gray-600 disabled:cursor-not-allowed text-black font-extrabold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_30px_rgba(245,158,11,0.2)] disabled:shadow-none relative z-20"
         >
-          Forjar e Arremessar
+          {t("forgeModal.forgeAndCast")}
         </button>
       </motion.div>
   );

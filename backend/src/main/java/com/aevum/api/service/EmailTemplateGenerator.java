@@ -1,23 +1,31 @@
 package com.aevum.api.service;
 
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 /**
- * Gerador de templates HTML para e-mails do Aevum.
- * Centraliza toda a parte visual e tipografia para manter a consistência da marca.
+ * Gerador de templates HTML para e-mails do Aevum com suporte a i18n.
+ * Carrega textos dinamicamente do ResourceBundle e formata datas conforme a localidade do usuário.
  */
 @Component
 public class EmailTemplateGenerator {
 
-    public String generateBaseTemplate(String title, String contentHTML) {
-        return generateBaseTemplate(title, contentHTML, null, null);
+    private final MessageSource messageSource;
+
+    public EmailTemplateGenerator(MessageSource messageSource) {
+        this.messageSource = messageSource;
     }
 
-    public String generateBaseTemplate(String title, String contentHTML, String buttonUrl, String buttonText) {
+    public String generateBaseTemplate(String title, String contentHTML, String buttonUrl, String buttonText, Locale locale) {
         String buttonHTML = "";
         if (buttonUrl != null && !buttonUrl.isEmpty() && buttonText != null && !buttonText.isEmpty()) {
             buttonHTML = "    <div class='button-container'><a href='" + buttonUrl + "' class='button'>" + buttonText + "</a></div>";
         }
+
+        String footerText = messageSource.getMessage("email.footer", null, locale);
 
         return "<!DOCTYPE html>"
              + "<html>"
@@ -42,47 +50,53 @@ public class EmailTemplateGenerator {
              + "    <div class='title'>" + title + "</div>"
              + "    <div class='content'>" + contentHTML + "</div>"
              + buttonHTML
-             + "    <div class='footer'>O TEMPO GUARDA GRANDES HISTÓRIAS.</div>"
+             + "    <div class='footer'>" + footerText + "</div>"
              + "  </div>"
              + "</body>"
              + "</html>";
     }
 
-    public String sealingConfirmation(String capsuleTitle, String unlockDate, boolean isGift, String recipientEmail, String link) {
+    public String sealingConfirmation(String capsuleTitle, LocalDate unlockDate, boolean isGift, String recipientEmail, String link, Locale locale) {
+        String datePattern = messageSource.getMessage("date.format", null, locale);
+        String formattedDate = unlockDate.format(DateTimeFormatter.ofPattern(datePattern));
+
+        String title = messageSource.getMessage("email.sealing.title", null, locale);
         String content;
+        String buttonText;
+
         if (isGift) {
-            content = "Saudações, Forjador do Tempo.<br><br>"
-                    + "Seu pagamento foi confirmado e o presente <span class='highlight'>'" + capsuleTitle + "'</span> foi selado com sucesso.<br><br>"
-                    + "Nós cuidaremos para que este legado seja entregue a <span class='highlight'>" + recipientEmail + "</span> no dia <span class='highlight'>"
-                    + unlockDate + "</span>.<br><br>"
-                    + "Obrigado por confiar ao Aevum a entrega dessa memória.";
+            content = messageSource.getMessage("email.sealing.body.gift", new Object[]{capsuleTitle, recipientEmail, formattedDate}, locale);
+            buttonText = messageSource.getMessage("email.sealing.button.gift", null, locale);
         } else {
-            content = "Saudações, Forjador do Tempo.<br><br>"
-                    + "Seu pagamento foi confirmado e o selo da sua cápsula pessoal <span class='highlight'>'" + capsuleTitle + "'</span> foi ativado com sucesso.<br><br>"
-                    + "Seu legado agora reside no <span class='highlight'>Gelo Eterno</span>, protegido contra o desgaste dos anos até o dia <span class='highlight'>"
-                    + unlockDate + "</span>.<br><br>"
-                    + "Você pode monitorar a integridade da sua relíquia através do seu painel de controle.";
+            content = messageSource.getMessage("email.sealing.body.personal", new Object[]{capsuleTitle, formattedDate}, locale);
+            buttonText = messageSource.getMessage("email.sealing.button.personal", null, locale);
         }
         
-        return generateBaseTemplate("Relíquia Selada", content, link, isGift ? "Acompanhar Relíquia" : "Acessar Relíquia");
+        return generateBaseTemplate(title, content, link, buttonText, locale);
     }
 
-    public String giftNotification(String capsuleTitle, String unlockDate, String link) {
-        String content = "Olá,<br><br>"
-                + "Uma voz do passado ecoou para você. Uma cápsula do tempo foi forjada e destinada ao seu nome.<br><br>"
-                + "Ela foi selada sob as leis da eternidade e só poderá ser revelada em <span class='highlight'>" + unlockDate + "</span>.<br><br>"
-                + "No dia do despertar, enviaremos as chaves necessárias para que o selo seja quebrado.<br><br>"
-                + "Até lá, o mistério permanece guardado.";
+    public String giftNotification(String capsuleTitle, LocalDate unlockDate, String link, Locale locale) {
+        String datePattern = messageSource.getMessage("date.format", null, locale);
+        String formattedDate = unlockDate.format(DateTimeFormatter.ofPattern(datePattern));
 
-        return generateBaseTemplate("Um Presente Temporal", content, link, "Ver Relíquia");
+        String title = messageSource.getMessage("email.gift.title", null, locale);
+        String content = messageSource.getMessage("email.gift.body", new Object[]{formattedDate}, locale);
+        String buttonText = messageSource.getMessage("email.gift.button", null, locale);
+
+        return generateBaseTemplate(title, content, link, buttonText, locale);
     }
 
-    public String awakeningEmail(String capsuleTitle, String ownerMessage, String publicLink) {
-        String content = "O tempo determinado chegou.<br><br>"
-                + "O selo da Cápsula <span class='highlight'>'" + capsuleTitle + "'</span> foi quebrado. O que foi guardado através dos anos agora está pronto para ser visto por você.<br><br>"
-                + (ownerMessage != null ? "O forjador deixou esta mensagem para este momento:<br><br><i>\"" + ownerMessage + "\"</i><br><br>" : "")
-                + "Acesse sua herança digital agora através do portal seguro abaixo:";
+    public String awakeningEmail(String capsuleTitle, String ownerMessage, String publicLink, Locale locale) {
+        String title = messageSource.getMessage("email.awakening.title", null, locale);
+        
+        String ownerMsgSection = "";
+        if (ownerMessage != null && !ownerMessage.isBlank()) {
+            ownerMsgSection = messageSource.getMessage("email.awakening.owner_message", new Object[]{ownerMessage}, locale);
+        }
 
-        return generateBaseTemplate("O Despertar", content, publicLink, "Quebrar o Selo");
+        String content = messageSource.getMessage("email.awakening.body", new Object[]{capsuleTitle, ownerMsgSection}, locale);
+        String buttonText = messageSource.getMessage("email.awakening.button", null, locale);
+
+        return generateBaseTemplate(title, content, publicLink, buttonText, locale);
     }
 }

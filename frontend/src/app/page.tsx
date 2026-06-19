@@ -4,12 +4,20 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Home() {
     const router = useRouter();
+    const { t } = useTranslation();
 
     return (
         <main className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-black selection:bg-amber-500/30">
+            {/* Language Switcher */}
+            <div className="absolute top-6 right-6 z-20">
+                <LanguageSwitcher />
+            </div>
+
             {/* Background elements */}
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-900/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
@@ -37,31 +45,31 @@ export default function Home() {
                     <h1 className="text-5xl md:text-6xl font-extralight tracking-tighter text-white">
                         Aevum
                     </h1>
-                    <p className="text-amber-500/60 tracking-[0.4em] text-xs uppercase font-bold">A Forja do Tempo</p>
+                    <p className="text-amber-500/60 tracking-[0.4em] text-xs uppercase font-bold">{t("home.subtitle")}</p>
                 </div>
 
                 <div className="w-full space-y-4">
                     <Show when="signed-out">
                         <SignInButton mode="modal">
-                            <button className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)]">
+                            <button className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
                                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
-                                <span className="relative z-10 flex items-center justify-center gap-2">Entrar no Cofre</span>
+                                <span className="relative z-10 flex items-center justify-center gap-2">{t("home.enterVault")}</span>
                             </button>
                         </SignInButton>
                         <SignUpButton mode="modal">
-                            <button className="w-full px-8 py-4 bg-transparent border border-neutral-800 hover:border-amber-500/50 rounded-2xl text-white font-extrabold tracking-widest uppercase transition-all hover:bg-neutral-900/50">
-                                Criar Novo Legado
+                            <button className="w-full px-8 py-4 bg-transparent border border-neutral-800 hover:border-amber-500/50 rounded-2xl text-white font-extrabold tracking-widest uppercase transition-all hover:bg-neutral-900/50 cursor-pointer">
+                                {t("home.createNewLegacy")}
                             </button>
                         </SignUpButton>
                     </Show>
                     <Show when="signed-in">
-                        <button onClick={() => router.push("/dashboard")} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)]">
-                            Acessar Dashboard
+                        <button onClick={() => router.push("/dashboard")} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
+                            {t("home.accessDashboard")}
                         </button>
                     </Show>
                     
                     <p className="text-center text-xs text-neutral-600 font-medium pt-4">
-                        Acesso seguro criptografado provido por Clerk.
+                        {t("home.securedByClerk")}
                     </p>
                 </div>
             </motion.div>

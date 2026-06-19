@@ -2,8 +2,10 @@
 
 import { ItemType } from "@/types/capsule";
 import { CapsuleTheme } from "@/config/themes";
+import { useTranslation } from "react-i18next";
 
 export function PhysicalRelic({ type, theme }: { type: ItemType; theme: CapsuleTheme }) {
+  const { t } = useTranslation();
   
   // 1. O Sistema Injeta dinamicamente a Skin se ela existir no Dicionário!
   const customAssetUrl = theme.assets.relics[type];
@@ -12,7 +14,7 @@ export function PhysicalRelic({ type, theme }: { type: ItemType; theme: CapsuleT
     return (
        <img 
          src={customAssetUrl} 
-         alt={`Relíquia de ${type}`} 
+         alt={t("relicGallery.labels." + type, { defaultValue: type })} 
          className="w-[90px] h-[100px] mx-auto object-contain drop-shadow-2xl filter hover:brightness-110 transition-all" 
        />
     );

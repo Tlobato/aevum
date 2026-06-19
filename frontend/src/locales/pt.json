@@ -1,0 +1,254 @@
+{
+  "home": {
+    "subtitle": "A Forja do Tempo",
+    "enterVault": "Entrar no Cofre",
+    "createNewLegacy": "Criar Novo Legado",
+    "accessDashboard": "Acessar Dashboard",
+    "securedByClerk": "Acesso seguro criptografado provido por Clerk."
+  },
+  "dashboard": {
+    "title": "Câmara dos Legados",
+    "subtitle": "Aqui você guarda e gerencia suas cápsulas do tempo.",
+    "tabMyRelics": "Minhas Relíquias",
+    "tabForgeNew": "Forjar Nova Relíquia",
+    "signOut": "Sair",
+    "loading": "Despertando relíquias...",
+    "noCapsules": "O cofre está vazio.",
+    "noCapsulesSubtitle": "Clique em \"Forjar Nova Relíquia\" para começar.",
+    "capsulesCount_zero": "Nenhuma relíquia forjada.",
+    "capsulesCount_one": "1 relíquia registrada.",
+    "capsulesCount_other": "{{count}} relíquias registradas.",
+    "filter": {
+      "all": "Todas",
+      "draft": "Rascunhos",
+      "sealed": "Seladas",
+      "restoring": "Desbloqueando",
+      "unlocked": "Prontas"
+    },
+    "table": {
+      "relic": "Relíquia",
+      "recipient": "Destinatário",
+      "unlockDate": "Data de Despertar",
+      "status": "Status",
+      "actions": "Ações",
+      "personal": "Cápsula Pessoal",
+      "gift": "Presente para {email}"
+    },
+    "badge": {
+      "DRAFT": "Rascunho",
+      "SEALED": "Selada",
+      "OPENED": "Desperta",
+      "UNLOCKED": "Pronta",
+      "RESTORING": "Desbloqueando"
+    },
+    "actions": {
+      "view": "Ingressar no Cofre",
+      "seal": "Selar & Pagar",
+      "delete": "Apagar",
+      "locked": "Trancada"
+    },
+    "deleteModal": {
+      "title": "Excluir Relíquia",
+      "confirm": "Tem certeza que deseja apagar esta relíquia permanentemente? Todos os arquivos e mensagens guardados serão perdidos para sempre no fluxo do tempo.",
+      "buttonDelete": "Excluir Permanentemente",
+      "buttonCancel": "Manter Relíquia"
+    },
+    "alerts": {
+      "deleteSuccess": "Relíquia eliminada do registro com sucesso.",
+      "deleteFail": "Falha ao apagar a cápsula no Registro Temporal. Verifique suas permissões.",
+      "connError": "Erro de conexão ao tentar realizar a operação."
+    }
+  },
+  "forge": {
+    "title": "Forjar Nova Relíquia",
+    "subtitle": "Definir os Parâmetros da Relíquia",
+    "forMe": "Para Mim",
+    "gift": "Presente",
+    "fieldTitle": "Gravura / Título",
+    "fieldTitlePlaceholder": "Ex: Mensagem para o Futuro",
+    "fieldDesc": "Descrição / Notas do Forjador",
+    "fieldDescPlaceholder": "Notas sobre esta relíquia...",
+    "fieldPlan": "Plano Dimensional",
+    "fieldTheme": "Estética do Cofre (Tema)",
+    "fieldUnlock": "Data do Despertar",
+    "fieldRecipient": "E-mail do Destinatário (Portador)",
+    "fieldRecipientPlaceholder": "email@destinatario.com",
+    "fieldIsGift": "Esta relíquia é um presente para outra pessoa?",
+    "fieldGiftMsg": "Mensagem Especial 💌",
+    "fieldGiftMsgPlaceholder": "Escreva algo para o destinatário ler quando o baú abrir...",
+    "testMode": "Modo de Teste (Permite abrir a qualquer momento para debug)",
+    "buttonForge": "Cristalizar Projeto →",
+    "buttonCancel": "Cancelar",
+    "estimate": "Custo do Selo",
+    "estimateNote": "Estimativa baseada no plano e data escolhida",
+    "paymentNote": "Pagamento único. Sem custos futuros para os herdeiros.",
+    "alphaPlanNote": "Fase Alpha: Apenas 1GB",
+    "storageNote": "Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.",
+    "verifying": "Cristalizando...",
+    "validation": {
+      "titleRequired": "O título da relíquia é obrigatório.",
+      "emailRequired": "O e-mail do destinatário é obrigatório.",
+      "emailInvalid": "Insira um endereço de e-mail válido.",
+      "dateRequired": "A data de despertar é obrigatória.",
+      "dateInvalid": "Insira uma data válida.",
+      "dateMin": "O despertar deve ser no mínimo 2 dias no futuro.",
+      "dateMax": "O despertar deve ser de no máximo 100 anos no futuro."
+    }
+  },
+  "vault": {
+    "loading": "Invocando Câmara do Tempo",
+    "lockedTitle": "Cofre Selado",
+    "lockedSubtitle": "Esta relíquia está trancada pelo tempo até o dia {date}.",
+    "lockedTimeLeft": "Tempo Restante:",
+    "days": "dias",
+    "hours": "horas",
+    "minutes": "minutos",
+    "seconds": "segundos",
+    "earlyUnlockButton": "Quebrar Selo Antecipadamente",
+    "unlockedTitle": "Cofre Aberto",
+    "unlockedSubtitle": "O selo temporal foi quebrado. O legado foi revelado.",
+    "giftFrom": "Presente enviado por: {email}",
+    "theme": "Tema",
+    "status": "Status",
+    "plan": "Plano",
+    "storage": "Espaço Utilizado",
+    "back": "Voltar ao Cofre",
+    "noMemories": "Nenhuma memória adicionada a esta cápsula ainda.",
+    "addMemories": "Altar de Criação",
+    "statusBadge": {
+      "DRAFT": "Rascunho (Editável)",
+      "SEALED": "Selada (Glacier)",
+      "RESTORING": "Desbloqueando...",
+      "UNLOCKED": "Desbloqueada"
+    },
+    "alerts": {
+      "sizeExceeded": "O artefato excede o limite estipulado pela dimensão da relíquia.",
+      "forgeError": "Uma interferência magnética impediu que a memória fosse ancorada no tempo.",
+      "checkoutError": "A anomalia temporal impediu a conexão financeira. Tente novamente.",
+      "notOwner": "Você não tem permissão para gerenciar esta cápsula.",
+      "loadError": "Erro ao carregar cápsula."
+    },
+    "sealedBadge": "Selo Ativado",
+    "relicCodename": "Códinome da Relíquia",
+    "recipientLabel": "Destinado Para",
+    "unlockScheduled": "Despertar Agendado",
+    "sealedFooter": "Receptáculo protegido pelo selo da eternidade",
+    "exploreButton": "Explorar Relíquias",
+    "write": "Escrever",
+    "photo": "Revelar",
+    "audio": "Gravar",
+    "video": "Filmar",
+    "connectingCentral": "CONECTANDO AO COFRE CENTRAL...",
+    "sealButton": "LACRAR PERMANENTEMENTE",
+    "adminForceSeal": "Forçar Selagem Grátis",
+    "breakSeal": "QUEBRAR O SELO DO TEMPO",
+    "restoringTitle": "Desgelo em Andamento",
+    "restoringDesc": "Sua relíquia está sendo restaurada dos confins do tempo (Glacier). Este processo leva até 48 horas.",
+    "restoringTime": "Tempo Restante Estimado: ~24h",
+    "sealingCutscene": "Forjando Relíquia no Tempo",
+    "unsealingCutscene": "Despertando Relíquias",
+    "memory": "Memória",
+    "unknownMemory": "Memória Desconhecida",
+    "connectionFailed": "A conexão dimensional falhou durante a transferência."
+  },
+  "dropzone": {
+    "dragText": "Arraste memórias físicas ou clique para explorar",
+    "limitText": "Suporta fotos, vídeos, áudios e textos (Max {limit})",
+    "textModalTitle": "Escrever Pensamento",
+    "textModalPlaceholder": "Digite aqui o que deseja eternizar...",
+    "textModalSave": "Guardar Pensamento",
+    "textModalCancel": "Descartar",
+    "saving": "Adicionando memória...",
+    "btnText": "Escrever Pensamento",
+    "btnMedia": "Subir Mídia",
+    "totalItems": "{count} memórias no cofre"
+  },
+  "earlyUnlock": {
+    "modalTitle": "Quebra do Selo Temporal",
+    "modalDesc": "Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético.",
+    "penaltyLabel": "Multa de Resgate Antecipado",
+    "penaltyPct": "30% do Selo Original",
+    "penaltyMin": "Taxa Mínima",
+    "penaltyTotal": "Total a Pagar",
+    "checkoutEstimate": "Calculado no Checkout",
+    "btnCancel": "Cancelar",
+    "btnPay": "ACEITAR CONSEQUÊNCIAS",
+    "btnConnecting": "CONECTANDO...",
+    "adminForce": "Forçar Abertura Grátis"
+  },
+  "paymentSuccess": {
+    "title": "O Selo foi Forjado",
+    "subtitle": "Seu pagamento foi confirmado pelo Cofre Central. A anomalia temporal está sendo estabilizada e sua cápsula foi permanentemente trancada.",
+    "redirecting": "Redirecionando para a Câmara"
+  },
+  "forgeModal": {
+    "titleDocument": "Documento",
+    "titlePhoto": "Fotografia",
+    "titleAudio": "Áudio",
+    "titleVideo": "Filmagens",
+    "subtitle": "Configure o registro eterno desta memória",
+    "write": "Redigir",
+    "recordAudio": "Gravar Áudio",
+    "startCamera": "Ligar Câmera",
+    "attachFile": "Anexar Arquivo",
+    "writePlaceholder": "Insira os pensamentos ou fatos que merecem perdurar pelo tempo (mínimo 3 letras)...",
+    "cameraError": "Acesso Negado ou Indisponível",
+    "tryAgain": "Tentar Novamente",
+    "startCapture": "Iniciar Permissão e Captura",
+    "stopRecord": "Parar Gravação",
+    "captureRelic": "Capturar Relíquia",
+    "discard": "Descartar e Refazer",
+    "readyToSeal": "Pronto para Selar",
+    "dragText": "Clique ou Arraste o Arquivo Aqui",
+    "formats": "Formatos:",
+    "forgeAndCast": "Forjar e Arremessar",
+    "draftText": "Texto Redigido",
+    "tempRegister": "Registro Temporário"
+  },
+  "dropzoneMock": {
+    "title": "Suas Relíquias",
+    "maxCapacity": "CAPACIDADE MÁXIMA",
+    "max": "MÁX",
+    "vaultAwaits": "O cofre aguarda.",
+    "labels": {
+      "TEXT": "Carta Oculta",
+      "PHOTO": "Retrato Vintage",
+      "AUDIO": "Rolo de Voz",
+      "VIDEO": "Filme Super8"
+    },
+    "tools": {
+      "TEXT": "Carta",
+      "PHOTO": "Foto",
+      "AUDIO": "Voz",
+      "VIDEO": "Vídeo"
+    }
+  },
+  "relicGallery": {
+    "deciphering": "Decifrando o pergaminho antigo...",
+    "readError": "O arquivo anexado não pôde ser lido como texto puro ou está corrompido.",
+    "awakenedHeritage": "Acervo Despertado",
+    "emptyVault": "Este baú estava vazio.",
+    "attachedDocument": "Documento Anexado",
+    "writtenMessage": "Mensagem Escrita",
+    "cannotTranscribe": "Este documento foi anexado em formato de arquivo e não pôde ser transcrito visualmente.",
+    "voiceRecording": "Gravação de Voz",
+    "downloadFile": "Fazer Download do Arquivo",
+    "downloadFail": "Falha ao baixar",
+    "labels": {
+      "TEXT": "Pergaminho",
+      "PHOTO": "Fotografia",
+      "AUDIO": "Gravação",
+      "VIDEO": "Cinematografia",
+      "default": "Relíquia"
+    }
+  },
+  "themes": {
+    "label": "Tema do Baú",
+    "bau-classico": "Baú Clássico",
+    "bau-maritimo": "Baú Marítimo"
+  },
+  "common": {
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
+  }
+}

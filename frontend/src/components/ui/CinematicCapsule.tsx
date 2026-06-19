@@ -14,7 +14,8 @@ const DEFAULT_THEME_ID = "bau-classico";
 
 import { useEffect, useRef } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
-import { API_URL } from "@/lib/api";
+import { useTranslation } from "react-i18next";
+import { API_URL, getApiHeaders } from "@/lib/api";
 
 export function CinematicCapsule({
   capsuleId,
@@ -43,6 +44,7 @@ export function CinematicCapsule({
 }) {
   const { user } = useUser();
   const { getToken } = useAuth();
+  const { t, i18n } = useTranslation();
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
   const [localMemoriesCount, setLocalMemoriesCount] = useState(initialUsedBytes > 0 ? 1 : 0);
   const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
@@ -81,12 +83,12 @@ export function CinematicCapsule({
           let res;
           if (accessToken) {
             // Busca pública via token
-            res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/memories?token=${accessToken}`);
+            res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/memories?token=${accessToken}`, { headers: getApiHeaders() });
           } else {
             // Busca autenticada (Dono)
             const token = await getToken({ template: 'aevum-session' });
             res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
-              headers: { "Authorization": `Bearer ${token}` }
+              headers: getApiHeaders(token)
             });
           }
 
@@ -96,7 +98,7 @@ export function CinematicCapsule({
             const mappedMemories: Memory[] = data.map((m: any) => ({
               id: m.id,
               type: m.type as ItemType,
-              label: m.fileName || "Memória",
+              label: m.fileName || t("vault.memory"),
               payload: m.presignedUrl || m.textContent || "",
               fileName: m.fileName
             }));
@@ -135,7 +137,7 @@ export function CinematicCapsule({
         try {
           const token = await getToken({ template: 'aevum-session' });
           const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: getApiHeaders(token)
           });
           if (res.ok) {
             const data = await res.json();
@@ -186,7 +188,7 @@ export function CinematicCapsule({
     }
 
     if (localUsedBytes + actualSizeBytes > maxSizeBytes) {
-      alert("O artefato excede o limite estipulado pela dimensão da relíquia.");
+      alert(t("vault.alerts.sizeExceeded"));
       return;
     }
 
@@ -194,7 +196,7 @@ export function CinematicCapsule({
     const newMemory: Memory = {
       id: memoryIdFallback,
       type: newMemoryData.type as ItemType,
-      label: newMemoryData.label || "Memória Desconhecida",
+      label: newMemoryData.label || t("vault.unknownMemory"),
       payload: newMemoryData.payload,
       fileName: newMemoryData.fileName || `memoria_${memoryIdFallback}.bin`
     };
@@ -221,7 +223,7 @@ export function CinematicCapsule({
         const token = await getToken({ template: 'aevum-session' });
         // Pede URL Assinada
         const presignRes = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/presign?fileName=${encodeURIComponent(uploadedFileName)}&sizeBytes=${actualSizeBytes}`, {
-          headers: { "Authorization": `Bearer ${token}` }
+          headers: getApiHeaders(token)
         });
 
         if (!presignRes.ok) throw new Error("Falha ao obter URL assinada.");
@@ -236,14 +238,14 @@ export function CinematicCapsule({
           }
         });
 
-        if (!s3Res.ok) throw new Error("A conexão dimensional falhou durante a transferência.");
+        if (!s3Res.ok) throw new Error(t("vault.connectionFailed"));
       }
 
       const token = await getToken({ template: 'aevum-session' });
       // Consolida Memória no Banco Postgres
       await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        headers: getApiHeaders(token),
         body: JSON.stringify({
           type: newMemory.type,
           textContent: textContent,
@@ -257,7 +259,7 @@ export function CinematicCapsule({
       // Rollback Optimistic 
       setLocalMemoriesCount(prev => prev - 1);
       setLocalUsedBytes(prev => prev - actualSizeBytes);
-      alert("Uma interferência magnética impediu que a memória fosse ancorada no tempo.");
+      alert(t("vault.alerts.forgeError"));
     }
   };
 
@@ -281,7 +283,7 @@ export function CinematicCapsule({
       const token = await getToken({ template: 'aevum-session' });
       const res = await fetch(`${API_URL}/api/v1/payments/create-checkout/${capsuleId}`, {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: getApiHeaders(token)
       });
 
       if (!res.ok) {
@@ -298,7 +300,7 @@ export function CinematicCapsule({
       }
     } catch (e) {
       console.error(e);
-      alert("A anomalia temporal impediu a conexão financeira. Tente novamente.");
+      alert(t("vault.alerts.checkoutError"));
       setIsRedirectingToStripe(false);
     }
   };
@@ -310,7 +312,7 @@ export function CinematicCapsule({
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: getApiHeaders(token)
             });
             if (res.ok) {
                 const data = await res.json();
@@ -336,7 +338,7 @@ export function CinematicCapsule({
                 className="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
             />
             <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                Despertando Relíquias
+                {t("vault.unsealingCutscene")}
             </span>
         </div>
       );
@@ -425,7 +427,7 @@ export function CinematicCapsule({
                 {/* Header Fita Seladora */}
                 <div className="w-full bg-gradient-to-r from-amber-600 to-amber-900 py-3 px-6 shadow-md border-b border-amber-500/40 flex justify-between items-center">
                   <h3 className="text-white font-serif font-black tracking-widest uppercase text-left text-sm drop-shadow-md">
-                    Selo Ativado
+                    {t("vault.sealedBadge")}
                   </h3>
                   <Lock className="w-4 h-4 text-amber-200" />
                 </div>
@@ -434,7 +436,7 @@ export function CinematicCapsule({
                 <div className="p-6 flex flex-col gap-5">
 
                   <div>
-                    <span className="text-[10px] text-amber-500/50 uppercase tracking-[0.2em] font-bold block mb-1">Códinome da Relíquia</span>
+                    <span className="text-[10px] text-amber-500/50 uppercase tracking-[0.2em] font-bold block mb-1">{t("vault.relicCodename")}</span>
                     <span className="text-lg text-amber-100 font-serif font-light">{title}</span>
                   </div>
 
@@ -443,7 +445,7 @@ export function CinematicCapsule({
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     </div>
                     <div className="flex flex-col truncate">
-                      <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Destinado Para</span>
+                      <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">{t("vault.recipientLabel")}</span>
                       <span className="text-sm font-mono text-neutral-300 truncate">{recipientEmail}</span>
                     </div>
                   </div>
@@ -453,9 +455,9 @@ export function CinematicCapsule({
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Despertar Agendado</span>
+                      <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">{t("vault.unlockScheduled")}</span>
                       <span className="text-sm font-mono text-blue-300 font-bold">
-                        {new Date(unlockDate).toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" })}
+                        {new Date(unlockDate).toLocaleDateString(i18n.language || "pt-BR", { year: "numeric", month: "long", day: "numeric" })}
                       </span>
                     </div>
                   </div>
@@ -463,20 +465,20 @@ export function CinematicCapsule({
                   {/* Mensagem Rodapé / Destravamento */}
                   <div className="mt-2 pt-4 border-t border-white/5 text-center flex flex-col gap-3">
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
-                      Receptáculo protegido pelo selo da eternidade
+                      {t("vault.sealedFooter")}
                     </span>
                     {storageStatus !== "AVAILABLE" && !accessToken && storageStatus === "FROZEN" && (
                         <button
                           onClick={() => setShowEarlyUnlockModal(true)}
                           className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
-                          Quebrar Selo Antecipadamente
+                          {t("vault.earlyUnlockButton")}
                         </button>
                     )}
                     {storageStatus === "AVAILABLE" && (
                         <button
                           onClick={() => setViewMode("GALLERY")}
                           className="w-full py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-xl text-xs font-bold text-green-400 uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]">
-                          Explorar Relíquias
+                          {t("vault.exploreButton")}
                         </button>
                     )}
                   </div>
@@ -497,10 +499,10 @@ export function CinematicCapsule({
           transition={{ duration: 0.5 }}
           className={`mt-2 flex gap-4 w-full max-w-lg justify-center flex-wrap z-10 transition-all duration-500 ${isBlurMode ? 'opacity-0 blur-md translate-y-10' : ''}`}
         >
-          <GameButton icon={<Type className="w-5 h-5" />} label="Escrever" onClick={() => initiateForge("TEXT")} disabled={isQuotaFull} />
-          <GameButton icon={<Camera className="w-5 h-5" />} label="Revelar" onClick={() => initiateForge("PHOTO")} disabled={isQuotaFull} />
-          <GameButton icon={<Mic className="w-5 h-5" />} label="Gravar" onClick={() => initiateForge("AUDIO")} disabled={isQuotaFull} />
-          <GameButton icon={<FileVideo className="w-5 h-5" />} label="Filmar" onClick={() => initiateForge("VIDEO")} disabled={isQuotaFull} />
+          <GameButton icon={<Type className="w-5 h-5" />} label={t("vault.write")} onClick={() => initiateForge("TEXT")} disabled={isQuotaFull} />
+          <GameButton icon={<Camera className="w-5 h-5" />} label={t("vault.photo")} onClick={() => initiateForge("PHOTO")} disabled={isQuotaFull} />
+          <GameButton icon={<Mic className="w-5 h-5" />} label={t("vault.audio")} onClick={() => initiateForge("AUDIO")} disabled={isQuotaFull} />
+          <GameButton icon={<FileVideo className="w-5 h-5" />} label={t("vault.video")} onClick={() => initiateForge("VIDEO")} disabled={isQuotaFull} />
         </motion.div>
       )}
 
@@ -516,7 +518,7 @@ export function CinematicCapsule({
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
               <div className="flex items-center gap-2 relative z-10">
                   <Lock className={`w-5 h-5 ${isRedirectingToStripe ? "animate-spin" : ""}`} /> 
-                  {isRedirectingToStripe ? "CONECTANDO AO COFRE CENTRAL..." : "LACRAR PERMANENTEMENTE"}
+                  {isRedirectingToStripe ? t("vault.connectingCentral") : t("vault.sealButton")}
               </div>
             </button>
             {isAdmin && (
@@ -527,14 +529,14 @@ export function CinematicCapsule({
                         const token = await getToken({ template: 'aevum-session' });
                         await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                            method: "POST",
-                           headers: { "Authorization": `Bearer ${token}` }
+                           headers: getApiHeaders(token)
                         });
                      } catch(e) { console.error(e); }
                   }}
                   className="flex items-center gap-2 text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest"
                >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  [Admin] Forçar Selagem Grátis
+                  [Admin] {t("vault.adminForceSeal")}
                </button>
             )}
           </motion.div>
@@ -550,7 +552,7 @@ export function CinematicCapsule({
           >
             <button onClick={unsealVault} className="group relative overflow-hidden px-10 py-5 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-full text-black font-extrabold tracking-widest uppercase transition-all shadow-[0_0_50px_rgba(214,158,46,0.6)] hover:shadow-[0_0_100px_rgba(214,158,46,1)] transform hover:scale-105 active:scale-95 border-2 border-yellow-300">
               <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
-              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> QUEBRAR O SELO DO TEMPO</div>
+              <div className="flex items-center gap-2 relative z-10"><Lock className="w-5 h-5" /> {t("vault.breakSeal")}</div>
             </button>
           </motion.div>
       )}
@@ -566,14 +568,14 @@ export function CinematicCapsule({
               <svg className="w-5 h-5 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <h4 className="text-blue-200 font-bold tracking-widest uppercase text-sm">Desgelo em Andamento</h4>
+              <h4 className="text-blue-200 font-bold tracking-widest uppercase text-sm">{t("vault.restoringTitle")}</h4>
             </div>
             <p className="text-blue-100/70 text-xs leading-relaxed max-w-xs">
-              Sua relíquia está sendo restaurada dos confins do tempo (Glacier). Este processo leva até 48 horas.
+              {t("vault.restoringDesc")}
             </p>
             <div className="flex items-center justify-center gap-2 text-sm font-mono text-cyan-300 mt-1">
               <span className="animate-pulse">⏳</span>
-              <span>Tempo Restante Estimado: ~24h</span>
+              <span>{t("vault.restoringTime")}</span>
             </div>
           </motion.div>
       )}
@@ -609,24 +611,24 @@ export function CinematicCapsule({
                 <Lock className="w-8 h-8 text-red-500" />
               </div>
 
-              <h3 className="text-2xl font-serif text-white font-light text-center mb-2">Quebra do Selo Temporal</h3>
+              <h3 className="text-2xl font-serif text-white font-light text-center mb-2">{t("earlyUnlock.modalTitle")}</h3>
               <p className="text-sm text-neutral-400 text-center leading-relaxed">
-                Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético.
+                {t("earlyUnlock.modalDesc")}
               </p>
 
               <div className="bg-black/50 border border-neutral-800 rounded-2xl p-5 mt-6 mb-8 flex flex-col gap-3">
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-500">Multa de Resgate Antecipado</span>
-                  <span className="text-white font-mono">30% do Selo Original</span>
+                  <span className="text-neutral-500">{t("earlyUnlock.penaltyLabel")}</span>
+                  <span className="text-white font-mono">{t("earlyUnlock.penaltyPct")}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-500">Taxa Mínima</span>
+                  <span className="text-neutral-500">{t("earlyUnlock.penaltyMin")}</span>
                   <span className="text-white font-mono">R$ 9,90</span>
                 </div>
                 <div className="h-[1px] w-full bg-neutral-800 my-1" />
                 <div className="flex justify-between items-center font-bold">
-                  <span className="text-neutral-300">Total a Pagar</span>
-                  <span className="text-amber-500 font-mono text-xs uppercase tracking-widest">Calculado no Checkout</span>
+                  <span className="text-neutral-300">{t("earlyUnlock.penaltyTotal")}</span>
+                  <span className="text-amber-500 font-mono text-xs uppercase tracking-widest">{t("earlyUnlock.checkoutEstimate")}</span>
                 </div>
               </div>
 
@@ -634,7 +636,7 @@ export function CinematicCapsule({
                 <button
                   onClick={() => setShowEarlyUnlockModal(false)}
                   className="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors">
-                  Cancelar
+                  {t("earlyUnlock.btnCancel")}
                 </button>
                 <button
                   disabled={isRedirectingToStripe}
@@ -645,7 +647,7 @@ export function CinematicCapsule({
                          const token = await getToken({ template: 'aevum-session' });
                          const res = await fetch(`${API_URL}/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
                             method: 'POST',
-                            headers: { "Authorization": `Bearer ${token}` }
+                            headers: getApiHeaders(token)
                          });
                          
                          if (!res.ok) throw new Error("Falha ao gerar multa.");
@@ -664,7 +666,7 @@ export function CinematicCapsule({
                     }
                   }}
                   className="flex-1 py-3.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50">
-                  {isRedirectingToStripe ? "CONECTANDO..." : "ACEITAR CONSEQUÊNCIAS"}
+                  {isRedirectingToStripe ? t("earlyUnlock.btnConnecting") : t("earlyUnlock.btnPay")}
                 </button>
               </div>
 
@@ -678,14 +680,14 @@ export function CinematicCapsule({
                           const token = await getToken({ template: 'aevum-session' });
                           await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/debug-unlock`, {
                               method: 'POST',
-                              headers: { "Authorization": `Bearer ${token}` }
+                              headers: getApiHeaders(token)
                           });
                         } catch(e) { console.error(e); }
                     }}
                     className="mt-6 w-full flex justify-center items-center gap-2 py-2 text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest border border-purple-500/30 rounded-xl bg-purple-500/10"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    [Admin] Forçar Abertura Grátis
+                    [Admin] {t("earlyUnlock.adminForce")}
                   </button>
               )}
 
@@ -727,7 +729,7 @@ export function CinematicCapsule({
                   {/* Overlay Cinematográfico */}
                   <div className="absolute bottom-8 w-full text-center pointer-events-none">
                      <span className="text-amber-500/70 text-xs md:text-sm tracking-[0.5em] uppercase font-bold animate-pulse">
-                        Forjando Relíquia no Tempo
+                        {t("vault.sealingCutscene")}
                      </span>
                   </div>
                </div>

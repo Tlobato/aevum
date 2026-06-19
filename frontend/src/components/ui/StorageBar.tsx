@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface StorageBarProps {
     usedBytes: number;
@@ -11,6 +12,7 @@ interface StorageBarProps {
 }
 
 export function StorageBar({ usedBytes, maxBytes, isQuotaFull, isBlurMode = false }: StorageBarProps) {
+    const { t, i18n } = useTranslation();
     const [pulseTrigger, setPulseTrigger] = useState(0);
 
     // Dispara animação de brilho toda vez que usedBytes aumenta ou diminui
@@ -41,7 +43,7 @@ export function StorageBar({ usedBytes, maxBytes, isQuotaFull, isBlurMode = fals
         >
             <div className="flex justify-between items-start mb-2">
                 <span className="text-xs font-bold text-amber-500/90 tracking-widest uppercase">
-                    Espaço Utilizado
+                    {t("vault.storage")}
                 </span>
                 
                 {/* Exibição Híbrida: Formato Amigável em cima, Formato Bytes Embaixo */}
@@ -50,7 +52,7 @@ export function StorageBar({ usedBytes, maxBytes, isQuotaFull, isBlurMode = fals
                         {formatDynamic(usedBytes)} / {formatMax(maxBytes)}
                     </span>
                     <span className="text-[9px] font-mono text-amber-500/50 mt-0.5">
-                        {usedBytes.toLocaleString('pt-BR')} / {maxBytes.toLocaleString('pt-BR')} Bytes
+                        {usedBytes.toLocaleString(i18n.language)} / {maxBytes.toLocaleString(i18n.language)} Bytes
                     </span>
                 </div>
             </div>

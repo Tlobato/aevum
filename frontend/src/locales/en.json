@@ -1,0 +1,254 @@
+{
+  "home": {
+    "subtitle": "The Forge of Time",
+    "enterVault": "Enter the Vault",
+    "createNewLegacy": "Create New Legacy",
+    "accessDashboard": "Access Dashboard",
+    "securedByClerk": "Secure encrypted access provided by Clerk."
+  },
+  "dashboard": {
+    "title": "Chamber of Legacies",
+    "subtitle": "Here you store and manage your time capsules.",
+    "tabMyRelics": "My Relics",
+    "tabForgeNew": "Forge New Relic",
+    "signOut": "Sign Out",
+    "loading": "Awakening relics...",
+    "noCapsules": "The vault is empty.",
+    "noCapsulesSubtitle": "Click on \"Forge New Relic\" to begin.",
+    "capsulesCount_zero": "No relics forged.",
+    "capsulesCount_one": "1 relic registered.",
+    "capsulesCount_other": "{{count}} relics registered.",
+    "filter": {
+      "all": "All",
+      "draft": "Drafts",
+      "sealed": "Sealed",
+      "restoring": "Restoring",
+      "unlocked": "Ready"
+    },
+    "table": {
+      "relic": "Relic",
+      "recipient": "Recipient",
+      "unlockDate": "Unlock Date",
+      "status": "Status",
+      "actions": "Actions",
+      "personal": "Personal Capsule",
+      "gift": "Gift for {email}"
+    },
+    "badge": {
+      "DRAFT": "Draft",
+      "SEALED": "Sealed",
+      "OPENED": "Awakened",
+      "UNLOCKED": "Ready",
+      "RESTORING": "Restoring"
+    },
+    "actions": {
+      "view": "Enter the Vault",
+      "seal": "Seal & Pay",
+      "delete": "Delete",
+      "locked": "Locked"
+    },
+    "deleteModal": {
+      "title": "Delete Relic",
+      "confirm": "Are you sure you want to permanently delete this relic? All saved files and messages will be lost forever in the flow of time.",
+      "buttonDelete": "Delete Permanently",
+      "buttonCancel": "Keep Relic"
+    },
+    "alerts": {
+      "deleteSuccess": "Relic successfully removed from the registry.",
+      "deleteFail": "Failed to delete the capsule from the Temporal Registry. Check your permissions.",
+      "connError": "Connection error trying to perform operation."
+    }
+  },
+  "forge": {
+    "title": "Forge New Relic",
+    "subtitle": "Define Relic Parameters",
+    "forMe": "For Me",
+    "gift": "Gift",
+    "fieldTitle": "Engraving / Title",
+    "fieldTitlePlaceholder": "Ex: Message for the Future",
+    "fieldDesc": "Description / Forger Notes",
+    "fieldDescPlaceholder": "Notes about this relic...",
+    "fieldPlan": "Dimensional Plan",
+    "fieldTheme": "Vault Aesthetics (Theme)",
+    "fieldUnlock": "Unlock Date",
+    "fieldRecipient": "Recipient Email (Bearer)",
+    "fieldRecipientPlaceholder": "email@recipient.com",
+    "fieldIsGift": "Is this relic a gift for someone else?",
+    "fieldGiftMsg": "Special Message 💌",
+    "fieldGiftMsgPlaceholder": "Write something for the recipient to read when the chest opens...",
+    "testMode": "Test Mode (Allows opening at any time for debugging)",
+    "buttonForge": "Crystallize Project →",
+    "buttonCancel": "Cancel",
+    "estimate": "Seal Cost",
+    "estimateNote": "Estimate based on plan and chosen date",
+    "paymentNote": "Single payment. No future costs for heirs.",
+    "alphaPlanNote": "Alpha Phase: 1GB Only",
+    "storageNote": "During testing, we limit storage to ensure system stability.",
+    "verifying": "Crystallizing...",
+    "validation": {
+      "titleRequired": "Relic title is required.",
+      "emailRequired": "Recipient email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "dateRequired": "Unlock date is required.",
+      "dateInvalid": "Enter a valid date.",
+      "dateMin": "The unlock date must be at least 2 days in the future.",
+      "dateMax": "The unlock date must be at most 100 years in the future."
+    }
+  },
+  "vault": {
+    "loading": "Summoning Time Chamber",
+    "lockedTitle": "Sealed Vault",
+    "lockedSubtitle": "This relic is locked by time until {date}.",
+    "lockedTimeLeft": "Time Remaining:",
+    "days": "days",
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "earlyUnlockButton": "Break Seal Early",
+    "unlockedTitle": "Opened Vault",
+    "unlockedSubtitle": "The temporal seal has been broken. The legacy is revealed.",
+    "giftFrom": "Gift sent by: {email}",
+    "theme": "Theme",
+    "status": "Status",
+    "plan": "Plan",
+    "storage": "Storage Used",
+    "back": "Back to Vault",
+    "noMemories": "No memories added to this capsule yet.",
+    "addMemories": "Creation Altar",
+    "statusBadge": {
+      "DRAFT": "Draft (Editable)",
+      "SEALED": "Sealed (Glacier)",
+      "RESTORING": "Restoring...",
+      "UNLOCKED": "Unlocked"
+    },
+    "alerts": {
+      "sizeExceeded": "The artifact exceeds the limit set by the relic's size.",
+      "forgeError": "A magnetic interference prevented the memory from being anchored in time.",
+      "checkoutError": "The temporal anomaly prevented the financial connection. Try again.",
+      "notOwner": "You do not have permission to manage this capsule.",
+      "loadError": "Error loading capsule."
+    },
+    "sealedBadge": "Seal Activated",
+    "relicCodename": "Relic Codename",
+    "recipientLabel": "Destined For",
+    "unlockScheduled": "Unlock Scheduled",
+    "sealedFooter": "Receptacle protected by the seal of eternity",
+    "exploreButton": "Explore Relics",
+    "write": "Write",
+    "photo": "Reveal",
+    "audio": "Record",
+    "video": "Film",
+    "connectingCentral": "CONNECTING TO THE CENTRAL VAULT...",
+    "sealButton": "SEAL PERMANENTELY",
+    "adminForceSeal": "Force Free Sealing",
+    "breakSeal": "BREAK THE TIME SEAL",
+    "restoringTitle": "Unfreezing in Progress",
+    "restoringDesc": "Your relic is being restored from the depths of time (Glacier). This process takes up to 48 hours.",
+    "restoringTime": "Estimated Time Remaining: ~24h",
+    "sealingCutscene": "Forging Relic in Time",
+    "unsealingCutscene": "Awakening Relics",
+    "memory": "Memory",
+    "unknownMemory": "Unknown Memory",
+    "connectionFailed": "The dimensional connection failed during the transfer."
+  },
+  "dropzone": {
+    "dragText": "Drag physical memories or click to explore",
+    "limitText": "Supports photos, videos, audios, and texts (Max {limit})",
+    "textModalTitle": "Write Thought",
+    "textModalPlaceholder": "Type here what you wish to eternalize...",
+    "textModalSave": "Store Thought",
+    "textModalCancel": "Discard",
+    "saving": "Adding memory...",
+    "btnText": "Write Thought",
+    "btnMedia": "Upload Media",
+    "totalItems": "{count} memories in vault"
+  },
+  "earlyUnlock": {
+    "modalTitle": "Temporal Seal Break",
+    "modalDesc": "Interrupting the timeline and extracting your relics before the scheduled date requires a forced decompression of the vault. This action has an energy cost.",
+    "penaltyLabel": "Early Recovery Fee",
+    "penaltyPct": "30% of the Original Seal",
+    "penaltyMin": "Minimum Fee",
+    "penaltyTotal": "Total to Pay",
+    "checkoutEstimate": "Calculated at Checkout",
+    "btnCancel": "Cancel",
+    "btnPay": "ACCEPT CONSEQUENCES",
+    "btnConnecting": "CONNECTING...",
+    "adminForce": "Force Free Opening"
+  },
+  "paymentSuccess": {
+    "title": "The Seal Has Been Forged",
+    "subtitle": "Your payment has been confirmed by the Central Vault. The temporal anomaly is being stabilized and your capsule has been permanently locked.",
+    "redirecting": "Redirecting to the Chamber"
+  },
+  "forgeModal": {
+    "titleDocument": "Document",
+    "titlePhoto": "Photograph",
+    "titleAudio": "Audio",
+    "titleVideo": "Footage",
+    "subtitle": "Configure the eternal record of this memory",
+    "write": "Write",
+    "recordAudio": "Record Audio",
+    "startCamera": "Turn Camera On",
+    "attachFile": "Attach File",
+    "writePlaceholder": "Enter thoughts or facts that deserve to endure through time (minimum 3 characters)...",
+    "cameraError": "Access Denied or Unavailable",
+    "tryAgain": "Try Again",
+    "startCapture": "Start Permission and Capture",
+    "stopRecord": "Stop Recording",
+    "captureRelic": "Capture Relic",
+    "discard": "Discard and Redo",
+    "readyToSeal": "Ready to Seal",
+    "dragText": "Click or Drag File Here",
+    "formats": "Formats:",
+    "forgeAndCast": "Forge and Cast",
+    "draftText": "Draft Text",
+    "tempRegister": "Temporary Register"
+  },
+  "dropzoneMock": {
+    "title": "Your Relics",
+    "maxCapacity": "MAX CAPACITY",
+    "max": "MAX",
+    "vaultAwaits": "The vault awaits.",
+    "labels": {
+      "TEXT": "Hidden Letter",
+      "PHOTO": "Vintage Portrait",
+      "AUDIO": "Voice Roll",
+      "VIDEO": "Super8 Film"
+    },
+    "tools": {
+      "TEXT": "Letter",
+      "PHOTO": "Photo",
+      "AUDIO": "Voice",
+      "VIDEO": "Video"
+    }
+  },
+  "relicGallery": {
+    "deciphering": "Deciphering the ancient scroll...",
+    "readError": "The attached file could not be read as plain text or is corrupted.",
+    "awakenedHeritage": "Awakened Collection",
+    "emptyVault": "This chest was empty.",
+    "attachedDocument": "Attached Document",
+    "writtenMessage": "Written Message",
+    "cannotTranscribe": "This document was attached as a file and could not be transcribed visually.",
+    "voiceRecording": "Voice Recording",
+    "downloadFile": "Download File",
+    "downloadFail": "Failed to download",
+    "labels": {
+      "TEXT": "Scroll",
+      "PHOTO": "Photograph",
+      "AUDIO": "Recording",
+      "VIDEO": "Cinematography",
+      "default": "Relic"
+    }
+  },
+  "themes": {
+    "label": "Vault Theme",
+    "bau-classico": "Classic Chest",
+    "bau-maritimo": "Maritime Chest"
+  },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel"
+  }
+}

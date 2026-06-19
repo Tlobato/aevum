@@ -5,7 +5,8 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
-import { API_URL } from "@/lib/api";
+import { useTranslation } from "react-i18next";
+import { API_URL, getApiHeaders } from "@/lib/api";
 
 function VaultContent() {
     const { isLoaded, user } = useUser();
@@ -14,6 +15,7 @@ function VaultContent() {
     const params = useParams();
     const searchParams = useSearchParams();
     const id = params.id as string;
+    const { t } = useTranslation();
     
     // Parâmetro injetado pelo Stripe ao retornar da compra de selagem
     const paymentSuccess = searchParams.get("payment_success") === "true";
@@ -37,12 +39,14 @@ function VaultContent() {
                 let res;
                 if (accessToken) {
                     // Busca via endpoint público
-                    res = await fetch(`${API_URL}/api/v1/public/capsules/${id}?token=${accessToken}`);
+                    res = await fetch(`${API_URL}/api/v1/public/capsules/${id}?token=${accessToken}`, {
+                        headers: getApiHeaders()
+                    });
                 } else {
                     // Busca autenticada (Dono)
                     const token = await getToken();
                     res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
-                        headers: { "Authorization": `Bearer ${token}` }
+                        headers: getApiHeaders(token)
                     });
                 }
 
@@ -69,12 +73,12 @@ function VaultContent() {
                 <div className="w-24 h-24 overflow-hidden relative rounded-full drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">
                     <img 
                         src="/logo-relic-load.webp" 
-                        alt="Invocando Câmara..." 
+                        alt="Loading..." 
                         className="w-[115%] h-[115%] max-w-none object-cover -translate-x-[7%] -translate-y-[7%]" 
                     />
                 </div>
                 <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                    Invocando Câmara do Tempo
+                    {t("vault.loading")}
                 </span>
             </div>
         );
@@ -101,8 +105,8 @@ function VaultContent() {
     return (
         <main className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-between md:justify-center p-4 md:p-6">
             <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex justify-start">
-                <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors">
-                    <ArrowLeft className="w-4 h-4" /> Altar de Criação
+                <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
+                    <ArrowLeft className="w-4 h-4" /> {t("vault.addMemories")}
                 </button>
             </div>
             
@@ -126,8 +130,9 @@ function VaultContent() {
 }
 
 export default function VaultPage() {
+    const { t } = useTranslation();
     return (
-        <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-amber-500">Invocando Câmara...</div>}>
+        <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-amber-500">{t("vault.loading")}</div>}>
             <VaultContent />
         </Suspense>
     );

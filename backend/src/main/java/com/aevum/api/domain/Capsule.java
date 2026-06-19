@@ -82,6 +82,9 @@ public class Capsule {
 
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false, length = 10)
+    private String locale = "pt-BR";
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -91,6 +94,16 @@ public class Capsule {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    // Getters and Setters
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     // Getters and Setters

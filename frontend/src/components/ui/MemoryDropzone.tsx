@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useAnimation } from "framer-motion";
 import { Camera, Type, Mic, FileVideo, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type ItemType = "TEXT" | "PHOTO" | "AUDIO" | "VIDEO";
 
@@ -15,6 +16,7 @@ interface Memory {
 const MAX_ITEMS = 10;
 
 export function MemoryDropzone() {
+  const { t } = useTranslation();
   const [memories, setMemories] = useState<Memory[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -33,10 +35,10 @@ export function MemoryDropzone() {
     }
 
     const labels = {
-      TEXT: "Carta Oculta",
-      PHOTO: "Retrato Vintage",
-      AUDIO: "Rolo de Voz",
-      VIDEO: "Filme Super8"
+      TEXT: t("dropzoneMock.labels.TEXT"),
+      PHOTO: t("dropzoneMock.labels.PHOTO"),
+      AUDIO: t("dropzoneMock.labels.AUDIO"),
+      VIDEO: t("dropzoneMock.labels.VIDEO")
     };
     
     setMemories([...memories, {
@@ -78,7 +80,7 @@ export function MemoryDropzone() {
   return (
     <div className="flex flex-col gap-6 mt-8">
       <div className="flex justify-between items-end pb-2 border-b border-white/5 relative">
-        <h3 className="text-sm tracking-widest text-gray-400 uppercase">Suas Relíquias</h3>
+        <h3 className="text-sm tracking-widest text-gray-400 uppercase">{t("dropzoneMock.title")}</h3>
         
         {/* Contador com animação de controle */}
         <motion.div 
@@ -87,11 +89,11 @@ export function MemoryDropzone() {
         >
           {memories.length === MAX_ITEMS && (
              <span className="text-[10px] text-red-400 absolute -top-4 right-0 font-bold tracking-widest uppercase">
-                 CAPACIDADE MÁXIMA
+                 {t("dropzoneMock.maxCapacity")}
              </span>
           )}
           <span className="text-sm text-gray-400 font-mono font-bold tracking-tight">
-            {memories.length} <span className="text-gray-600 opacity-50">/ {MAX_ITEMS} MAX</span>
+            {memories.length} <span className="text-gray-600 opacity-50">/ {MAX_ITEMS} {t("dropzoneMock.max")}</span>
           </span>
         </motion.div>
       </div>
@@ -110,7 +112,7 @@ export function MemoryDropzone() {
               className="text-gray-500 text-sm absolute select-none flex flex-col items-center gap-2"
             >
               <AlertCircle className="w-5 h-5 opacity-20" />
-              O cofre aguarda.
+              {t("dropzoneMock.vaultAwaits")}
             </motion.p>
           )}
           
@@ -167,10 +169,10 @@ export function MemoryDropzone() {
 
       {/* Control Tools - Fabrica de Relíquias */}
       <div className="flex gap-4 justify-center flex-wrap pt-2">
-        <ToolButton icon={<Type className="text-emerald-400"/>} label="Carta" onClick={() => addMemory("TEXT")} disabled={memories.length >= MAX_ITEMS} />
-        <ToolButton icon={<Camera className="text-amber-400"/>} label="Foto" onClick={() => addMemory("PHOTO")} disabled={memories.length >= MAX_ITEMS} />
-        <ToolButton icon={<Mic className="text-indigo-400"/>} label="Voz" onClick={() => addMemory("AUDIO")} disabled={memories.length >= MAX_ITEMS} />
-        <ToolButton icon={<FileVideo className="text-rose-400"/>} label="Vídeo" onClick={() => addMemory("VIDEO")} disabled={memories.length >= MAX_ITEMS} />
+        <ToolButton icon={<Type className="text-emerald-400"/>} label={t("dropzoneMock.tools.TEXT")} onClick={() => addMemory("TEXT")} disabled={memories.length >= MAX_ITEMS} />
+        <ToolButton icon={<Camera className="text-amber-400"/>} label={t("dropzoneMock.tools.PHOTO")} onClick={() => addMemory("PHOTO")} disabled={memories.length >= MAX_ITEMS} />
+        <ToolButton icon={<Mic className="text-indigo-400"/>} label={t("dropzoneMock.tools.AUDIO")} onClick={() => addMemory("AUDIO")} disabled={memories.length >= MAX_ITEMS} />
+        <ToolButton icon={<FileVideo className="text-rose-400"/>} label={t("dropzoneMock.tools.VIDEO")} onClick={() => addMemory("VIDEO")} disabled={memories.length >= MAX_ITEMS} />
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { THEME_REGISTRY } from "@/config/themes";
 import { Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ThemePickerProps {
     selectedThemeId: string;
@@ -10,12 +11,13 @@ interface ThemePickerProps {
 }
 
 export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
+    const { t } = useTranslation();
     const themes = Object.values(THEME_REGISTRY);
 
     return (
         <div className="space-y-3">
             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold pl-1">
-                Tema do Baú
+                {t("themes.label")}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {themes.map((theme) => {
@@ -50,7 +52,7 @@ export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
 
                             {/* Nome */}
                             <span className={`text-xs font-bold tracking-wider transition-colors ${isSelected ? "text-amber-300" : "text-neutral-400"}`}>
-                                {theme.name}
+                                {t(`themes.${theme.id}`, { defaultValue: theme.name })}
                             </span>
 
                             {/* Indicador de selecionado */}

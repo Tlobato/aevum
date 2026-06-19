@@ -8,23 +8,23 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 public record CapsuleCreateRequest(
-    @NotBlank(message = "Title cannot be blank")
-    @Size(max = 150, message = "Title too long")
+    @NotBlank(message = "{capsule.title.notblank}")
+    @Size(max = 150, message = "{capsule.title.size}")
     String title,
 
-    @Size(max = 500, message = "Description too long")
+    @Size(max = 500, message = "{capsule.description.size}")
     String description,
 
-    @NotNull(message = "Unlock date is required")
-    @Future(message = "Unlock date must be in the future")
+    @NotNull(message = "{capsule.unlockDate.required}")
+    @Future(message = "{capsule.unlockDate.future}")
     LocalDateTime unlockDate,
 
-    @NotBlank(message = "Recipient email is required")
+    @NotBlank(message = "{capsule.recipientEmail.notblank}")
     String recipientEmail,
 
     String themeId, // Optional field for the Capsule theme
 
-    @NotNull(message = "Plan type is required")
+    @NotNull(message = "{capsule.planType.required}")
     String planType,
 
     boolean isTestMode,
@@ -33,6 +33,6 @@ public record CapsuleCreateRequest(
     boolean isGift,
 
     // Mensagem especial do criador para o destinatário (apenas para presentes)
-    @Size(max = 1000, message = "Owner message too long")
+    @Size(max = 1000, message = "{capsule.ownerMessage.size}")
     String ownerMessage
 ) {}

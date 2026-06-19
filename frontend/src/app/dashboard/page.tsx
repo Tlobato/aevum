@@ -7,7 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2 } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
-import { API_URL } from "@/lib/api";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
+import { API_URL, getApiHeaders } from "@/lib/api";
 
 type CapsuleCard = {
     id: string;
@@ -40,6 +42,7 @@ export default function Dashboard() {
     const { isLoaded, user } = useUser();
     const { getToken } = useAuth();
     const router = useRouter();
+    const { t, i18n } = useTranslation();
 
     const userEmail = user?.primaryEmailAddress?.emailAddress || "";
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
@@ -75,6 +78,7 @@ export default function Dashboard() {
     const minDate = new Date();
     minDate.setDate(minDate.getDate() + 2);
     const minDateStr = minDate.toISOString().split("T")[0];
+    
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape" && showCreateForm) {
@@ -90,7 +94,7 @@ export default function Dashboard() {
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: getApiHeaders(token)
             });
             if (res.ok) setCapsules(await res.json());
         } catch (e) {
@@ -98,7 +102,7 @@ export default function Dashboard() {
         } finally {
             setIsLoading(false);
         }
-    }, [user]);
+    }, [user, getToken]);
 
     useEffect(() => {
         if (isLoaded && !user) { router.push("/"); return; }
@@ -114,18 +118,18 @@ export default function Dashboard() {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
                 method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
+                headers: getApiHeaders(token)
             });
 
             if (!res.ok) {
                 // Se falhar no servidor, restaura a lista e avisa
                 setCapsules(originalCapsules);
-                alert("Falha ao apagar a cápsula no Registro Temporal. Verifique suas permissões.");
+                alert(t("dashboard.alerts.deleteFail"));
             }
         } catch (error) {
             console.error("Erro ao apagar:", error);
             setCapsules(originalCapsules);
-            alert("Erro de conexão ao tentar apagar.");
+            alert(t("dashboard.alerts.connError"));
         }
     };
 
@@ -137,51 +141,48 @@ export default function Dashboard() {
                 const token = await getToken({ template: 'aevum-session' });
                 const res = await fetch(`${API_URL}/api/v1/capsules/estimate`, {
                     method: "POST",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
+                    headers: getApiHeaders(token),
                     body: JSON.stringify({ planType, unlockDate: `${unlockDate}T00:00:00` })
                 });
                 if (res.ok) { const d = await res.json(); setEstimatedPrice(d.priceInCents); }
             } catch (e) { console.error(e); }
         };
         fetchEstimate();
-    }, [planType, unlockDate, showCreateForm, user]);
+    }, [planType, unlockDate, showCreateForm, user, getToken]);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
         if (!title || title.trim() === "") {
-            newErrors.title = "O título da relíquia é obrigatório.";
+            newErrors.title = t("forge.validation.titleRequired");
         }
 
         if (isGift) {
             if (!recipientEmail || recipientEmail.trim() === "") {
-                newErrors.recipientEmail = "O e-mail do destinatário é obrigatório.";
+                newErrors.recipientEmail = t("forge.validation.emailRequired");
             } else {
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(recipientEmail)) {
-                    newErrors.recipientEmail = "Insira um endereço de e-mail válido.";
+                    newErrors.recipientEmail = t("forge.validation.emailInvalid");
                 }
             }
         }
 
         if (!unlockDate) {
-            newErrors.unlockDate = "A data de despertar é obrigatória.";
+            newErrors.unlockDate = t("forge.validation.dateRequired");
         } else {
             const selectedDate = new Date(`${unlockDate}T00:00:00`);
             if (isNaN(selectedDate.getTime())) {
-                newErrors.unlockDate = "Insira uma data válida.";
+                newErrors.unlockDate = t("forge.validation.dateInvalid");
             } else {
                 const limitDate = new Date(`${minDateStr}T00:00:00`);
                 if (selectedDate < limitDate) {
-                    newErrors.unlockDate = "O despertar deve ser no mínimo 2 dias no futuro.";
+                    newErrors.unlockDate = t("forge.validation.dateMin");
                 }
                 const maxDate = new Date();
                 maxDate.setFullYear(maxDate.getFullYear() + 100);
                 if (selectedDate > maxDate) {
-                    newErrors.unlockDate = "O despertar deve ser de no máximo 100 anos no futuro.";
+                    newErrors.unlockDate = t("forge.validation.dateMax");
                 }
             }
         }
@@ -202,10 +203,7 @@ export default function Dashboard() {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json", 
-                    "Authorization": `Bearer ${token}`
-                },
+                headers: getApiHeaders(token),
                 body: JSON.stringify({
                     themeId, title, description,
                     unlockDate: `${unlockDate}T00:00:00`,
@@ -232,11 +230,11 @@ export default function Dashboard() {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     src="/logo-relic-load.webp" 
-                    alt="Carregando..." 
+                    alt="Loading..." 
                     className="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                 />
                 <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                    Sincronizando com o Registro Temporal
+                    {t("dashboard.loading")}
                 </span>
             </div>
         );
@@ -258,7 +256,8 @@ export default function Dashboard() {
                         />
                         <span className="font-serif text-xl font-light tracking-tight">Aevum</span>
                     </div>
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
+                        <LanguageSwitcher />
                         <span className="text-xs font-mono text-neutral-500 bg-neutral-900/80 px-3 py-1.5 rounded-full border border-neutral-800 hidden md:block">
                             {user?.primaryEmailAddress?.emailAddress}
                         </span>
@@ -272,9 +271,14 @@ export default function Dashboard() {
                 {/* Título + Botão de Criar */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
-                        <p className="text-amber-500/60 tracking-[0.3em] text-xs uppercase font-bold mb-2">Câmara dos Legados</p>
+                        <p className="text-amber-500/60 tracking-[0.3em] text-xs uppercase font-bold mb-2">{t("dashboard.title")}</p>
                         <h1 className="text-4xl md:text-5xl font-extralight tracking-tighter">
-                            {capsules.length === 0 ? "Nenhuma relíquia forjada." : `${capsules.length} relíquia${capsules.length > 1 ? "s" : ""} registrada${capsules.length > 1 ? "s" : ""}.`}
+                            {capsules.length === 0 
+                                ? t("dashboard.capsulesCount_zero") 
+                                : capsules.length === 1 
+                                    ? t("dashboard.capsulesCount_one") 
+                                    : t("dashboard.capsulesCount_other", { count: capsules.length })
+                            }
                         </h1>
                     </div>
                     <button
@@ -285,10 +289,10 @@ export default function Dashboard() {
                             setErrors({});
                             setShowCreateForm(!showCreateForm);
                         }}
-                        className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all"
+                        className="flex items-center gap-2 px-6 py-3 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 hover:border-amber-500/60 rounded-2xl text-amber-400 font-bold text-sm uppercase tracking-widest transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
-                        Forjar Nova Relíquia
+                        {t("dashboard.tabForgeNew")}
                     </button>
                 </div>
 
@@ -303,80 +307,92 @@ export default function Dashboard() {
                             className="mb-12 bg-neutral-900/60 border border-neutral-700/50 rounded-3xl p-8 backdrop-blur-sm relative"
                         >
                             <button onClick={() => setShowCreateForm(false)}
-                                className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20">
+                                className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20 cursor-pointer">
                                 <X className="w-5 h-5" />
                             </button>
 
                             <div className="grid lg:grid-cols-3 gap-8 items-start">
                                 {/* Form */}
                                 <form onSubmit={handleCreateCapsule} noValidate className="lg:col-span-2 space-y-5">
-                                    <h2 className="text-xl font-light tracking-tight mb-2">Definir os Parâmetros da Relíquia</h2>
+                                    <h2 className="text-xl font-light tracking-tight mb-2">{t("forge.subtitle")}</h2>
 
-                                {/* Seletor de Fluxo: Para Mim vs Presente */}
-                                <div className="flex gap-3 mb-6 p-1 bg-black/40 rounded-2xl border border-neutral-800">
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsGift(false); setRecipientEmail(""); setOwnerMessage(""); }}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
-                                            !isGift
-                                                ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-inner"
-                                                : "text-neutral-600 hover:text-neutral-400"
-                                        }`}
-                                    >
-                                        <Lock className="w-4 h-4" /> Para Mim
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsGift(true); setRecipientEmail(""); }}
-                                        className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all ${
-                                            isGift
-                                                ? "bg-rose-500/20 border border-rose-500/40 text-rose-300 shadow-inner"
-                                                : "text-neutral-600 hover:text-neutral-400"
-                                        }`}
-                                    >
-                                        🎁 Presente
-                                    </button>
-                                </div>
-
-                                <div className="grid md:grid-cols-2 gap-5">
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Gravura / Título</label>
-                                        <input 
-                                            type="text" 
-                                            value={title} 
-                                            onChange={e => {
-                                                setTitle(e.target.value);
-                                                if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
-                                            }}
-                                            className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none transition-all ${
-                                                errors.title 
-                                                    ? "border-rose-950/80 focus:border-rose-500/50" 
-                                                    : "border-neutral-800 focus:border-amber-500/50"
-                                            }`} 
-                                        />
-                                        {errors.title && (
-                                            <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
-                                                {errors.title}
-                                            </span>
-                                        )}
+                                    {/* Seletor de Fluxo: Para Mim vs Presente */}
+                                    <div className="flex gap-3 mb-6 p-1 bg-black/40 rounded-2xl border border-neutral-800">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsGift(false); setRecipientEmail(""); setOwnerMessage(""); }}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                                                !isGift
+                                                    ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-inner"
+                                                    : "text-neutral-600 hover:text-neutral-400"
+                                            }`}
+                                        >
+                                            <Lock className="w-4 h-4" /> {t("forge.forMe")}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIsGift(true); setRecipientEmail(""); }}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
+                                                isGift
+                                                    ? "bg-rose-500/20 border border-rose-500/40 text-rose-300 shadow-inner"
+                                                    : "text-neutral-600 hover:text-neutral-400"
+                                            }`}
+                                        >
+                                            🎁 {t("forge.gift")}
+                                        </button>
                                     </div>
-                                    <div className="space-y-2 md:col-span-2">
-                                        <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
-                                            {isGift ? "E-mail do Destinatário" : "Portador (E-mail)"}
-                                        </label>
-                                        {isGift ? (
-                                            <>
-                                                <input
-                                                    type="email"
-                                                    value={recipientEmail}
+
+                                    <div className="grid md:grid-cols-2 gap-5">
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldTitle")}</label>
+                                            <input 
+                                                type="text" 
+                                                value={title} 
+                                                onChange={e => {
+                                                    setTitle(e.target.value);
+                                                    if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
+                                                }}
+                                                placeholder={t("forge.fieldTitlePlaceholder")}
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
+                                                    errors.title 
+                                                        ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                }`}
+                                            />
+                                            {errors.title && (
+                                                <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                    {errors.title}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldDesc")}</label>
+                                            <textarea 
+                                                value={description} 
+                                                onChange={e => setDescription(e.target.value)}
+                                                placeholder={t("forge.fieldDescPlaceholder")}
+                                                maxLength={500}
+                                                rows={3}
+                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm resize-none"
+                                            />
+                                            <p className="text-[10px] text-neutral-600 text-right">{description.length}/500</p>
+                                        </div>
+
+                                        {isGift && (
+                                            <div className="space-y-2 md:col-span-2">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
+                                                <input 
+                                                    type="email" 
+                                                    value={recipientEmail} 
                                                     onChange={e => {
                                                         setRecipientEmail(e.target.value);
                                                         if (errors.recipientEmail) setErrors(prev => ({ ...prev, recipientEmail: "" }));
                                                     }}
-                                                    placeholder="herdeiro@futuro.com"
-                                                    className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-700 ${
-                                                        errors.recipientEmail
-                                                            ? "border-rose-950/80 focus:border-rose-500/50"
+                                                    placeholder={t("forge.fieldRecipientPlaceholder")}
+                                                    className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm font-mono ${
+                                                        errors.recipientEmail 
+                                                            ? "border-rose-950/85 focus:border-rose-500/50" 
                                                             : "border-neutral-800 focus:border-rose-500/50"
                                                     }`}
                                                 />
@@ -385,68 +401,61 @@ export default function Dashboard() {
                                                         {errors.recipientEmail}
                                                     </span>
                                                 )}
-                                            </>
-                                        ) : (
-                                            <div className="w-full bg-neutral-900/80 border border-neutral-800 rounded-xl px-5 py-3.5 text-neutral-400 flex items-center justify-between cursor-not-allowed">
-                                                <span>{userEmail}</span>
-                                                <span className="text-[10px] bg-amber-500/10 text-amber-500/70 px-2 py-1 rounded font-bold uppercase tracking-wider">Bloqueado</span>
                                             </div>
                                         )}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Data do Despertar</label>
-                                            <span className="text-[10px] text-amber-500/60 font-medium">Mínimo 2 dias</span>
+
+                                        <div className="space-y-2 md:col-span-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldUnlock")}</label>
+                                            <input 
+                                                type="date" 
+                                                value={unlockDate} 
+                                                max="2099-12-31"
+                                                onChange={e => {
+                                                    setUnlockDate(e.target.value);
+                                                    if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
+                                                }}
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
+                                                    errors.unlockDate
+                                                        ? "border-rose-950/80 focus:border-rose-500/50"
+                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                }`} 
+                                            />
+                                            {errors.unlockDate ? (
+                                                <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                    {errors.unlockDate}
+                                                </span>
+                                            ) : (
+                                                <p className="text-[10px] text-neutral-600 italic">{t("forge.dateMin")}</p>
+                                            )}
                                         </div>
-                                        <input 
-                                            type="date" 
-                                            value={unlockDate} 
-                                            max="2099-12-31"
-                                            onChange={e => {
-                                                setUnlockDate(e.target.value);
-                                                if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
-                                            }}
-                                            className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
-                                                errors.unlockDate
-                                                    ? "border-rose-950/80 focus:border-rose-500/50"
-                                                    : "border-neutral-800 focus:border-amber-500/50"
-                                            }`} 
-                                        />
-                                        {errors.unlockDate ? (
-                                            <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
-                                                {errors.unlockDate}
-                                            </span>
-                                        ) : (
-                                            <p className="text-[10px] text-neutral-600 italic">Relíquias precisam de tempo para maturar. O selo mínimo é de 2 dias.</p>
-                                        )}
-                                    </div>
-                                    <div className="space-y-2 md:col-span-2">
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Plano Dimensional</label>
-                                            <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">Fase Alpha: Apenas 1GB</span>
+
+                                        <div className="space-y-2 md:col-span-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldPlan")}</label>
+                                                <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">{t("forge.alphaPlanNote")}</span>
+                                            </div>
+                                            <select value={planType} onChange={e => setPlanType(e.target.value)}
+                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none cursor-pointer">
+                                                <option value="EPOCH_1GB">Epoch — 1GB ({t("filter.unlocked", "Disponível")})</option>
+                                                <option value="CHRONOS_2GB" disabled className="text-neutral-600">Chronos — 2GB ({t("forge.alphaPlanNote")})</option>
+                                                <option value="AEON_3GB" disabled className="text-neutral-600">Aeon — 3GB ({t("forge.alphaPlanNote")})</option>
+                                                <option value="ETERNITY_4GB" disabled className="text-neutral-600">Eternity — 4GB ({t("forge.alphaPlanNote")})</option>
+                                                <option value="AEVUM_5GB" disabled className="text-neutral-600">Aevum — 5GB ({t("forge.alphaPlanNote")})</option>
+                                            </select>
+                                            <p className="text-[10px] text-neutral-600 italic">{t("forge.storageNote")}</p>
                                         </div>
-                                        <select value={planType} onChange={e => setPlanType(e.target.value)}
-                                            className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none">
-                                            <option value="EPOCH_1GB">Epoch — 1GB (Disponível)</option>
-                                            <option value="CHRONOS_2GB" disabled className="text-neutral-600">Chronos — 2GB (Indisponível na Fase Alpha)</option>
-                                            <option value="AEON_3GB" disabled className="text-neutral-600">Aeon — 3GB (Indisponível na Fase Alpha)</option>
-                                            <option value="ETERNITY_4GB" disabled className="text-neutral-600">Eternity — 4GB (Indisponível na Fase Alpha)</option>
-                                            <option value="AEVUM_5GB" disabled className="text-neutral-600">Aevum — 5GB (Indisponível na Fase Alpha)</option>
-                                        </select>
-                                        <p className="text-[10px] text-neutral-600 italic">Durante os testes, limitamos o armazenamento para garantir a estabilidade do sistema.</p>
                                     </div>
-                                </div>
 
                                     {/* Campo de Mensagem Especial — aparece apenas em modo Presente */}
                                     {isGift && (
                                         <div className="space-y-2">
-                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">Mensagem Especial 💌</label>
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldGiftMsg")}</label>
                                             <textarea
                                                 value={ownerMessage}
                                                 onChange={e => setOwnerMessage(e.target.value)}
                                                 maxLength={1000}
                                                 rows={4}
-                                                placeholder="Escreva algo para o destinatário ler quando o baú abrir..."
+                                                placeholder={t("forge.fieldGiftMsgPlaceholder")}
                                                 className="w-full bg-black/50 border border-neutral-800 focus:border-rose-500/50 rounded-xl px-5 py-3.5 text-white outline-none transition-all placeholder:text-neutral-600 resize-none"
                                             />
                                             <p className="text-[10px] text-neutral-600 text-right">{ownerMessage.length}/1000</p>
@@ -457,8 +466,8 @@ export default function Dashboard() {
                                         <ThemePicker selectedThemeId={themeId} onChange={setThemeId} />
                                     </div>
                                     <button type="submit" disabled={isSaving}
-                                        className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 rounded-xl text-black font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 mt-2">
-                                        {isSaving ? "Cristalizando..." : "Cristalizar Projeto →"}
+                                        className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 rounded-xl text-black font-black uppercase tracking-[0.2em] transition-all disabled:opacity-50 mt-2 cursor-pointer">
+                                        {isSaving ? t("forge.verifying") : t("forge.buttonForge")}
                                     </button>
                                 </form>
 
@@ -466,18 +475,18 @@ export default function Dashboard() {
                                 <div className="bg-amber-900/10 border border-amber-500/10 rounded-2xl p-6 space-y-4 mt-8 lg:mt-12">
                                     <div className="flex items-center gap-2 text-amber-500">
                                         <Wallet className="w-4 h-4" />
-                                        <span className="text-xs font-bold uppercase tracking-widest">Custo do Selo</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest">{t("forge.estimate")}</span>
                                     </div>
                                     <div>
                                         <p className="text-3xl font-mono text-white">
                                             <span className="text-lg text-neutral-500">R$ </span>
                                             {estimatedPrice ? (estimatedPrice / 100).toFixed(2) : "—"}
                                         </p>
-                                        <p className="text-xs text-neutral-500 mt-1">Estimativa baseada no plano e data escolhida</p>
+                                        <p className="text-xs text-neutral-500 mt-1">{t("forge.estimateNote")}</p>
                                     </div>
                                     <div className="pt-3 border-t border-amber-500/10 text-xs text-neutral-600 leading-relaxed">
                                         <ShieldAlert className="inline w-3 h-3 mr-1" />
-                                        Pagamento único. Sem custos futuros para os herdeiros.
+                                        {t("forge.paymentNote")}
                                     </div>
                                 </div>
                             </div>
@@ -490,15 +499,15 @@ export default function Dashboard() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                         className="text-center py-24 border border-dashed border-neutral-800 rounded-3xl">
                         <Archive className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
-                        <p className="text-neutral-500 text-lg font-light">O cofre está vazio.</p>
-                        <p className="text-neutral-700 text-sm mt-2">Clique em "Forjar Nova Relíquia" para começar.</p>
+                        <p className="text-neutral-500 text-lg font-light">{t("dashboard.noCapsules")}</p>
+                        <p className="text-neutral-700 text-sm mt-2">{t("dashboard.noCapsulesSubtitle")}</p>
                     </motion.div>
                 ) : (
                     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {capsules.map((cap, i) => {
                             const plan = PLAN_LABELS[cap.planType];
                             const usedPct = plan ? Math.min((cap.totalSizeBytes / plan.maxBytes) * 100, 100) : 0;
-                            const unlockStr = new Date(cap.unlockDate).toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" });
+                            const unlockStr = new Date(cap.unlockDate).toLocaleDateString(i18n.language || "pt-BR", { year: "numeric", month: "long", day: "numeric" });
 
                             return (
                                 <motion.div key={cap.id}
@@ -510,17 +519,21 @@ export default function Dashboard() {
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <h3 className="font-serif text-lg font-light leading-tight">{cap.title}</h3>
-                                            <p className="text-xs text-neutral-500 mt-1 truncate">{cap.recipientEmail}</p>
+                                            <p className="text-xs text-neutral-500 mt-1 truncate">
+                                                {cap.recipientEmail === userEmail 
+                                                    ? t("dashboard.table.personal") 
+                                                    : t("dashboard.table.gift", { email: cap.recipientEmail })}
+                                            </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
                                             <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
-                                                {cap.status}
+                                                {t(`dashboard.badge.${cap.status}`, cap.status)}
                                             </span>
                                             {(cap.status === "DRAFT" || isAdmin) && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, capsuleId: cap.id }); }}
-                                                    className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
-                                                    title="Apagar Relíquia"
+                                                    className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all cursor-pointer"
+                                                    title={t("dashboard.actions.delete")}
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -535,7 +548,7 @@ export default function Dashboard() {
                                             <span className="font-mono">
                                                 {cap.totalSizeBytes < 1024 * 1024 
                                                     ? `${(cap.totalSizeBytes / 1024).toFixed(1)} KB` 
-                                                    : `${(cap.totalSizeBytes / (1024 * 1024)).toFixed(1)} MB`} usados
+                                                    : `${(cap.totalSizeBytes / (1024 * 1024)).toFixed(1)} MB`} {t("vault.storage").toLowerCase()}
                                             </span>
                                         </div>
                                         <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
@@ -550,13 +563,17 @@ export default function Dashboard() {
                                     {/* Data de Desbloqueio */}
                                     <div className="flex items-center gap-2 text-xs text-neutral-500">
                                         <Clock className="w-3.5 h-3.5 text-amber-500/50" />
-                                        <span>Desperta em <span className="text-neutral-300">{unlockStr}</span></span>
+                                        <span>
+                                            {t("vault.statusBadge.SEALED") === cap.status || cap.status === "RESTORING" 
+                                                ? t("vault.lockedSubtitle", { date: unlockStr }) 
+                                                : t("vault.unlockedSubtitle", { date: unlockStr })}
+                                        </span>
                                     </div>
 
                                     {/* Botão de Entrar */}
                                     <button onClick={() => router.push(`/vault/${cap.id}`)}
-                                        className="mt-auto w-full py-3 bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 rounded-xl text-sm font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-neutral-300 hover:text-amber-400">
-                                        Ingressar no Cofre <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        className="mt-auto w-full py-3 bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 rounded-xl text-sm font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-neutral-300 hover:text-amber-400 cursor-pointer">
+                                        {t("dashboard.actions.view")} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </button>
                                 </motion.div>
                             );
@@ -571,10 +588,10 @@ export default function Dashboard() {
                 onConfirm={() => {
                     if (deleteModal.capsuleId) handleDeleteCapsule(deleteModal.capsuleId);
                 }}
-                title="Excluir Relíquia"
-                message="Tem certeza que deseja apagar esta relíquia permanentemente? Todos os arquivos e mensagens guardados serão perdidos para sempre no fluxo do tempo."
-                confirmText="Excluir Permanentemente"
-                cancelText="Manter Relíquia"
+                title={t("dashboard.deleteModal.title")}
+                message={t("dashboard.deleteModal.confirm")}
+                confirmText={t("dashboard.deleteModal.buttonDelete")}
+                cancelText={t("dashboard.deleteModal.buttonCancel")}
                 isDangerous={true}
             />
         </main>

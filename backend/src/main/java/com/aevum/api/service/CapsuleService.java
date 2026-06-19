@@ -37,7 +37,7 @@ public class CapsuleService {
     @Transactional
     public CapsuleResponse createDraft(CapsuleCreateRequest request, String userId, String userEmail) {
         if (request.unlockDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("A data de abertura deve estar no futuro.");
+            throw new IllegalArgumentException("capsule.unlockDate.future");
         }
 
         // Lazy creation do usuário vindo do Clerk (se não existir, cria na hora)
@@ -65,6 +65,7 @@ public class CapsuleService {
         capsule.setAccessToken(java.util.UUID.randomUUID());
         capsule.setStatus(CapsuleStatus.DRAFT);
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.DRAFT);
+        capsule.setLocale(org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag());
 
         capsule = repository.save(capsule);
         return CapsuleResponse.fromEntity(capsule);
@@ -73,10 +74,10 @@ public class CapsuleService {
     @Transactional
     public CapsuleResponse sealCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         if (capsule.getStatus() != CapsuleStatus.DRAFT) {
-            throw new IllegalArgumentException("Apenas cápsulas em rascunho podem ser seladas.");
+            throw new IllegalArgumentException("capsule.seal.onlyDraft");
         }
 
         capsule.setStatus(CapsuleStatus.SEALED);
@@ -97,13 +98,13 @@ public class CapsuleService {
         log.info("Tentando disparar e-mails para selagem. Dono: {}, Título: {}", ownerEmail, capsuleTitle);
 
         if (ownerEmail != null) {
-            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate, capsule.isGift(), capsule.getRecipientEmail(), capsule.getId());
+            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate, capsule.isGift(), capsule.getRecipientEmail(), capsule.getId(), capsule.getLocale());
         } else {
             log.warn("Não foi possível enviar e-mail de confirmação: Dono sem e-mail cadastrado.");
         }
 
         if (capsule.isGift() && capsule.getRecipientEmail() != null) {
-            emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate, capsule.getId());
+            emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate, capsule.getId(), capsule.getLocale());
         }
 
         return CapsuleResponse.fromEntity(capsule);
@@ -113,34 +114,34 @@ public class CapsuleService {
     public com.aevum.api.service.PricingService.PricingSummary calculateSummary(UUID id,
             com.aevum.api.service.PricingService pricingService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
         return pricingService.calculateSealSummary(capsule);
     }
 
     @Transactional(readOnly = true)
     public long calculateEarlyUnlockPenalty(UUID id, com.aevum.api.service.PricingService pricingService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
         return pricingService.calculateEarlyUnlockPenaltyInCents(capsule);
     }
 
     @Transactional
     public CapsuleResponse addMemory(UUID id, com.aevum.api.dto.AddMemoryRequest request, String userId) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         // Valida que o usuário é o dono da cápsula
         if (!capsule.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException("Você não tem permissão para adicionar memórias a esta cápsula.");
+            throw new IllegalArgumentException("capsule.memory.noPermission");
         }
 
         if (capsule.getStatus() != CapsuleStatus.DRAFT) {
-            throw new IllegalArgumentException("Apenas cápsulas em rascunho podem receber memórias.");
+            throw new IllegalArgumentException("capsule.memory.onlyDraft");
         }
 
         long newTotalSize = capsule.getTotalSizeBytes() + request.sizeBytes();
         if (newTotalSize > capsule.getPlanType().getMaxSizeBytes()) {
-            throw new IllegalArgumentException("Limite de armazenamento do plano excedido.");
+            throw new IllegalArgumentException("capsule.limit.exceeded");
         }
         capsule.setTotalSizeBytes(newTotalSize);
 
@@ -159,13 +160,13 @@ public class CapsuleService {
     @Transactional(readOnly = true)
     public CapsuleResponse openCapsule(UUID id, String userId, String userEmail) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
 
         if (!isOwner && !isRecipient) {
-            throw new IllegalArgumentException("Acesso negado. Você não é o forjador nem o portador destinado desta cápsula.");
+            throw new IllegalArgumentException("capsule.access.denied");
         }
 
         return CapsuleResponse.fromEntity(capsule);
@@ -174,15 +175,15 @@ public class CapsuleService {
     @Transactional(readOnly = true)
     public CapsuleResponse getPublicCapsule(UUID id, UUID token) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         if (capsule.getAccessToken() == null || !capsule.getAccessToken().equals(token)) {
-            throw new IllegalArgumentException("Token de acesso inválido.");
+            throw new IllegalArgumentException("capsule.token.invalid");
         }
 
         // Se não estiver em modo de teste, valida a data
         if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("O tempo desta relíquia ainda não chegou.");
+            throw new IllegalArgumentException("capsule.unlockDate.notYet");
         }
 
         return CapsuleResponse.fromEntity(capsule);
@@ -191,18 +192,18 @@ public class CapsuleService {
     @Transactional(readOnly = true)
     public List<MemoryResponse> getPublicMemories(UUID id, UUID token, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         if (capsule.getAccessToken() == null || !capsule.getAccessToken().equals(token)) {
-            throw new IllegalArgumentException("Token de acesso inválido.");
+            throw new IllegalArgumentException("capsule.token.invalid");
         }
 
         if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
-            throw new IllegalArgumentException("As memórias ainda estão seladas pelo tempo.");
+            throw new IllegalArgumentException("capsule.memories.sealed");
         }
 
         if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
-            throw new IllegalArgumentException("As memórias estão sendo preparadas para o despertar. Tente novamente em breve.");
+            throw new IllegalArgumentException("capsule.memories.restoring");
         }
 
         return capsule.getItems().stream().map(item -> {
@@ -217,17 +218,17 @@ public class CapsuleService {
     @Transactional(readOnly = true)
     public List<MemoryResponse> getMemoriesWithUrls(UUID id, String userId, String userEmail, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
 
         if (!isOwner && !isRecipient) {
-            throw new IllegalArgumentException("Acesso negado às memórias desta cápsula.");
+            throw new IllegalArgumentException("capsule.memories.denied");
         }
 
         if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
-            throw new IllegalArgumentException("As memórias ainda estão congeladas no tempo e não podem ser lidas.");
+            throw new IllegalArgumentException("capsule.memories.frozen");
         }
 
         return capsule.getItems().stream().map(item -> {
@@ -250,7 +251,7 @@ public class CapsuleService {
     @Transactional
     public void earlyUnlockCapsule(UUID id, com.aevum.api.service.StorageService storageService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Capsule not found"));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         if (capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.SEALED) {
             log.warn("Tentativa de desbloqueio antecipado em cápsula com status inválido: {}", capsule.getStatus());
@@ -289,16 +290,16 @@ public class CapsuleService {
     @Transactional
     public void deleteCapsule(UUID id, String userId, boolean isAdmin, StorageService storageService) {
         Capsule capsule = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Cápsula não encontrada."));
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
-            throw new IllegalArgumentException("Você não tem permissão para apagar esta cápsula.");
+            throw new IllegalArgumentException("capsule.delete.noPermission");
         }
 
         if (capsule.getStatus() == CapsuleStatus.SEALED && !isAdmin) {
-            throw new IllegalArgumentException("Apenas administradores podem apagar cápsulas já lacradas.");
+            throw new IllegalArgumentException("capsule.delete.adminOnly");
         }
 
         log.info("Deletando cápsula {} (Solicitante: {} | Admin: {})", id, userId, isAdmin);

@@ -19,9 +19,9 @@ import java.util.List;
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
-    private static final java.time.format.DateTimeFormatter BR_DATE_FORMATTER = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private final RestTemplate restTemplate = new RestTemplate();
     private final EmailTemplateGenerator templateGenerator;
+    private final org.springframework.context.MessageSource messageSource;
 
     @Value("${MAIL_PASSWORD:}")
     private String resendApiKey;
@@ -29,8 +29,9 @@ public class EmailService {
     @Value("${aevum.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
-    public EmailService(EmailTemplateGenerator templateGenerator) {
+    public EmailService(EmailTemplateGenerator templateGenerator, org.springframework.context.MessageSource messageSource) {
         this.templateGenerator = templateGenerator;
+        this.messageSource = messageSource;
     }
 
     private void sendViaApi(String to, String subject, String htmlContent) {
@@ -68,26 +69,29 @@ public class EmailService {
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail, java.util.UUID capsuleId) {
-        String subject = "Selo da Eternidade Ativado: " + capsuleTitle;
+    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail, java.util.UUID capsuleId, String localeTag) {
+        java.util.Locale locale = (localeTag == null || localeTag.isBlank()) ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.forLanguageTag(localeTag);
+        String subject = messageSource.getMessage("email.sealing.subject", new Object[]{capsuleTitle}, locale);
         String link = frontendUrl + "/vault/" + capsuleId;
-        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.format(BR_DATE_FORMATTER), isGift, recipientEmail, link);
+        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate, isGift, recipientEmail, link, locale);
         sendViaApi(ownerEmail, subject, html);
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate, java.util.UUID capsuleId) {
-        String subject = "Alguém do passado preparou algo para você...";
+    public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate, java.util.UUID capsuleId, String localeTag) {
+        java.util.Locale locale = (localeTag == null || localeTag.isBlank()) ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.forLanguageTag(localeTag);
+        String subject = messageSource.getMessage("email.gift.subject", null, locale);
         String link = frontendUrl + "/vault/" + capsuleId;
-        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.format(BR_DATE_FORMATTER), link);
+        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate, link, locale);
         sendViaApi(recipientEmail, subject, html);
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendAwakeningEmail(String recipientEmail, String capsuleTitle, String ownerMessage, java.util.UUID capsuleId, java.util.UUID accessToken) {
-        String subject = "O tempo despertou: Uma relíquia espera por você";
+    public void sendAwakeningEmail(String recipientEmail, String capsuleTitle, String ownerMessage, java.util.UUID capsuleId, java.util.UUID accessToken, String localeTag) {
+        java.util.Locale locale = (localeTag == null || localeTag.isBlank()) ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.forLanguageTag(localeTag);
+        String subject = messageSource.getMessage("email.awakening.subject", null, locale);
         String publicLink = frontendUrl + "/vault/" + capsuleId + "?token=" + accessToken;
-        String html = templateGenerator.awakeningEmail(capsuleTitle, ownerMessage, publicLink);
+        String html = templateGenerator.awakeningEmail(capsuleTitle, ownerMessage, publicLink, locale);
         sendViaApi(recipientEmail, subject, html);
     }
 }
