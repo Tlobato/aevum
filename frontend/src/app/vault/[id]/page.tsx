@@ -123,6 +123,8 @@ function VaultContent() {
                     paymentSuccess={paymentSuccess}
                     earlyUnlockSuccess={earlyUnlockSuccess}
                     accessToken={searchParams.get("token")}
+                    ownerId={capsuleData.ownerId}
+                    earlyUnlockRule={capsuleData.earlyUnlockRule}
                 />
             </div>
         </main>

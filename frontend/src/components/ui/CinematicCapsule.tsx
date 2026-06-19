@@ -29,7 +29,9 @@ export function CinematicCapsule({
   unlockDate = "2050-01-01",
   paymentSuccess = false,
   earlyUnlockSuccess = false,
-  accessToken = null
+  accessToken = null,
+  ownerId = null,
+  earlyUnlockRule = "TOTAL_LOCK"
 }: {
   capsuleId?: string,
   themeId?: string,
@@ -41,7 +43,9 @@ export function CinematicCapsule({
   unlockDate?: string,
   paymentSuccess?: boolean,
   earlyUnlockSuccess?: boolean,
-  accessToken?: string | null
+  accessToken?: string | null,
+  ownerId?: string | null,
+  earlyUnlockRule?: "TOTAL_LOCK" | "CREATOR_ONLY" | "ALLOW_RECIPIENT"
 }) {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -75,6 +79,14 @@ export function CinematicCapsule({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsModalTarget, setTermsModalTarget] = useState<"seal" | "unlock" | null>(null);
 
+  const isOwner = !accessToken && user && ownerId && user.id === ownerId;
+  const isRecipient = !!accessToken || (user && recipientEmail && user.primaryEmailAddress?.emailAddress?.toLowerCase() === recipientEmail.toLowerCase());
+
+  const canEarlyUnlock = 
+    earlyUnlockRule === "ALLOW_RECIPIENT" 
+      ? (isOwner || isRecipient) 
+      : (earlyUnlockRule === "CREATOR_ONLY" && isOwner);
+
   const openTermsModal = (target: "seal" | "unlock") => {
     setTermsModalTarget(target);
     setShowTermsModal(true);
@@ -92,14 +104,21 @@ export function CinematicCapsule({
 
   // Fetch early unlock penalty dynamically when modal opens
   useEffect(() => {
-    if (showEarlyUnlockModal && capsuleId && !accessToken) {
+    if (showEarlyUnlockModal && capsuleId) {
       const fetchPenalty = async () => {
         setLoadingPenalty(true);
         try {
-          const token = await getToken({ template: 'aevum-session' });
-          const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/early-unlock-penalty`, {
-            headers: getApiHeaders(token)
-          });
+          let res;
+          if (accessToken) {
+            res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/early-unlock-penalty?token=${accessToken}`, {
+              headers: getApiHeaders()
+            });
+          } else {
+            const token = await getToken({ template: 'aevum-session' });
+            res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/early-unlock-penalty`, {
+              headers: getApiHeaders(token)
+            });
+          }
           if (res.ok) {
             const data = await res.json();
             setEarlyUnlockPenalty(data.penaltyInCents);
@@ -516,7 +535,7 @@ export function CinematicCapsule({
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
                       {t("vault.sealedFooter")}
                     </span>
-                    {storageStatus !== "AVAILABLE" && !accessToken && storageStatus === "FROZEN" && (
+                    {storageStatus !== "AVAILABLE" && storageStatus === "FROZEN" && canEarlyUnlock && (
                         <button
                           onClick={() => setShowEarlyUnlockModal(true)}
                           className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
@@ -756,12 +775,22 @@ export function CinematicCapsule({
                   onClick={async () => {
                     try {
                       setIsRedirectingToStripe(true);
-                      if (capsuleId && user) {
-                         const token = await getToken({ template: 'aevum-session' });
-                         const res = await fetch(`${API_URL}/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
-                            method: 'POST',
-                            headers: getApiHeaders(token)
-                         });
+                      if (capsuleId) {
+                         let res;
+                         if (accessToken) {
+                            res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/create-early-unlock-checkout?token=${accessToken}`, {
+                               method: 'POST',
+                               headers: getApiHeaders()
+                            });
+                         } else if (user) {
+                            const token = await getToken({ template: 'aevum-session' });
+                            res = await fetch(`${API_URL}/api/v1/payments/create-early-unlock-checkout/${capsuleId}`, {
+                               method: 'POST',
+                               headers: getApiHeaders(token)
+                            });
+                         } else {
+                            throw new Error("Não autorizado.");
+                         }
                          
                          if (!res.ok) throw new Error("Falha ao gerar multa.");
                          

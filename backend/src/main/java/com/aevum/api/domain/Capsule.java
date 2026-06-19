@@ -85,6 +85,10 @@ public class Capsule {
     @Column(nullable = false, length = 10)
     private String locale = "pt-BR";
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "VARCHAR(30) DEFAULT 'TOTAL_LOCK'")
+    private EarlyUnlockRule earlyUnlockRule = EarlyUnlockRule.TOTAL_LOCK;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -97,6 +101,14 @@ public class Capsule {
     }
 
     // Getters and Setters
+
+    public EarlyUnlockRule getEarlyUnlockRule() {
+        return earlyUnlockRule;
+    }
+
+    public void setEarlyUnlockRule(EarlyUnlockRule earlyUnlockRule) {
+        this.earlyUnlockRule = earlyUnlockRule;
+    }
 
     public String getLocale() {
         return locale;

@@ -34,5 +34,7 @@ public record CapsuleCreateRequest(
 
     // Mensagem especial do criador para o destinatário (apenas para presentes)
     @Size(max = 1000, message = "{capsule.ownerMessage.size}")
-    String ownerMessage
+    String ownerMessage,
+
+    String earlyUnlockRule
 ) {}

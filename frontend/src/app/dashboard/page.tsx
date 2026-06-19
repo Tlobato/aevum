@@ -67,6 +67,13 @@ export default function Dashboard() {
     const [estimatedPrice, setEstimatedPrice] = useState<number | null>(null);
     const [isSaving, setIsSaving]           = useState(false);
     const [errors, setErrors]               = useState<Record<string, string>>({});
+    const [earlyUnlockRule, setEarlyUnlockRule] = useState<"TOTAL_LOCK" | "CREATOR_ONLY" | "ALLOW_RECIPIENT">("TOTAL_LOCK");
+
+    useEffect(() => {
+        if (!isGift && earlyUnlockRule === "ALLOW_RECIPIENT") {
+            setEarlyUnlockRule("TOTAL_LOCK");
+        }
+    }, [isGift, earlyUnlockRule]);
 
     // Estado para o Modal de Confirmação
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; capsuleId: string | null }>({
@@ -209,7 +216,8 @@ export default function Dashboard() {
                     unlockDate: `${unlockDate}T00:00:00`,
                     recipientEmail: isGift ? recipientEmail : userEmail,
                     planType, isTestMode: false,
-                    isGift, ownerMessage: isGift ? ownerMessage : null
+                    isGift, ownerMessage: isGift ? ownerMessage : null,
+                    earlyUnlockRule
                 })
             });
             if (res.ok) {
@@ -428,6 +436,94 @@ export default function Dashboard() {
                                                 <p className="text-[10px] text-neutral-600 italic">{t("forge.dateMin")}</p>
                                             )}
                                         </div>
+
+                                         {/* Regras de Despertar Antecipado */}
+                                         <div className="space-y-3 md:col-span-2 border-t border-white/5 pt-5">
+                                             <div>
+                                                 <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">
+                                                     {t("forge.earlyUnlockRuleTitle")}
+                                                 </label>
+                                                 <p className="text-[10px] text-neutral-600 italic mt-0.5">
+                                                     {t("forge.earlyUnlockRuleDesc")}
+                                                 </p>
+                                             </div>
+
+                                             <div className="grid md:grid-cols-3 gap-3">
+                                                 {/* Bloqueio Total */}
+                                                 <label className={`flex flex-col gap-1 p-4 rounded-xl border bg-black/35 cursor-pointer select-none transition-all ${
+                                                     earlyUnlockRule === "TOTAL_LOCK"
+                                                         ? "border-amber-500/50 bg-amber-500/5"
+                                                         : "border-neutral-800 hover:border-neutral-700"
+                                                 }`}>
+                                                     <div className="flex items-center gap-2">
+                                                         <input
+                                                             type="radio"
+                                                             name="earlyUnlockRule"
+                                                             value="TOTAL_LOCK"
+                                                             checked={earlyUnlockRule === "TOTAL_LOCK"}
+                                                             onChange={() => setEarlyUnlockRule("TOTAL_LOCK")}
+                                                             className="accent-amber-500 cursor-pointer"
+                                                         />
+                                                         <span className="text-xs font-bold text-white">
+                                                             {t("forge.ruleTotalLock")}
+                                                         </span>
+                                                     </div>
+                                                     <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                         {isGift ? t("forge.ruleTotalLockDescGift") : t("forge.ruleTotalLockDescSelf")}
+                                                     </span>
+                                                 </label>
+
+                                                 {/* Apenas o Criador / Chave de Emergência */}
+                                                 <label className={`flex flex-col gap-1 p-4 rounded-xl border bg-black/35 cursor-pointer select-none transition-all ${
+                                                     earlyUnlockRule === "CREATOR_ONLY"
+                                                         ? "border-amber-500/50 bg-amber-500/5"
+                                                         : "border-neutral-800 hover:border-neutral-700"
+                                                 }`}>
+                                                     <div className="flex items-center gap-2">
+                                                         <input
+                                                             type="radio"
+                                                             name="earlyUnlockRule"
+                                                             value="CREATOR_ONLY"
+                                                             checked={earlyUnlockRule === "CREATOR_ONLY"}
+                                                             onChange={() => setEarlyUnlockRule("CREATOR_ONLY")}
+                                                             className="accent-amber-500 cursor-pointer"
+                                                         />
+                                                         <span className="text-xs font-bold text-white">
+                                                             {isGift ? t("forge.ruleCreatorOnly") : t("forge.ruleEmergencyKey")}
+                                                         </span>
+                                                     </div>
+                                                     <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                         {isGift ? t("forge.ruleCreatorOnlyDesc") : t("forge.ruleEmergencyKeyDesc")}
+                                                     </span>
+                                                 </label>
+
+                                                 {/* Permitir Destinatário (apenas se for presente) */}
+                                                 {isGift && (
+                                                     <label className={`flex flex-col gap-1 p-4 rounded-xl border bg-black/35 cursor-pointer select-none transition-all ${
+                                                         earlyUnlockRule === "ALLOW_RECIPIENT"
+                                                             ? "border-amber-500/50 bg-amber-500/5"
+                                                             : "border-neutral-800 hover:border-neutral-700"
+                                                     }`}>
+                                                         <div className="flex items-center gap-2">
+                                                             <input
+                                                                 type="radio"
+                                                                 name="earlyUnlockRule"
+                                                                 value="ALLOW_RECIPIENT"
+                                                                 checked={earlyUnlockRule === "ALLOW_RECIPIENT"}
+                                                                 onChange={() => setEarlyUnlockRule("ALLOW_RECIPIENT")}
+                                                                 className="accent-amber-500 cursor-pointer"
+                                                             />
+                                                             <span className="text-xs font-bold text-white">
+                                                                 {t("forge.ruleAllowRecipient")}
+                                                             </span>
+                                                         </div>
+                                                         <span className="text-[10px] text-neutral-500 font-light leading-tight pl-5">
+                                                             {t("forge.ruleAllowRecipientDesc")}
+                                                         </span>
+                                                     </label>
+                                                 )}
+                                             </div>
+                                         </div>
 
                                         <div className="space-y-2 md:col-span-2">
                                             <div className="flex items-center justify-between">

@@ -67,6 +67,12 @@ public class CapsuleService {
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.DRAFT);
         capsule.setLocale(org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag());
 
+        if (request.earlyUnlockRule() != null && !request.earlyUnlockRule().isBlank()) {
+            capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.valueOf(request.earlyUnlockRule()));
+        } else {
+            capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK);
+        }
+
         capsule = repository.save(capsule);
         return CapsuleResponse.fromEntity(capsule);
     }
@@ -320,5 +326,39 @@ public class CapsuleService {
         storageService.deleteSealedFolder(id.toString());
 
         repository.delete(capsule);
+    }
+
+    @Transactional(readOnly = true)
+    public CapsuleResponse getPublicCapsuleForEarlyUnlock(UUID id, UUID token) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        if (capsule.getAccessToken() == null || !capsule.getAccessToken().equals(token)) {
+            throw new IllegalArgumentException("capsule.token.invalid");
+        }
+
+        return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional(readOnly = true)
+    public void validateEarlyUnlockPermission(UUID id, String userId, String userEmail) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        boolean isOwner = userId != null && capsule.getOwnerId().equals(userId);
+        boolean isRecipient = userEmail != null && capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        if (!isOwner && !isRecipient) {
+            throw new IllegalArgumentException("capsule.access.denied");
+        }
+
+        com.aevum.api.domain.EarlyUnlockRule rule = capsule.getEarlyUnlockRule();
+        if (rule == com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK) {
+            throw new IllegalArgumentException("capsule.earlyUnlock.blocked");
+        }
+
+        if (rule == com.aevum.api.domain.EarlyUnlockRule.CREATOR_ONLY && !isOwner) {
+            throw new IllegalArgumentException("capsule.earlyUnlock.creatorOnly");
+        }
     }
 }

@@ -79,6 +79,7 @@ public class PaymentController {
 
             // Verifica permissão (se o usuário não for dono nem recipient, vai lançar exception)
             var response = capsuleService.openCapsule(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
+            capsuleService.validateEarlyUnlockPermission(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
             
             long penaltyInCents = capsuleService.calculateEarlyUnlockPenalty(capsuleId, pricingService);
             String checkoutUrl = stripeService.createEarlyUnlockCheckoutSession(

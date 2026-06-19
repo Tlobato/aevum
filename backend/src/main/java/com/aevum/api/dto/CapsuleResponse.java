@@ -20,7 +20,9 @@ public record CapsuleResponse(
     boolean isTestMode,
     boolean isGift,
     String ownerMessage,
-    java.util.UUID accessToken
+    java.util.UUID accessToken,
+    String earlyUnlockRule,
+    String ownerId
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
@@ -38,7 +40,9 @@ public record CapsuleResponse(
             capsule.isTestMode(),
             capsule.isGift(),
             capsule.getOwnerMessage(),
-            capsule.getAccessToken()
+            capsule.getAccessToken(),
+            capsule.getEarlyUnlockRule().name(),
+            capsule.getOwnerId()
         );
     }
 }
