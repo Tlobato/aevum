@@ -10,6 +10,15 @@ import org.springframework.stereotype.Component;
 public class EmailTemplateGenerator {
 
     public String generateBaseTemplate(String title, String contentHTML) {
+        return generateBaseTemplate(title, contentHTML, null, null);
+    }
+
+    public String generateBaseTemplate(String title, String contentHTML, String buttonUrl, String buttonText) {
+        String buttonHTML = "";
+        if (buttonUrl != null && !buttonUrl.isEmpty() && buttonText != null && !buttonText.isEmpty()) {
+            buttonHTML = "    <div class='button-container'><a href='" + buttonUrl + "' class='button'>" + buttonText + "</a></div>";
+        }
+
         return "<!DOCTYPE html>"
              + "<html>"
              + "<head>"
@@ -32,13 +41,14 @@ public class EmailTemplateGenerator {
              + "    <div class='logo'>AEVUM</div>"
              + "    <div class='title'>" + title + "</div>"
              + "    <div class='content'>" + contentHTML + "</div>"
+             + buttonHTML
              + "    <div class='footer'>O TEMPO GUARDA GRANDES HISTÓRIAS.</div>"
              + "  </div>"
              + "</body>"
              + "</html>";
     }
 
-    public String sealingConfirmation(String capsuleTitle, String unlockDate, boolean isGift, String recipientEmail) {
+    public String sealingConfirmation(String capsuleTitle, String unlockDate, boolean isGift, String recipientEmail, String link) {
         String content;
         if (isGift) {
             content = "Saudações, Forjador do Tempo.<br><br>"
@@ -54,17 +64,17 @@ public class EmailTemplateGenerator {
                     + "Você pode monitorar a integridade da sua relíquia através do seu painel de controle.";
         }
         
-        return generateBaseTemplate("Relíquia Selada", content);
+        return generateBaseTemplate("Relíquia Selada", content, link, isGift ? "Acompanhar Relíquia" : "Acessar Relíquia");
     }
 
-    public String giftNotification(String capsuleTitle, String unlockDate) {
+    public String giftNotification(String capsuleTitle, String unlockDate, String link) {
         String content = "Olá,<br><br>"
                 + "Uma voz do passado ecoou para você. Uma cápsula do tempo foi forjada e destinada ao seu nome.<br><br>"
                 + "Ela foi selada sob as leis da eternidade e só poderá ser revelada em <span class='highlight'>" + unlockDate + "</span>.<br><br>"
                 + "No dia do despertar, enviaremos as chaves necessárias para que o selo seja quebrado.<br><br>"
                 + "Até lá, o mistério permanece guardado.";
 
-        return generateBaseTemplate("Um Presente Temporal", content);
+        return generateBaseTemplate("Um Presente Temporal", content, link, "Ver Relíquia");
     }
 
     public String awakeningEmail(String capsuleTitle, String ownerMessage, String publicLink) {
@@ -73,10 +83,6 @@ public class EmailTemplateGenerator {
                 + (ownerMessage != null ? "O forjador deixou esta mensagem para este momento:<br><br><i>\"" + ownerMessage + "\"</i><br><br>" : "")
                 + "Acesse sua herança digital agora através do portal seguro abaixo:";
 
-        String finalHtml = generateBaseTemplate("O Despertar", content);
-        
-        // Adicionando o botão de ação manualmente antes do footer
-        return finalHtml.replace("</div>    <div class='footer'>", 
-            "  <div class='button-container'><a href='" + publicLink + "' class='button'>Quebrar o Selo</a></div></div>    <div class='footer'>");
+        return generateBaseTemplate("O Despertar", content, publicLink, "Quebrar o Selo");
     }
 }

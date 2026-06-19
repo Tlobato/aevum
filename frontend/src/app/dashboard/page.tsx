@@ -32,6 +32,7 @@ const STATUS_BADGE: Record<string, string> = {
     DRAFT:     "bg-amber-500/20 text-amber-300 border-amber-500/40",
     SEALED:    "bg-blue-500/20 text-blue-300 border-blue-500/40",
     OPENED:    "bg-green-500/20 text-green-300 border-green-500/40",
+    UNLOCKED:  "bg-green-500/20 text-green-300 border-green-500/40",
     RESTORING: "bg-orange-500/20 text-orange-300 border-orange-500/40",
 };
 

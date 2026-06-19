@@ -37,10 +37,8 @@ public class PreemptiveRestoreJob {
         // Procurando cápsulas seladas, atualmente congeladas, que vão abrir nas próximas 48 horas.
         LocalDateTime threshold = LocalDateTime.now().plusHours(48);
 
-        List<Capsule> capsulesToRestore = capsuleRepository.findAll().stream()
-                .filter(c -> c.getStatus() == CapsuleStatus.SEALED)
+        List<Capsule> capsulesToRestore = capsuleRepository.findByUnlockDateBeforeAndStatus(threshold, CapsuleStatus.SEALED).stream()
                 .filter(c -> c.getStorageStatus() == StorageStatus.FROZEN)
-                .filter(c -> c.getUnlockDate().isBefore(threshold))
                 .toList();
 
         for (Capsule capsule : capsulesToRestore) {
@@ -65,24 +63,23 @@ public class PreemptiveRestoreJob {
         }
     }
 
-    // Executa uma vez por dia, à meia-noite
-    @Scheduled(cron = "0 0 0 * * ?")
+    // Executa a cada hora para despertar relíquias maduras próximas do horário correto
+    @Scheduled(cron = "0 0 * * * *")
     public void awakenRipeCapsules() {
         log.info("Iniciando Job de Despertar de Cápsulas Maduras...");
 
         // Busca cápsulas seladas cuja data de destranca já chegou ou passou
         LocalDateTime now = LocalDateTime.now();
 
-        List<Capsule> ripeCapsules = capsuleRepository.findAll().stream()
-                .filter(c -> c.getStatus() == CapsuleStatus.SEALED)
+        List<Capsule> ripeCapsules = capsuleRepository.findByUnlockDateBeforeAndStatus(now, CapsuleStatus.SEALED).stream()
                 .filter(c -> c.getStorageStatus() != StorageStatus.AVAILABLE)
-                .filter(c -> !c.getUnlockDate().isAfter(now))
                 .toList();
 
         for (Capsule capsule : ripeCapsules) {
             log.info("O tempo chegou! Despertando a cápsula: {}", capsule.getId());
             try {
                 capsule.setStorageStatus(StorageStatus.AVAILABLE);
+                capsule.setStatus(CapsuleStatus.UNLOCKED);
                 capsuleRepository.save(capsule);
 
                 // Dispara o Mensageiro!

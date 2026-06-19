@@ -97,13 +97,13 @@ public class CapsuleService {
         log.info("Tentando disparar e-mails para selagem. Dono: {}, Título: {}", ownerEmail, capsuleTitle);
 
         if (ownerEmail != null) {
-            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate, capsule.isGift(), capsule.getRecipientEmail());
+            emailService.sendSealingConfirmation(ownerEmail, null, capsuleTitle, unlockDate, capsule.isGift(), capsule.getRecipientEmail(), capsule.getId());
         } else {
             log.warn("Não foi possível enviar e-mail de confirmação: Dono sem e-mail cadastrado.");
         }
 
         if (capsule.isGift() && capsule.getRecipientEmail() != null) {
-            emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate);
+            emailService.sendGiftNotification(capsule.getRecipientEmail(), capsuleTitle, unlockDate, capsule.getId());
         }
 
         return CapsuleResponse.fromEntity(capsule);

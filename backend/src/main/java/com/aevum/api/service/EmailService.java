@@ -67,16 +67,18 @@ public class EmailService {
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail) {
+    public void sendSealingConfirmation(String ownerEmail, String ownerName, String capsuleTitle, java.time.LocalDate unlockDate, boolean isGift, String recipientEmail, java.util.UUID capsuleId) {
         String subject = "Selo da Eternidade Ativado: " + capsuleTitle;
-        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString(), isGift, recipientEmail);
+        String link = frontendUrl + "/vault/" + capsuleId;
+        String html = templateGenerator.sealingConfirmation(capsuleTitle, unlockDate.toString(), isGift, recipientEmail, link);
         sendViaApi(ownerEmail, subject, html);
     }
 
     @org.springframework.scheduling.annotation.Async
-    public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate) {
+    public void sendGiftNotification(String recipientEmail, String capsuleTitle, java.time.LocalDate unlockDate, java.util.UUID capsuleId) {
         String subject = "Alguém do passado preparou algo para você...";
-        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.toString());
+        String link = frontendUrl + "/vault/" + capsuleId;
+        String html = templateGenerator.giftNotification(capsuleTitle, unlockDate.toString(), link);
         sendViaApi(recipientEmail, subject, html);
     }
 
