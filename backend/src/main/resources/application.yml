@@ -3,6 +3,8 @@ spring:
     name: Aevum
   config:
     import: optional:file:.env.properties
+  messages:
+    fallback-to-system-locale: false
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/aevum_db}
