@@ -40,14 +40,9 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.unlockDate.future");
         }
 
-        // Lazy creation do usuário vindo do Clerk (se não existir, cria na hora)
+        // Busca o usuário no banco de dados local (deve ter sido criado previamente pelo Webhook do Clerk)
         User owner = userRepository.findById(userId)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setId(userId);
-                    newUser.setEmail(userEmail);
-                    return userRepository.save(newUser);
-                });
+                .orElseThrow(() -> new IllegalArgumentException("user.notfound"));
 
         Capsule capsule = new Capsule();
         if (request.themeId() != null && !request.themeId().isBlank()) {

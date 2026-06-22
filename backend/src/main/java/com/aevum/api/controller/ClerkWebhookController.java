@@ -18,9 +18,16 @@ public class ClerkWebhookController {
     private static final Logger log = LoggerFactory.getLogger(ClerkWebhookController.class);
 
     private final String webhookSecret;
+    private final com.aevum.api.repository.UserRepository userRepository;
+    private final com.aevum.api.service.EmailService emailService;
 
-    public ClerkWebhookController(@Value("${clerk.webhook.secret}") String webhookSecret) {
+    public ClerkWebhookController(
+            @Value("${clerk.webhook.secret}") String webhookSecret,
+            com.aevum.api.repository.UserRepository userRepository,
+            com.aevum.api.service.EmailService emailService) {
         this.webhookSecret = webhookSecret;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     @PostMapping("/clerk")
@@ -75,12 +82,24 @@ public class ClerkWebhookController {
             // Estrutura de tratamento baseada no tipo de evento
             switch (eventType) {
                 case "user.created":
-                    log.info("Webhook Clerk: Usuário criado recebido para o ID: {} | Email: {}", userId, email);
-                    // Lógica futura de cadastro/email de boas-vindas será inserida aqui
+                    log.info("Webhook Clerk: Cadastrando usuário ativo ID: {} | Email: {}", userId, email);
+                    com.aevum.api.domain.User newUser = new com.aevum.api.domain.User();
+                    newUser.setId(userId);
+                    newUser.setEmail(email);
+                    newUser.setPlanType("PAY_PER_USE");
+                    userRepository.save(newUser);
+                    
+                    // Dispara e-mail assíncrono de boas-vindas
+                    emailService.sendWelcomeEmail(email, null);
                     break;
                 case "user.updated":
-                    log.info("Webhook Clerk: Usuário atualizado recebido para o ID: {} | Email: {}", userId, email);
-                    // Lógica futura de atualização de perfil será inserida aqui
+                    log.info("Webhook Clerk: Atualizando e-mail do usuário ID: {} | Novo Email: {}", userId, email);
+                    final String userEmailFinal = email;
+                    userRepository.findById(userId).ifPresent(user -> {
+                        user.setEmail(userEmailFinal);
+                        userRepository.save(user);
+                        log.info("Webhook Clerk: Usuário {} atualizado no banco de dados local.", userId);
+                    });
                     break;
                 default:
                     log.info("Webhook Clerk: Evento ignorado '{}' para o ID: {}", eventType, userId);

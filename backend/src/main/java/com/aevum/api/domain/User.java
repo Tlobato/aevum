@@ -16,6 +16,9 @@ public class User {
     @Column(nullable = true, unique = false, length = 150)
     private String email;
 
+    @Column(nullable = false, length = 50)
+    private String planType = "PAY_PER_USE";
+
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Capsule> capsules = new ArrayList<>();
 
@@ -32,6 +35,9 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getPlanType() { return planType; }
+    public void setPlanType(String planType) { this.planType = planType; }
 
     public List<Capsule> getCapsules() { return capsules; }
     public void setCapsules(List<Capsule> capsules) { this.capsules = capsules; }

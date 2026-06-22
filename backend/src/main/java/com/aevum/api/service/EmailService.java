@@ -94,4 +94,13 @@ public class EmailService {
         String html = templateGenerator.awakeningEmail(capsuleTitle, ownerMessage, publicLink, locale);
         sendViaApi(recipientEmail, subject, html);
     }
+
+    @org.springframework.scheduling.annotation.Async
+    public void sendWelcomeEmail(String toEmail, String localeTag) {
+        java.util.Locale locale = (localeTag == null || localeTag.isBlank()) ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.forLanguageTag(localeTag);
+        String subject = messageSource.getMessage("email.welcome.subject", null, locale);
+        String link = frontendUrl + "/dashboard";
+        String html = templateGenerator.welcomeEmail(link, locale);
+        sendViaApi(toEmail, subject, html);
+    }
 }

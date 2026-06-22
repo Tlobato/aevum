@@ -99,4 +99,11 @@ public class EmailTemplateGenerator {
 
         return generateBaseTemplate(title, content, publicLink, buttonText, locale);
     }
+
+    public String welcomeEmail(String dashboardLink, Locale locale) {
+        String title = messageSource.getMessage("email.welcome.title", null, locale);
+        String content = messageSource.getMessage("email.welcome.body", null, locale);
+        String buttonText = messageSource.getMessage("email.welcome.button", null, locale);
+        return generateBaseTemplate(title, content, dashboardLink, buttonText, locale);
+    }
 }
