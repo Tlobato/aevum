@@ -103,4 +103,13 @@ public class EmailService {
         String html = templateGenerator.welcomeEmail(link, locale);
         sendViaApi(toEmail, subject, html);
     }
+
+    @org.springframework.scheduling.annotation.Async
+    public void sendSecurityAlertEmail(String ownerEmail, String capsuleTitle, String oldEmail, String newEmail, String localeTag) {
+        java.util.Locale locale = (localeTag == null || localeTag.isBlank()) ? java.util.Locale.forLanguageTag("pt-BR") : java.util.Locale.forLanguageTag(localeTag);
+        String subject = messageSource.getMessage("email.security_alert.subject", null, locale);
+        String link = frontendUrl + "/dashboard";
+        String html = templateGenerator.securityAlertEmail(capsuleTitle, oldEmail, newEmail, link, locale);
+        sendViaApi(ownerEmail, subject, html);
+    }
 }

@@ -365,4 +365,73 @@ public class CapsuleService {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
         }
     }
+
+    @Transactional
+    public CapsuleResponse updateCapsule(UUID id, com.aevum.api.dto.CapsuleUpdateRequest request, String userId) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        // Valida se o solicitante é o dono da cápsula
+        if (!capsule.getOwnerId().equals(userId)) {
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
+        }
+
+        if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT) {
+            // Permite alterar tudo
+            if (request.title() != null && !request.title().isBlank()) {
+                capsule.setTitle(request.title());
+            }
+            if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
+                capsule.setRecipientEmail(request.beneficiaryEmail());
+            }
+            if (request.unlockDate() != null) {
+                if (request.unlockDate().isBefore(LocalDateTime.now())) {
+                    throw new IllegalArgumentException("capsule.unlockDate.future");
+                }
+                capsule.setUnlockDate(request.unlockDate());
+            }
+            capsule = repository.save(capsule);
+        } else if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.SEALED) {
+            // Se tentar alterar título ou data de destranca, bloqueia
+            if ((request.title() != null && !request.title().isBlank()) || request.unlockDate() != null) {
+                throw new IllegalArgumentException("capsule.already.sealed");
+            }
+            // Se alterar destinatário, permite
+            if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
+                String oldEmail = capsule.getRecipientEmail();
+                String newEmail = request.beneficiaryEmail();
+                
+                if (!newEmail.equalsIgnoreCase(oldEmail)) {
+                    capsule.setRecipientEmail(newEmail);
+                    capsule = repository.save(capsule);
+                    
+                    // Dispara e-mail de alerta para o dono da cápsula
+                    String ownerEmail = capsule.getOwner() != null ? capsule.getOwner().getEmail() : null;
+                    if (ownerEmail != null) {
+                        emailService.sendSecurityAlertEmail(
+                            ownerEmail,
+                            capsule.getTitle(),
+                            oldEmail != null ? oldEmail : "nenhum",
+                            newEmail,
+                            capsule.getLocale()
+                        );
+                    }
+                    
+                    // Se for um presente, notifica o NOVO destinatário
+                    if (capsule.isGift()) {
+                        java.time.LocalDate unlockLocalDate = capsule.getUnlockDate() != null ? capsule.getUnlockDate().toLocalDate() : java.time.LocalDate.now();
+                        emailService.sendGiftNotification(
+                            newEmail,
+                            capsule.getTitle(),
+                            unlockLocalDate,
+                            capsule.getId(),
+                            capsule.getLocale()
+                        );
+                    }
+                }
+            }
+        }
+        
+        return CapsuleResponse.fromEntity(capsule);
+    }
 }

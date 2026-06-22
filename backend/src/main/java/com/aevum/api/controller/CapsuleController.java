@@ -200,6 +200,15 @@ public class CapsuleController {
         return ResponseEntity.ok(url);
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<CapsuleResponse> updateCapsule(
+            @PathVariable UUID id,
+            @RequestBody com.aevum.api.dto.CapsuleUpdateRequest request,
+            @AuthenticationPrincipal Jwt jwt) {
+        CapsuleResponse response = capsuleService.updateCapsule(id, request, jwt.getSubject());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));

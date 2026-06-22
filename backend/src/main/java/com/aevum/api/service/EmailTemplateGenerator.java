@@ -106,4 +106,11 @@ public class EmailTemplateGenerator {
         String buttonText = messageSource.getMessage("email.welcome.button", null, locale);
         return generateBaseTemplate(title, content, dashboardLink, buttonText, locale);
     }
+
+    public String securityAlertEmail(String capsuleTitle, String oldEmail, String newEmail, String dashboardLink, Locale locale) {
+        String title = messageSource.getMessage("email.security_alert.title", null, locale);
+        String content = messageSource.getMessage("email.security_alert.body", new Object[]{capsuleTitle, oldEmail, newEmail}, locale);
+        String buttonText = messageSource.getMessage("email.security_alert.button", null, locale);
+        return generateBaseTemplate(title, content, dashboardLink, buttonText, locale);
+    }
 }
