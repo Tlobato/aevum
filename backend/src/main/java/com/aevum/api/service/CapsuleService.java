@@ -138,7 +138,7 @@ public class CapsuleService {
 
         // Valida que o usuário é o dono da cápsula
         if (!capsule.getOwnerId().equals(userId)) {
-            throw new IllegalArgumentException("capsule.memory.noPermission");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.memory.noPermission");
         }
 
         if (capsule.getStatus() != CapsuleStatus.DRAFT) {
@@ -172,7 +172,7 @@ public class CapsuleService {
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
 
         if (!isOwner && !isRecipient) {
-            throw new IllegalArgumentException("capsule.access.denied");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
         }
 
         return CapsuleResponse.fromEntity(capsule);
@@ -230,7 +230,7 @@ public class CapsuleService {
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
 
         if (!isOwner && !isRecipient) {
-            throw new IllegalArgumentException("capsule.memories.denied");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.memories.denied");
         }
 
         if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
@@ -312,7 +312,7 @@ public class CapsuleService {
         boolean isOwner = capsule.getOwnerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
-            throw new IllegalArgumentException("capsule.delete.noPermission");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.delete.noPermission");
         }
 
         if (capsule.getStatus() == CapsuleStatus.SEALED && !isAdmin) {
@@ -349,16 +349,25 @@ public class CapsuleService {
         boolean isRecipient = userEmail != null && capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
 
         if (!isOwner && !isRecipient) {
-            throw new IllegalArgumentException("capsule.access.denied");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
         }
 
         com.aevum.api.domain.EarlyUnlockRule rule = capsule.getEarlyUnlockRule();
         if (rule == com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK) {
-            throw new IllegalArgumentException("capsule.earlyUnlock.blocked");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.earlyUnlock.blocked");
         }
 
         if (rule == com.aevum.api.domain.EarlyUnlockRule.CREATOR_ONLY && !isOwner) {
-            throw new IllegalArgumentException("capsule.earlyUnlock.creatorOnly");
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.earlyUnlock.creatorOnly");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void validateOwnership(UUID id, String userId) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+        if (!capsule.getOwnerId().equals(userId)) {
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
         }
     }
 }

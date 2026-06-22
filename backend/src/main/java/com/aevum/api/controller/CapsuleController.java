@@ -148,7 +148,10 @@ public class CapsuleController {
     }
 
     @GetMapping("/{id}/calculate-seal")
-    public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> calculateSeal(@PathVariable UUID id) {
+    public ResponseEntity<com.aevum.api.service.PricingService.PricingSummary> calculateSeal(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
+        capsuleService.validateOwnership(id, jwt.getSubject());
         com.aevum.api.service.PricingService.PricingSummary summary = capsuleService.calculateSummary(id, pricingService);
         return ResponseEntity.ok(summary);
     }
@@ -188,9 +191,11 @@ public class CapsuleController {
 
     @GetMapping("/{id}/presign")
     public ResponseEntity<String> getPresignedUrl(
+            @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID id,
             @RequestParam String fileName,
             @RequestParam long sizeBytes) {
+        capsuleService.validateOwnership(id, jwt.getSubject());
         String url = storageService.generatePresignedUploadUrl(id.toString(), fileName, sizeBytes);
         return ResponseEntity.ok(url);
     }
