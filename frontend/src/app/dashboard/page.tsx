@@ -307,13 +307,21 @@ export default function Dashboard() {
                 {/* Modal de Criação */}
                 <AnimatePresence>
                     {showCreateForm && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -16, scale: 0.98 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -16, scale: 0.98 }}
-                            transition={{ duration: 0.3 }}
-                            className="mb-12 bg-neutral-900/60 border border-neutral-700/50 rounded-3xl p-8 backdrop-blur-sm relative"
+                        <div 
+                            onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                    setShowCreateForm(false);
+                                }
+                            }}
+                            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/85 backdrop-blur-md overflow-y-auto py-12 px-4 cursor-pointer"
                         >
+                            <motion.div
+                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full max-w-5xl bg-neutral-950 border border-white/5 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative cursor-default"
+                            >
                             <button onClick={() => setShowCreateForm(false)}
                                 className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20 cursor-pointer">
                                 <X className="w-5 h-5" />
@@ -586,7 +594,8 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
 
