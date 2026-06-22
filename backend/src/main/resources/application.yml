@@ -60,3 +60,7 @@ aevum:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}
   admin-emails: ${AEVUM_ADMIN_EMAILS:}
   admin-user-ids: ${AEVUM_ADMIN_USER_IDS:}
+
+clerk:
+  webhook:
+    secret: ${CLERK_WEBHOOK_SECRET:dummy_clerk_webhook_secret_key}
