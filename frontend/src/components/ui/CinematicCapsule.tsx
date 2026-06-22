@@ -167,8 +167,11 @@ export function CinematicCapsule({
               id: m.id,
               type: m.type as ItemType,
               label: m.fileName || t("vault.memory"),
-              payload: m.presignedUrl || m.textContent || "",
-              fileName: m.fileName
+              payload: m.presignedGetUrl || m.textContent || "",
+              fileName: m.fileName,
+              textContent: m.textContent,
+              presignedGetUrl: m.presignedGetUrl,
+              sizeBytes: m.sizeBytes
             }));
             setMemoriesList(mappedMemories);
           }
@@ -384,7 +387,17 @@ export function CinematicCapsule({
             });
             if (res.ok) {
                 const data = await res.json();
-                setMemoriesList(data);
+                const mappedMemories: Memory[] = data.map((m: any) => ({
+                  id: m.id,
+                  type: m.type as ItemType,
+                  label: m.fileName || t("vault.memory"),
+                  payload: m.presignedGetUrl || m.textContent || "",
+                  fileName: m.fileName,
+                  textContent: m.textContent,
+                  presignedGetUrl: m.presignedGetUrl,
+                  sizeBytes: m.sizeBytes
+                }));
+                setMemoriesList(mappedMemories);
             }
         } catch (e) {
             console.error("Erro ao carregar relíquias", e);
