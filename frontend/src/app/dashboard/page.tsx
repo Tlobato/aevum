@@ -249,7 +249,7 @@ export default function Dashboard() {
     }
 
     return (
-        <main className="min-h-screen bg-black text-white relative overflow-hidden">
+        <main className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col">
             {/* Fundo sutil */}
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-5 pointer-events-none" />
 
@@ -274,7 +274,7 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 z-10 relative">
+            <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 z-10 relative flex-1 w-full">
 
                 {/* Título + Botão de Criar */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -679,7 +679,7 @@ export default function Dashboard() {
             </div>
 
             {/* Rodapé do Dashboard */}
-            <footer className="w-full border-t border-white/5 py-8 mt-12 select-none shrink-0">
+            <footer className="w-full border-t border-white/5 py-8 mt-auto select-none shrink-0">
                 <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-neutral-600 font-medium">
                     <span>© {new Date().getFullYear()} Aevum.</span>
                     <a href="/termos" className="hover:text-amber-500 transition-colors underline decoration-neutral-800 underline-offset-2">
