@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useUser, useAuth } from "@clerk/nextjs";
+import { useUser, useAuth, RedirectToSignIn } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -25,14 +25,20 @@ function VaultContent() {
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
+    // Se o Clerk carregou e o usuário não está logado nem possui token de acesso público,
+    // redireciona de forma segura para a tela de login do Clerk e traz de volta para o cofre.
+    if (isLoaded && !accessToken && !user) {
+        return (
+            <RedirectToSignIn 
+                signInForceRedirectUrl={`/vault/${id}`}
+                signUpForceRedirectUrl={`/vault/${id}`}
+            />
+        );
+    }
+
     useEffect(() => {
         if (!isLoaded) return;
-        
-        // Se não tem token e não tem usuário logado, redireciona pro início
-        if (!accessToken && !user) { 
-            router.push("/"); 
-            return; 
-        }
+        if (!accessToken && !user) return;
         
         const fetchCapsule = async () => {
             try {
