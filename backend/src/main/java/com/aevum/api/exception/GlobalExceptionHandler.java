@@ -43,13 +43,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ClerkReverificationRequiredException.class)
     public ResponseEntity<Map<String, Object>> handleReverificationRequired(ClerkReverificationRequiredException ex) {
-        Map<String, Object> error = Map.of(
-            "code", "session_reverification_required",
-            "message", "Reverification required",
-            "meta", Map.of("level", "strict")
+        Map<String, Object> clerkError = Map.of(
+            "type", "forbidden",
+            "reason", "reverification-error",
+            "metadata", Map.of("reverification", "strict")
         );
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(Map.of("errors", java.util.List.of(error)));
+                .body(Map.of("clerk_error", clerkError));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
