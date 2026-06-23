@@ -48,7 +48,7 @@ export default function Dashboard() {
 
     const updateSealedCapsule = useReverification(
         async (capsuleId: string, email: string) => {
-            const token = await getToken({ template: 'aevum-session' });
+            const token = await getToken({ template: 'aevum-session', skipCache: true });
             return fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
                 method: "PATCH",
                 headers: getApiHeaders(token),
