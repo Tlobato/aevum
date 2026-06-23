@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, UserButton, useAuth, useClerk } from "@clerk/nextjs";
+import { useUser, UserButton, useAuth, useClerk, useReverification } from "@clerk/nextjs";
+import { isReverificationCancelledError } from "@clerk/nextjs/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2, Pencil } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
@@ -44,6 +45,17 @@ export default function Dashboard() {
     const clerk = useClerk();
     const router = useRouter();
     const { t, i18n } = useTranslation();
+
+    const updateSealedCapsule = useReverification(
+        async (capsuleId: string, email: string) => {
+            const token = await getToken({ template: 'aevum-session' });
+            return fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
+                method: "PATCH",
+                headers: getApiHeaders(token),
+                body: JSON.stringify({ beneficiaryEmail: email })
+            });
+        }
+    );
 
     const userEmail = user?.primaryEmailAddress?.emailAddress || "";
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",");
@@ -142,32 +154,24 @@ export default function Dashboard() {
         setIsUpdating(true);
         const isSealed = editingCapsule.status === "SEALED";
 
-        if (isSealed) {
-            try {
-                // Invoca o desafio de re-autenticação do Clerk para relíquias seladas
-                await (clerk as any).openReauthenticate();
-            } catch (reauthError) {
-                console.warn("Re-autenticação do Clerk falhou ou foi cancelada:", reauthError);
-                setIsUpdating(false);
-                return;
-            }
-        }
-
         try {
-            const token = await getToken({ template: 'aevum-session' });
-            const res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
-                method: "PATCH",
-                headers: getApiHeaders(token),
-                body: JSON.stringify(
-                    isSealed 
-                        ? { beneficiaryEmail: editRecipientEmail }
-                        : {
-                            title: editTitle,
-                            beneficiaryEmail: editRecipientEmail,
-                            unlockDate: `${editUnlockDate}T00:00:00`
-                          }
-                )
-            });
+            let res: Response;
+            if (isSealed) {
+                // Chama a função envelopada com reverificação do Clerk.
+                // Se o backend retornar status 403 de reverificação, o hook abre o modal e repete a chamada.
+                res = await updateSealedCapsule(editingCapsule.id, editRecipientEmail);
+            } else {
+                const token = await getToken({ template: 'aevum-session' });
+                res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
+                    method: "PATCH",
+                    headers: getApiHeaders(token),
+                    body: JSON.stringify({
+                        title: editTitle,
+                        beneficiaryEmail: editRecipientEmail,
+                        unlockDate: `${editUnlockDate}T00:00:00`
+                    })
+                });
+            }
 
             if (res.ok) {
                 const data = await res.json();
@@ -182,8 +186,12 @@ export default function Dashboard() {
                 }
             }
         } catch (error) {
-            console.error("Erro ao atualizar cápsula:", error);
-            alert(t("dashboard.alerts.connError"));
+            if (isReverificationCancelledError(error)) {
+                console.warn("Re-autenticação do Clerk cancelada pelo usuário.");
+            } else {
+                console.error("Erro ao atualizar cápsula:", error);
+                alert(t("dashboard.alerts.connError"));
+            }
         } finally {
             setIsUpdating(false);
         }
