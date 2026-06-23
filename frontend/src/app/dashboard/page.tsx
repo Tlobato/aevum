@@ -956,13 +956,12 @@ export default function Dashboard() {
                                         </div>
                                     </div>
 
-                                    {/* Data de Desbloqueio */}
                                     <div className="flex items-center gap-2 text-xs text-neutral-500">
                                         <Clock className="w-3.5 h-3.5 text-amber-500/50" />
                                         <span>
-                                            {t("vault.statusBadge.SEALED") === cap.status || cap.status === "RESTORING" 
-                                                ? t("vault.lockedSubtitle", { date: unlockStr }) 
-                                                : t("vault.unlockedSubtitle", { date: unlockStr })}
+                                            {cap.status === "UNLOCKED" || cap.status === "OPENED"
+                                                ? t("vault.unlockedSubtitle", { date: unlockStr }) 
+                                                : t("vault.lockedSubtitle", { date: unlockStr })}
                                         </span>
                                     </div>
 
