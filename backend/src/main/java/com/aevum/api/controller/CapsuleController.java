@@ -205,7 +205,7 @@ public class CapsuleController {
             @PathVariable UUID id,
             @RequestBody com.aevum.api.dto.CapsuleUpdateRequest request,
             @AuthenticationPrincipal Jwt jwt) {
-        CapsuleResponse response = capsuleService.updateCapsule(id, request, jwt.getSubject());
+        CapsuleResponse response = capsuleService.updateCapsule(id, request, jwt);
         return ResponseEntity.ok(response);
     }
 

@@ -41,6 +41,17 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "ACCESS_DENIED", "message", resolveMessage(ex.getMessage())));
     }
 
+    @ExceptionHandler(ClerkReverificationRequiredException.class)
+    public ResponseEntity<Map<String, Object>> handleReverificationRequired(ClerkReverificationRequiredException ex) {
+        Map<String, Object> error = Map.of(
+            "code", "session_reverification_required",
+            "message", "Reverification required",
+            "meta", Map.of("level", "strict")
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("errors", java.util.List.of(error)));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -366,10 +367,36 @@ public class CapsuleService {
         }
     }
 
+    private void validateClerkReverification(Jwt jwt) {
+        // Clerk session reverification:
+        // A claim 'fva' (factor verification age) é um array de números [firstFactorAge, secondFactorAge].
+        // Representa em minutos o tempo desde a última verificação de fatores do usuário.
+        // Se fva for nulo, vazio, ou a idade do fator for >= 10 minutos (limite 'strict' padrão), lançamos a exceção.
+        java.util.List<?> fvaList = jwt.getClaim("fva");
+        if (fvaList == null || fvaList.isEmpty()) {
+            log.warn("Re-autenticação do Clerk ausente: claim 'fva' não encontrada ou vazia no token do usuário {}", jwt.getSubject());
+            throw new com.aevum.api.exception.ClerkReverificationRequiredException("Reverification required");
+        }
+
+        Object firstFactorObj = fvaList.get(0);
+        if (firstFactorObj instanceof Number number) {
+            long minutesSinceVerification = number.longValue();
+            log.info("Idade da verificação do primeiro fator do Clerk (fva[0]): {} minutos para o usuário {}", minutesSinceVerification, jwt.getSubject());
+            if (minutesSinceVerification < 0 || minutesSinceVerification >= 10) {
+                throw new com.aevum.api.exception.ClerkReverificationRequiredException("Reverification required");
+            }
+        } else {
+            log.warn("Formato inválido do claim 'fva' no token do usuário {}", jwt.getSubject());
+            throw new com.aevum.api.exception.ClerkReverificationRequiredException("Reverification required");
+        }
+    }
+
     @Transactional
-    public CapsuleResponse updateCapsule(UUID id, com.aevum.api.dto.CapsuleUpdateRequest request, String userId) {
+    public CapsuleResponse updateCapsule(UUID id, com.aevum.api.dto.CapsuleUpdateRequest request, Jwt jwt) {
         Capsule capsule = repository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        final String userId = jwt.getSubject();
 
         // Valida se o solicitante é o dono da cápsula
         if (!capsule.getOwnerId().equals(userId)) {
@@ -396,6 +423,10 @@ public class CapsuleService {
             if ((request.title() != null && !request.title().isBlank()) || request.unlockDate() != null) {
                 throw new IllegalArgumentException("capsule.already.sealed");
             }
+
+            // Exige e valida re-autenticação do Clerk para alterar destinatário de cápsula selada
+            validateClerkReverification(jwt);
+
             // Se alterar destinatário, permite
             if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
                 String oldEmail = capsule.getRecipientEmail();
