@@ -46,6 +46,7 @@
       "seal": "Selar & Pagar",
       "delete": "Apagar",
       "edit": "Editar Rascunho",
+      "editRecipient": "Alterar Destinatário",
       "locked": "Trancada"
     },
     "deleteModal": {
@@ -64,6 +65,8 @@
     "title": "Forjar Nova Relíquia",
     "subtitle": "Definir os Parâmetros da Relíquia",
     "editSubtitle": "Editar Parâmetros do Rascunho",
+    "editSealedSubtitle": "Alterar Destinatário de Relíquia Selada",
+    "sealedWarning": "Esta relíquia está selada. Por segurança, o título e a data de despertar estão bloqueados. Alterar o e-mail do destinatário enviará um alerta de segurança para o seu e-mail e notificará o novo destinatário imediatamente.",
     "forMe": "Para Mim",
     "gift": "Presente",
     "fieldTitle": "Gravura / Título",

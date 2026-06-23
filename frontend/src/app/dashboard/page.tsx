@@ -88,9 +88,12 @@ export default function Dashboard() {
 
     const validateEditForm = () => {
         const newErrors: Record<string, string> = {};
+        const isSealed = editingCapsule?.status === "SEALED";
 
-        if (!editTitle || editTitle.trim() === "") {
-            newErrors.title = t("forge.validation.titleRequired");
+        if (!isSealed) {
+            if (!editTitle || editTitle.trim() === "") {
+                newErrors.title = t("forge.validation.titleRequired");
+            }
         }
 
         if (!editRecipientEmail || editRecipientEmail.trim() === "") {
@@ -102,21 +105,23 @@ export default function Dashboard() {
             }
         }
 
-        if (!editUnlockDate) {
-            newErrors.unlockDate = t("forge.validation.dateRequired");
-        } else {
-            const selectedDate = new Date(`${editUnlockDate}T00:00:00`);
-            if (isNaN(selectedDate.getTime())) {
-                newErrors.unlockDate = t("forge.validation.dateInvalid");
+        if (!isSealed) {
+            if (!editUnlockDate) {
+                newErrors.unlockDate = t("forge.validation.dateRequired");
             } else {
-                const limitDate = new Date(`${minDateStr}T00:00:00`);
-                if (selectedDate < limitDate) {
-                    newErrors.unlockDate = t("forge.validation.dateMin");
-                }
-                const maxDate = new Date();
-                maxDate.setFullYear(maxDate.getFullYear() + 100);
-                if (selectedDate > maxDate) {
-                    newErrors.unlockDate = t("forge.validation.dateMax");
+                const selectedDate = new Date(`${editUnlockDate}T00:00:00`);
+                if (isNaN(selectedDate.getTime())) {
+                    newErrors.unlockDate = t("forge.validation.dateInvalid");
+                } else {
+                    const limitDate = new Date(`${minDateStr}T00:00:00`);
+                    if (selectedDate < limitDate) {
+                        newErrors.unlockDate = t("forge.validation.dateMin");
+                    }
+                    const maxDate = new Date();
+                    maxDate.setFullYear(maxDate.getFullYear() + 100);
+                    if (selectedDate > maxDate) {
+                        newErrors.unlockDate = t("forge.validation.dateMax");
+                    }
                 }
             }
         }
@@ -134,16 +139,21 @@ export default function Dashboard() {
         }
 
         setIsUpdating(true);
+        const isSealed = editingCapsule.status === "SEALED";
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
                 method: "PATCH",
                 headers: getApiHeaders(token),
-                body: JSON.stringify({
-                    title: editTitle,
-                    beneficiaryEmail: editRecipientEmail,
-                    unlockDate: `${editUnlockDate}T00:00:00`
-                })
+                body: JSON.stringify(
+                    isSealed 
+                        ? { beneficiaryEmail: editRecipientEmail }
+                        : {
+                            title: editTitle,
+                            beneficiaryEmail: editRecipientEmail,
+                            unlockDate: `${editUnlockDate}T00:00:00`
+                          }
+                )
             });
 
             if (res.ok) {
@@ -151,8 +161,12 @@ export default function Dashboard() {
                 setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
                 setEditingCapsule(null);
             } else {
-                const errorData = await res.json();
-                alert(errorData.message || "Erro ao atualizar rascunho.");
+                try {
+                    const errorData = await res.json();
+                    alert(errorData.message || (isSealed ? "Erro ao atualizar destinatário." : "Erro ao atualizar rascunho."));
+                } catch {
+                    alert(isSealed ? "Erro ao atualizar destinatário." : "Erro ao atualizar rascunho.");
+                }
             }
         } catch (error) {
             console.error("Erro ao atualizar cápsula:", error);
@@ -718,9 +732,26 @@ export default function Dashboard() {
 
                                 <form onSubmit={handleUpdateCapsule} noValidate className="space-y-6">
                                     <div>
-                                        <h2 className="text-xl font-light tracking-tight">{t("dashboard.actions.edit")}</h2>
-                                        <p className="text-xs text-neutral-500 mt-1">{t("forge.editSubtitle")}</p>
+                                        <h2 className="text-xl font-light tracking-tight">
+                                            {editingCapsule.status === "SEALED" 
+                                                ? t("dashboard.actions.editRecipient") 
+                                                : t("dashboard.actions.edit")}
+                                        </h2>
+                                        <p className="text-xs text-neutral-500 mt-1">
+                                            {editingCapsule.status === "SEALED" 
+                                                ? t("forge.editSealedSubtitle") 
+                                                : t("forge.editSubtitle")}
+                                        </p>
                                     </div>
+
+                                    {editingCapsule.status === "SEALED" && (
+                                        <div className="flex gap-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-xs text-amber-200/90 leading-relaxed">
+                                            <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                            <div>
+                                                {t("forge.sealedWarning")}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="space-y-5">
                                         <div className="space-y-2">
@@ -728,14 +759,19 @@ export default function Dashboard() {
                                             <input 
                                                 type="text" 
                                                 value={editTitle} 
+                                                disabled={editingCapsule.status === "SEALED"}
                                                 onChange={e => {
                                                     setEditTitle(e.target.value);
                                                     if (editErrors.title) setEditErrors(prev => ({ ...prev, title: "" }));
                                                 }}
-                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
-                                                    editErrors.title 
-                                                        ? "border-rose-950/85 focus:border-rose-500/50" 
-                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                className={`w-full border rounded-xl px-5 py-3.5 text-sm outline-none placeholder:text-neutral-600 ${
+                                                    editingCapsule.status === "SEALED"
+                                                        ? "bg-neutral-900/50 border-neutral-900 text-neutral-500 cursor-not-allowed select-none"
+                                                        : `bg-black/50 text-white ${
+                                                            editErrors.title 
+                                                                ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                                : "border-neutral-800 focus:border-amber-500/50"
+                                                          }`
                                                 }`}
                                             />
                                             {editErrors.title && (
@@ -773,14 +809,19 @@ export default function Dashboard() {
                                                 type="date" 
                                                 value={editUnlockDate} 
                                                 max="2099-12-31"
+                                                disabled={editingCapsule.status === "SEALED"}
                                                 onChange={e => {
                                                     setEditUnlockDate(e.target.value);
                                                     if (editErrors.unlockDate) setEditErrors(prev => ({ ...prev, unlockDate: "" }));
                                                 }}
-                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
-                                                    editErrors.unlockDate
-                                                        ? "border-rose-950/80 focus:border-rose-500/50"
-                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                className={`w-full border rounded-xl px-5 py-3.5 text-sm font-mono outline-none ${
+                                                    editingCapsule.status === "SEALED"
+                                                        ? "bg-neutral-900/50 border-neutral-900 text-neutral-500 cursor-not-allowed select-none"
+                                                        : `bg-black/50 text-white ${
+                                                            editErrors.unlockDate
+                                                                ? "border-rose-950/80 focus:border-rose-500/50"
+                                                                : "border-neutral-800 focus:border-amber-500/50"
+                                                          }`
                                                 }`} 
                                             />
                                             {editErrors.unlockDate ? (
@@ -788,7 +829,7 @@ export default function Dashboard() {
                                                     {editErrors.unlockDate}
                                                 </span>
                                             ) : (
-                                                <p className="text-[10px] text-neutral-600 italic">{t("forge.validation.dateMin")}</p>
+                                                editingCapsule.status !== "SEALED" && <p className="text-[10px] text-neutral-600 italic">{t("forge.validation.dateMin")}</p>
                                             )}
                                         </div>
                                     </div>
@@ -850,11 +891,11 @@ export default function Dashboard() {
                                             <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
                                                 {t(`dashboard.badge.${cap.status}`, cap.status)}
                                             </span>
-                                            {cap.status === "DRAFT" && (
+                                            {(cap.status === "DRAFT" || cap.status === "SEALED") && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); openEditModal(cap); }}
                                                     className="p-1.5 text-neutral-600 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-all cursor-pointer"
-                                                    title={t("dashboard.actions.edit")}
+                                                    title={cap.status === "SEALED" ? t("dashboard.actions.editRecipient") : t("dashboard.actions.edit")}
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </button>

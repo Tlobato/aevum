@@ -46,6 +46,7 @@
       "seal": "Seal & Pay",
       "delete": "Delete",
       "edit": "Edit Draft",
+      "editRecipient": "Change Recipient",
       "locked": "Locked"
     },
     "deleteModal": {
@@ -64,6 +65,8 @@
     "title": "Forge New Relic",
     "subtitle": "Define Relic Parameters",
     "editSubtitle": "Edit Draft Parameters",
+    "editSealedSubtitle": "Change Recipient of Sealed Relic",
+    "sealedWarning": "This relic is sealed. For security reasons, the title and unlock date are locked. Changing the recipient email will send a security alert to your email and immediately notify the new recipient.",
     "forMe": "For Me",
     "gift": "Gift",
     "fieldTitle": "Engraving / Title",
