@@ -368,6 +368,7 @@ public class CapsuleService {
     }
 
     private void validateClerkReverification(Jwt jwt) {
+        log.info("validateClerkReverification - Claims do JWT recebido: {}", jwt.getClaims());
         // Clerk session reverification:
         // A claim 'fva' (factor verification age) é um array de números [firstFactorAge, secondFactorAge].
         // Representa em minutos o tempo desde a última verificação de fatores do usuário.
