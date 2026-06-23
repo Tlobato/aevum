@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUser, UserButton, useAuth } from "@clerk/nextjs";
+import { useUser, UserButton, useAuth, useClerk } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2, Pencil } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
@@ -41,6 +41,7 @@ const STATUS_BADGE: Record<string, string> = {
 export default function Dashboard() {
     const { isLoaded, user } = useUser();
     const { getToken } = useAuth();
+    const clerk = useClerk();
     const router = useRouter();
     const { t, i18n } = useTranslation();
 
@@ -140,6 +141,18 @@ export default function Dashboard() {
 
         setIsUpdating(true);
         const isSealed = editingCapsule.status === "SEALED";
+
+        if (isSealed) {
+            try {
+                // Invoca o desafio de re-autenticação do Clerk para relíquias seladas
+                await (clerk as any).openReauthenticate();
+            } catch (reauthError) {
+                console.warn("Re-autenticação do Clerk falhou ou foi cancelada:", reauthError);
+                setIsUpdating(false);
+                return;
+            }
+        }
+
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
