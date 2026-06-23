@@ -45,6 +45,7 @@
       "view": "Ingressar no Cofre",
       "seal": "Selar & Pagar",
       "delete": "Apagar",
+      "edit": "Editar Rascunho",
       "locked": "Trancada"
     },
     "deleteModal": {
@@ -62,6 +63,7 @@
   "forge": {
     "title": "Forjar Nova Relíquia",
     "subtitle": "Definir os Parâmetros da Relíquia",
+    "editSubtitle": "Editar Parâmetros do Rascunho",
     "forMe": "Para Mim",
     "gift": "Presente",
     "fieldTitle": "Gravura / Título",
@@ -261,6 +263,7 @@
   "common": {
     "confirm": "Confirmar",
     "cancel": "Cancelar",
+    "save": "Salvar Alterações",
     "termsCheckbox": "Li e concordo com os ",
     "termsLink": "Termos de Uso e Custódia Digital"
   }

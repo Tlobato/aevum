@@ -45,6 +45,7 @@
       "view": "Enter the Vault",
       "seal": "Seal & Pay",
       "delete": "Delete",
+      "edit": "Edit Draft",
       "locked": "Locked"
     },
     "deleteModal": {
@@ -62,6 +63,7 @@
   "forge": {
     "title": "Forge New Relic",
     "subtitle": "Define Relic Parameters",
+    "editSubtitle": "Edit Draft Parameters",
     "forMe": "For Me",
     "gift": "Gift",
     "fieldTitle": "Engraving / Title",
@@ -261,6 +263,7 @@
   "common": {
     "confirm": "Confirm",
     "cancel": "Cancel",
+    "save": "Save Changes",
     "termsCheckbox": "I read and agree to the ",
     "termsLink": "Terms of Use and Digital Custody"
   }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, UserButton, useAuth } from "@clerk/nextjs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2 } from "lucide-react";
+import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2, Pencil } from "lucide-react";
 import { ThemePicker } from "@/components/ui/ThemePicker";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -69,6 +69,99 @@ export default function Dashboard() {
     const [errors, setErrors]               = useState<Record<string, string>>({});
     const [earlyUnlockRule, setEarlyUnlockRule] = useState<"TOTAL_LOCK" | "CREATOR_ONLY" | "ALLOW_RECIPIENT">("TOTAL_LOCK");
 
+    // Edit Capsule States
+    const [editingCapsule, setEditingCapsule] = useState<CapsuleCard | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editRecipientEmail, setEditRecipientEmail] = useState("");
+    const [editUnlockDate, setEditUnlockDate] = useState("");
+    const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    const openEditModal = (cap: CapsuleCard) => {
+        setEditingCapsule(cap);
+        setEditTitle(cap.title);
+        setEditRecipientEmail(cap.recipientEmail || "");
+        const dateOnly = cap.unlockDate.split("T")[0];
+        setEditUnlockDate(dateOnly);
+        setEditErrors({});
+    };
+
+    const validateEditForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!editTitle || editTitle.trim() === "") {
+            newErrors.title = t("forge.validation.titleRequired");
+        }
+
+        if (!editRecipientEmail || editRecipientEmail.trim() === "") {
+            newErrors.recipientEmail = t("forge.validation.emailRequired");
+        } else {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(editRecipientEmail)) {
+                newErrors.recipientEmail = t("forge.validation.emailInvalid");
+            }
+        }
+
+        if (!editUnlockDate) {
+            newErrors.unlockDate = t("forge.validation.dateRequired");
+        } else {
+            const selectedDate = new Date(`${editUnlockDate}T00:00:00`);
+            if (isNaN(selectedDate.getTime())) {
+                newErrors.unlockDate = t("forge.validation.dateInvalid");
+            } else {
+                const limitDate = new Date(`${minDateStr}T00:00:00`);
+                if (selectedDate < limitDate) {
+                    newErrors.unlockDate = t("forge.validation.dateMin");
+                }
+                const maxDate = new Date();
+                maxDate.setFullYear(maxDate.getFullYear() + 100);
+                if (selectedDate > maxDate) {
+                    newErrors.unlockDate = t("forge.validation.dateMax");
+                }
+            }
+        }
+
+        setEditErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleUpdateCapsule = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingCapsule) return;
+
+        if (!validateEditForm()) {
+            return;
+        }
+
+        setIsUpdating(true);
+        try {
+            const token = await getToken({ template: 'aevum-session' });
+            const res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
+                method: "PATCH",
+                headers: getApiHeaders(token),
+                body: JSON.stringify({
+                    title: editTitle,
+                    beneficiaryEmail: editRecipientEmail,
+                    unlockDate: `${editUnlockDate}T00:00:00`
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
+                setEditingCapsule(null);
+            } else {
+                const errorData = await res.json();
+                alert(errorData.message || "Erro ao atualizar rascunho.");
+            }
+        } catch (error) {
+            console.error("Erro ao atualizar cápsula:", error);
+            alert(t("dashboard.alerts.connError"));
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
     useEffect(() => {
         if (!isGift && earlyUnlockRule === "ALLOW_RECIPIENT") {
             setEarlyUnlockRule("TOTAL_LOCK");
@@ -88,13 +181,14 @@ export default function Dashboard() {
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && showCreateForm) {
-                setShowCreateForm(false);
+            if (e.key === "Escape") {
+                if (showCreateForm) setShowCreateForm(false);
+                if (editingCapsule) setEditingCapsule(null);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [showCreateForm]);
+    }, [showCreateForm, editingCapsule]);
 
     const fetchCapsules = useCallback(async () => {
         setIsLoading(true);
@@ -599,6 +693,128 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
 
+                {/* Modal de Edição */}
+                <AnimatePresence>
+                    {editingCapsule && (
+                        <div 
+                            onClick={(e) => {
+                                if (e.target === e.currentTarget) {
+                                    setEditingCapsule(null);
+                                }
+                            }}
+                            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/85 backdrop-blur-md overflow-y-auto py-12 px-4 cursor-pointer"
+                        >
+                            <motion.div
+                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full max-w-2xl bg-neutral-950 border border-white/5 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative cursor-default"
+                            >
+                                <button onClick={() => setEditingCapsule(null)}
+                                    className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20 cursor-pointer">
+                                    <X className="w-5 h-5" />
+                                </button>
+
+                                <form onSubmit={handleUpdateCapsule} noValidate className="space-y-6">
+                                    <div>
+                                        <h2 className="text-xl font-light tracking-tight">{t("dashboard.actions.edit")}</h2>
+                                        <p className="text-xs text-neutral-500 mt-1">{t("forge.editSubtitle")}</p>
+                                    </div>
+
+                                    <div className="space-y-5">
+                                        <div className="space-y-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldTitle")}</label>
+                                            <input 
+                                                type="text" 
+                                                value={editTitle} 
+                                                onChange={e => {
+                                                    setEditTitle(e.target.value);
+                                                    if (editErrors.title) setEditErrors(prev => ({ ...prev, title: "" }));
+                                                }}
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
+                                                    editErrors.title 
+                                                        ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                }`}
+                                            />
+                                            {editErrors.title && (
+                                                <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                    {editErrors.title}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
+                                            <input 
+                                                type="email" 
+                                                value={editRecipientEmail} 
+                                                onChange={e => {
+                                                    setEditRecipientEmail(e.target.value);
+                                                    if (editErrors.recipientEmail) setEditErrors(prev => ({ ...prev, recipientEmail: "" }));
+                                                }}
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm font-mono ${
+                                                    editErrors.recipientEmail 
+                                                        ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                }`}
+                                            />
+                                            {editErrors.recipientEmail && (
+                                                <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                    {editErrors.recipientEmail}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldUnlock")}</label>
+                                            <input 
+                                                type="date" 
+                                                value={editUnlockDate} 
+                                                max="2099-12-31"
+                                                onChange={e => {
+                                                    setEditUnlockDate(e.target.value);
+                                                    if (editErrors.unlockDate) setEditErrors(prev => ({ ...prev, unlockDate: "" }));
+                                                }}
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
+                                                    editErrors.unlockDate
+                                                        ? "border-rose-950/80 focus:border-rose-500/50"
+                                                        : "border-neutral-800 focus:border-amber-500/50"
+                                                }`} 
+                                            />
+                                            {editErrors.unlockDate ? (
+                                                <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                    {editErrors.unlockDate}
+                                                </span>
+                                            ) : (
+                                                <p className="text-[10px] text-neutral-600 italic">{t("forge.validation.dateMin")}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex gap-4 pt-4">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setEditingCapsule(null)}
+                                            className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-neutral-300 font-bold uppercase tracking-widest text-xs transition-all cursor-pointer"
+                                        >
+                                            {t("forge.buttonCancel")}
+                                        </button>
+                                        <button 
+                                            type="submit" 
+                                            disabled={isUpdating}
+                                            className="flex-1 py-4 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 rounded-xl text-black font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50 cursor-pointer"
+                                        >
+                                            {isUpdating ? t("forge.verifying") : t("common.save")}
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 {/* Galeria de Cápsulas */}
                 {capsules.length === 0 ? (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -634,6 +850,15 @@ export default function Dashboard() {
                                             <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
                                                 {t(`dashboard.badge.${cap.status}`, cap.status)}
                                             </span>
+                                            {cap.status === "DRAFT" && (
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); openEditModal(cap); }}
+                                                    className="p-1.5 text-neutral-600 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-all cursor-pointer"
+                                                    title={t("dashboard.actions.edit")}
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </button>
+                                            )}
                                             {(cap.status === "DRAFT" || isAdmin) && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, capsuleId: cap.id }); }}
