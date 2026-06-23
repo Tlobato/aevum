@@ -155,14 +155,18 @@ export default function Dashboard() {
         const isSealed = editingCapsule.status === "SEALED";
 
         try {
-            let res: Response;
             if (isSealed) {
-                // Chama a função envelopada com reverificação do Clerk.
-                // Se o backend retornar status 403 de reverificação, o hook abre o modal e repete a chamada.
-                res = await updateSealedCapsule(editingCapsule.id, editRecipientEmail);
+                // A função envelopada pelo useReverification resolve diretamente para o JSON decodificado
+                const data = (await updateSealedCapsule(editingCapsule.id, editRecipientEmail)) as any;
+                if (data && data.id) {
+                    setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
+                    setEditingCapsule(null);
+                } else {
+                    alert(data?.message || "Erro ao atualizar destinatário.");
+                }
             } else {
                 const token = await getToken({ template: 'aevum-session' });
-                res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
+                const res = await fetch(`${API_URL}/api/v1/capsules/${editingCapsule.id}`, {
                     method: "PATCH",
                     headers: getApiHeaders(token),
                     body: JSON.stringify({
@@ -171,18 +175,18 @@ export default function Dashboard() {
                         unlockDate: `${editUnlockDate}T00:00:00`
                     })
                 });
-            }
 
-            if (res.ok) {
-                const data = await res.json();
-                setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
-                setEditingCapsule(null);
-            } else {
-                try {
-                    const errorData = await res.json();
-                    alert(errorData.message || (isSealed ? "Erro ao atualizar destinatário." : "Erro ao atualizar rascunho."));
-                } catch {
-                    alert(isSealed ? "Erro ao atualizar destinatário." : "Erro ao atualizar rascunho.");
+                if (res.ok) {
+                    const data = await res.json();
+                    setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
+                    setEditingCapsule(null);
+                } else {
+                    try {
+                        const errorData = await res.json();
+                        alert(errorData.message || "Erro ao atualizar rascunho.");
+                    } catch {
+                        alert("Erro ao atualizar rascunho.");
+                    }
                 }
             }
         } catch (error) {
