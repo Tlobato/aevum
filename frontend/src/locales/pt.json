@@ -32,7 +32,7 @@
       "status": "Status",
       "actions": "Ações",
       "personal": "Cápsula Pessoal",
-      "gift": "Presente para {email}"
+      "gift": "Presente para {{email}}"
     },
     "badge": {
       "DRAFT": "Rascunho",
@@ -114,7 +114,7 @@
   "vault": {
     "loading": "Invocando Câmara do Tempo",
     "lockedTitle": "Cofre Selado",
-    "lockedSubtitle": "Esta relíquia está trancada pelo tempo até o dia {date}.",
+    "lockedSubtitle": "Esta relíquia está trancada pelo tempo até o dia {{date}}.",
     "lockedTimeLeft": "Tempo Restante:",
     "days": "dias",
     "hours": "horas",
@@ -123,7 +123,7 @@
     "earlyUnlockButton": "Quebrar Selo Antecipadamente",
     "unlockedTitle": "Cofre Aberto",
     "unlockedSubtitle": "O selo temporal foi quebrado. O legado foi revelado.",
-    "giftFrom": "Presente enviado por: {email}",
+    "giftFrom": "Presente enviado por: {{email}}",
     "theme": "Tema",
     "status": "Status",
     "plan": "Plano",
