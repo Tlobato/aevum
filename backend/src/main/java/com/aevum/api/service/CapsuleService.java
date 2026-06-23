@@ -165,7 +165,15 @@ public class CapsuleService {
                 .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
-        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            finalEmail = userRepository.findById(userId)
+                    .map(User::getEmail)
+                    .orElse(null);
+        }
+
+        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
         if (!isOwner && !isRecipient) {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
@@ -223,7 +231,15 @@ public class CapsuleService {
                 .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
-        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            finalEmail = userRepository.findById(userId)
+                    .map(User::getEmail)
+                    .orElse(null);
+        }
+
+        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
         if (!isOwner && !isRecipient) {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.memories.denied");
@@ -342,7 +358,15 @@ public class CapsuleService {
                 .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
 
         boolean isOwner = userId != null && capsule.getOwnerId().equals(userId);
-        boolean isRecipient = userEmail != null && capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            finalEmail = userId != null ? userRepository.findById(userId)
+                    .map(User::getEmail)
+                    .orElse(null) : null;
+        }
+
+        boolean isRecipient = finalEmail != null && capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
         if (!isOwner && !isRecipient) {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
