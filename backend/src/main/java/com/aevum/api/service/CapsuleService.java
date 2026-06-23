@@ -374,7 +374,9 @@ public class CapsuleService {
         // Se fva for nulo, vazio, ou a idade do fator for >= 10 minutos (limite 'strict' padrão), lançamos a exceção.
         java.util.List<?> fvaList = jwt.getClaim("fva");
         if (fvaList == null || fvaList.isEmpty()) {
-            log.warn("Re-autenticação do Clerk ausente: claim 'fva' não encontrada ou vazia no token do usuário {}", jwt.getSubject());
+            log.warn("Re-autenticação do Clerk ausente: claim 'fva' não encontrada ou vazia no token do usuário {}. " +
+                     "Caso use um JWT Template customizado (como 'aevum-session'), certifique-se de mapear a claim " +
+                     "\"fva\": \"{{session.fva}}\" nas configurações do template no painel do Clerk.", jwt.getSubject());
             throw new com.aevum.api.exception.ClerkReverificationRequiredException("Reverification required");
         }
 
