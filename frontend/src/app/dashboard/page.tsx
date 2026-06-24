@@ -129,9 +129,8 @@ export default function Dashboard() {
                 if (isNaN(selectedDate.getTime())) {
                     newErrors.unlockDate = t("forge.validation.dateInvalid");
                 } else {
-                    const now = new Date();
-                    const diffMs = selectedDate.getTime() - now.getTime();
-                    if (diffMs < 48 * 60 * 60 * 1000) {
+                    const minDate = new Date(`${minDateStr}T00:00:00`);
+                    if (selectedDate < minDate) {
                         newErrors.unlockDate = t("forge.validation.dateMin");
                     }
                     const maxDate = new Date();
@@ -218,25 +217,14 @@ export default function Dashboard() {
         capsuleId: null
     });
 
-    // Calculando a data mínima com folga de pelo menos 48 horas reais para desgelo do Glacier Deep Archive
+    // Calculando a data mínima para ser de no mínimo 3 dias no futuro para garantir folga do desgelo Glacier
     const getMinDateStr = () => {
-        const now = new Date();
-        const testDate = new Date();
-        testDate.setDate(testDate.getDate() + 2); // Inicia a busca a partir de D+2
-        
-        while (true) {
-            const year = testDate.getFullYear();
-            const month = String(testDate.getMonth() + 1).padStart(2, "0");
-            const day = String(testDate.getDate()).padStart(2, "0");
-            const dateStr = `${year}-${month}-${day}`;
-            
-            const localUnlock = new Date(`${dateStr}T00:00:00`);
-            const diffMs = localUnlock.getTime() - now.getTime();
-            if (diffMs >= 48 * 60 * 60 * 1000) {
-                return dateStr;
-            }
-            testDate.setDate(testDate.getDate() + 1);
-        }
+        const d = new Date();
+        d.setDate(d.getDate() + 3);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
     };
     const minDateStr = getMinDateStr();
     
@@ -337,9 +325,8 @@ export default function Dashboard() {
             if (isNaN(selectedDate.getTime())) {
                 newErrors.unlockDate = t("forge.validation.dateInvalid");
             } else {
-                const now = new Date();
-                const diffMs = selectedDate.getTime() - now.getTime();
-                if (diffMs < 48 * 60 * 60 * 1000) {
+                const minDate = new Date(`${minDateStr}T00:00:00`);
+                if (selectedDate < minDate) {
                     newErrors.unlockDate = t("forge.validation.dateMin");
                 }
                 const maxDate = new Date();

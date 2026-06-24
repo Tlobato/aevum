@@ -109,7 +109,7 @@
       "emailInvalid": "Insira um endereço de e-mail válido.",
       "dateRequired": "A data de despertar é obrigatória.",
       "dateInvalid": "Insira uma data válida.",
-      "dateMin": "O despertar deve ser no mínimo 2 dias no futuro.",
+      "dateMin": "O despertar deve ser no mínimo 3 dias no futuro.",
       "dateMax": "O despertar deve ser de no máximo 100 anos no futuro."
     }
   },
