@@ -86,7 +86,7 @@ public class Capsule {
     private String locale = "pt-BR";
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "VARCHAR(30) DEFAULT 'TOTAL_LOCK'")
+    @Column(nullable = false, length = 30)
     private EarlyUnlockRule earlyUnlockRule = EarlyUnlockRule.TOTAL_LOCK;
 
     @Column(name = "target_timezone", nullable = false, length = 50)
