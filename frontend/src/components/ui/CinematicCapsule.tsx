@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Type, Mic, FileVideo, Lock } from "lucide-react";
+import { Camera, Type, Mic, FileVideo, Lock, Unlock } from "lucide-react";
 import { ItemType, Memory } from "@/types/capsule";
 import { THEME_REGISTRY } from "@/config/themes";
 import { PhysicalRelic } from "./relics/PhysicalRelic";
@@ -59,6 +59,15 @@ export function CinematicCapsule({
   useEffect(() => {
     storageStatusRef.current = storageStatus;
   }, [storageStatus]);
+
+  const [isUnsealed, setIsUnsealed] = useState(false);
+  useEffect(() => {
+    if (capsuleId) {
+      const unsealed = localStorage.getItem(`aevum_unsealed_${capsuleId}`) === "true";
+      setIsUnsealed(unsealed);
+    }
+  }, [capsuleId]);
+
   const [isOpened, setIsOpened] = useState(storageStatus !== "DRAFT");
   const [isSealed, setIsSealed] = useState(storageStatus === "FROZEN" || storageStatus === "AVAILABLE" || storageStatus === "RESTORING");
   const [isChomping, setIsChomping] = useState(false);
@@ -477,10 +486,10 @@ export function CinematicCapsule({
 
             <motion.img
               src={activeTheme.assets.vault.closed} className="absolute w-full max-h-full object-contain"
-              animate={{ opacity: isChomping ? 0 : 1 }} transition={{ duration: 0 }} />
+              animate={{ opacity: (isUnsealed || isChomping) ? 0 : 1 }} transition={{ duration: 0.3 }} />
             <motion.img
               src={activeTheme.assets.vault.opened} className="absolute w-full max-h-full object-contain"
-              animate={{ opacity: isChomping ? 1 : 0 }} transition={{ duration: 0 }} />
+              animate={{ opacity: (isUnsealed || isChomping) ? 1 : 0 }} transition={{ duration: 0.3 }} />
 
             {/* Camada de Gelo se estiver Restoring */}
             <AnimatePresence>
@@ -506,11 +515,19 @@ export function CinematicCapsule({
               <div className="relative mx-auto rounded-3xl bg-black/60 shadow-[0_0_50px_rgba(245,158,11,0.15)] backdrop-blur-2xl border border-amber-500/20 overflow-hidden text-left flex flex-col">
 
                 {/* Header Fita Seladora */}
-                <div className="w-full bg-gradient-to-r from-amber-600 to-amber-900 py-3 px-6 shadow-md border-b border-amber-500/40 flex justify-between items-center">
+                <div className={`w-full py-3 px-6 shadow-md border-b flex justify-between items-center ${
+                  isUnsealed 
+                    ? 'bg-gradient-to-r from-emerald-600 to-emerald-950 border-emerald-500/40' 
+                    : 'bg-gradient-to-r from-amber-600 to-amber-900 border-amber-500/40'
+                }`}>
                   <h3 className="text-white font-serif font-black tracking-widest uppercase text-left text-sm drop-shadow-md">
-                    {t("vault.sealedBadge")}
+                    {isUnsealed ? t("vault.unlockedTitle") : t("vault.sealedBadge")}
                   </h3>
-                  <Lock className="w-4 h-4 text-amber-200" />
+                  {isUnsealed ? (
+                    <Unlock className="w-4 h-4 text-emerald-200" />
+                  ) : (
+                    <Lock className="w-4 h-4 text-amber-200" />
+                  )}
                 </div>
 
                 {/* Corpo (Invoice / Metadados) */}
@@ -546,7 +563,7 @@ export function CinematicCapsule({
                   {/* Mensagem Rodapé / Destravamento */}
                   <div className="mt-2 pt-4 border-t border-white/5 text-center flex flex-col gap-3">
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
-                      {t("vault.sealedFooter")}
+                      {isUnsealed ? t("vault.unlockedSubtitle") : t("vault.sealedFooter")}
                     </span>
                     {storageStatus !== "AVAILABLE" && storageStatus === "FROZEN" && canEarlyUnlock && (
                         <button
@@ -555,7 +572,7 @@ export function CinematicCapsule({
                           {t("vault.earlyUnlockButton")}
                         </button>
                     )}
-                    {storageStatus === "AVAILABLE" && (
+                    {storageStatus === "AVAILABLE" && isUnsealed && (
                         <button
                           onClick={() => setViewMode("GALLERY")}
                           className="w-full py-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 rounded-xl text-xs font-bold text-green-400 uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_25px_rgba(34,197,94,0.5)]">
@@ -649,8 +666,8 @@ export function CinematicCapsule({
         );
       })()}
 
-      {/* Botão de Quebrar o Selo — só aparece quando disponível para abertura antecipada */}
-      {storageStatus === "AVAILABLE" && (
+      {/* Botão de Quebrar o Selo — só aparece quando disponível e o selo ainda não foi quebrado */}
+      {storageStatus === "AVAILABLE" && !isUnsealed && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -922,8 +939,12 @@ export function CinematicCapsule({
                      autoPlay muted playsInline
                      onEnded={() => {
                         setShowFlash(true);
-                        // Marca como visto para não repetir no F5
+                        // Marca como visto no sessionStorage para não repetir o vídeo na mesma sessão
                         if (capsuleId) sessionStorage.setItem(`aevum_unseal_seen_${capsuleId}`, "true");
+                        // Salva no localStorage que o selo foi quebrado definitivamente
+                        if (capsuleId) localStorage.setItem(`aevum_unsealed_${capsuleId}`, "true");
+
+                        setIsUnsealed(true);
 
                         setTimeout(() => {
                            setIsUnsealingVideoPlaying(false);
