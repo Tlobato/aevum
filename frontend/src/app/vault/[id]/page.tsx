@@ -50,7 +50,7 @@ function VaultContent() {
                     });
                 } else {
                     // Busca autenticada (Dono)
-                    const token = await getToken();
+                    const token = await getToken({ template: 'aevum-session' });
                     res = await fetch(`${API_URL}/api/v1/capsules/${id}`, {
                         headers: getApiHeaders(token)
                     });
