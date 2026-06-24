@@ -21,6 +21,9 @@ type CapsuleCard = {
     unlockDate: string;
     totalSizeBytes: number;
     recipientEmail: string;
+    isGift: boolean;
+    ownerId: string;
+    ownerEmail: string;
 };
 
 const PLAN_LABELS: Record<string, { label: string; maxBytes: number }> = {
@@ -916,6 +919,7 @@ export default function Dashboard() {
                             const plan = PLAN_LABELS[cap.planType];
                             const usedPct = plan ? Math.min((cap.totalSizeBytes / plan.maxBytes) * 100, 100) : 0;
                             const unlockStr = new Date(cap.unlockDate).toLocaleDateString(i18n.language || "pt-BR", { year: "numeric", month: "long", day: "numeric" });
+                            const isReceivedGift = cap.isGift && cap.ownerId !== user?.id;
 
                             return (
                                 <motion.div key={cap.id}
@@ -928,16 +932,23 @@ export default function Dashboard() {
                                         <div>
                                             <h3 className="font-serif text-lg font-light leading-tight">{cap.title}</h3>
                                             <p className="text-xs text-neutral-500 mt-1 truncate">
-                                                {cap.recipientEmail === userEmail 
-                                                    ? t("dashboard.table.personal") 
-                                                    : t("dashboard.table.gift", { email: cap.recipientEmail })}
+                                                {isReceivedGift
+                                                    ? t("dashboard.receivedGiftFrom", { email: cap.ownerEmail })
+                                                    : (cap.recipientEmail === userEmail 
+                                                        ? t("dashboard.table.personal") 
+                                                        : t("dashboard.table.gift", { email: cap.recipientEmail }))}
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
+                                            {isReceivedGift && (
+                                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300">
+                                                    🎁 {t("dashboard.receivedGiftTag")}
+                                                </span>
+                                            )}
                                             <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
                                                 {t(`dashboard.badge.${cap.status}`, cap.status)}
                                             </span>
-                                            {(cap.status === "DRAFT" || cap.status === "SEALED") && (
+                                            {!isReceivedGift && (cap.status === "DRAFT" || cap.status === "SEALED") && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); openEditModal(cap); }}
                                                     className="p-1.5 text-neutral-600 hover:text-amber-400 hover:bg-amber-400/10 rounded-lg transition-all cursor-pointer"
@@ -946,7 +957,7 @@ export default function Dashboard() {
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
                                             )}
-                                            {(cap.status === "DRAFT" || isAdmin) && (
+                                            {!isReceivedGift && (cap.status === "DRAFT" || isAdmin) && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, capsuleId: cap.id }); }}
                                                     className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all cursor-pointer"

@@ -34,6 +34,8 @@
       "personal": "Personal Capsule",
       "gift": "Gift for {{email}}"
     },
+    "receivedGiftTag": "Received Legacy",
+    "receivedGiftFrom": "Gift from {{email}}",
     "badge": {
       "DRAFT": "Draft",
       "SEALED": "Sealed",

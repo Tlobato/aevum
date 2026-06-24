@@ -34,6 +34,8 @@
       "personal": "Cápsula Pessoal",
       "gift": "Presente para {{email}}"
     },
+    "receivedGiftTag": "Legado Recebido",
+    "receivedGiftFrom": "Presente de {{email}}",
     "badge": {
       "DRAFT": "Rascunho",
       "SEALED": "Selada",
