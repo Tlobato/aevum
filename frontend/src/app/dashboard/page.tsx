@@ -126,8 +126,9 @@ export default function Dashboard() {
                 if (isNaN(selectedDate.getTime())) {
                     newErrors.unlockDate = t("forge.validation.dateInvalid");
                 } else {
-                    const limitDate = new Date(`${minDateStr}T00:00:00`);
-                    if (selectedDate < limitDate) {
+                    const now = new Date();
+                    const diffMs = selectedDate.getTime() - now.getTime();
+                    if (diffMs < 48 * 60 * 60 * 1000) {
                         newErrors.unlockDate = t("forge.validation.dateMin");
                     }
                     const maxDate = new Date();
@@ -172,7 +173,8 @@ export default function Dashboard() {
                     body: JSON.stringify({
                         title: editTitle,
                         beneficiaryEmail: editRecipientEmail,
-                        unlockDate: `${editUnlockDate}T00:00:00`
+                        unlockDate: `${editUnlockDate}T00:00:00`,
+                        targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                     })
                 });
 
@@ -213,10 +215,27 @@ export default function Dashboard() {
         capsuleId: null
     });
 
-    // Calculando a data mínima de 2 dias para maturação e custo AWS Glacier
-    const minDate = new Date();
-    minDate.setDate(minDate.getDate() + 2);
-    const minDateStr = minDate.toISOString().split("T")[0];
+    // Calculando a data mínima com folga de pelo menos 48 horas reais para desgelo do Glacier Deep Archive
+    const getMinDateStr = () => {
+        const now = new Date();
+        const testDate = new Date();
+        testDate.setDate(testDate.getDate() + 2); // Inicia a busca a partir de D+2
+        
+        while (true) {
+            const year = testDate.getFullYear();
+            const month = String(testDate.getMonth() + 1).padStart(2, "0");
+            const day = String(testDate.getDate()).padStart(2, "0");
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const localUnlock = new Date(`${dateStr}T00:00:00`);
+            const diffMs = localUnlock.getTime() - now.getTime();
+            if (diffMs >= 48 * 60 * 60 * 1000) {
+                return dateStr;
+            }
+            testDate.setDate(testDate.getDate() + 1);
+        }
+    };
+    const minDateStr = getMinDateStr();
     
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -315,8 +334,9 @@ export default function Dashboard() {
             if (isNaN(selectedDate.getTime())) {
                 newErrors.unlockDate = t("forge.validation.dateInvalid");
             } else {
-                const limitDate = new Date(`${minDateStr}T00:00:00`);
-                if (selectedDate < limitDate) {
+                const now = new Date();
+                const diffMs = selectedDate.getTime() - now.getTime();
+                if (diffMs < 48 * 60 * 60 * 1000) {
                     newErrors.unlockDate = t("forge.validation.dateMin");
                 }
                 const maxDate = new Date();
@@ -350,7 +370,8 @@ export default function Dashboard() {
                     recipientEmail: isGift ? recipientEmail : userEmail,
                     planType, isTestMode: false,
                     isGift, ownerMessage: isGift ? ownerMessage : null,
-                    earlyUnlockRule
+                    earlyUnlockRule,
+                    targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                 })
             });
             if (res.ok) {
@@ -558,7 +579,7 @@ export default function Dashboard() {
                                             <input 
                                                 type="date" 
                                                 value={unlockDate} 
-                                                max="2099-12-31"
+                                                max="2099-12-31" min={minDateStr}
                                                 onChange={e => {
                                                     setUnlockDate(e.target.value);
                                                     if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
@@ -833,7 +854,7 @@ export default function Dashboard() {
                                             <input 
                                                 type="date" 
                                                 value={editUnlockDate} 
-                                                max="2099-12-31"
+                                                max="2099-12-31" min={minDateStr}
                                                 disabled={editingCapsule.status === "SEALED"}
                                                 onChange={e => {
                                                     setEditUnlockDate(e.target.value);
