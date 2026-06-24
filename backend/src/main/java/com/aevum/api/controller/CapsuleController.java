@@ -211,7 +211,11 @@ public class CapsuleController {
 
     @GetMapping
     public ResponseEntity<List<CapsuleResponse>> listMyCapsules(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject()));
+        String email = jwt.getClaimAsString("email");
+        if (email == null) {
+            email = jwt.getClaimAsString("primary_email_address");
+        }
+        return ResponseEntity.ok(capsuleService.listMyCapsules(jwt.getSubject(), email));
     }
 
     @PostMapping("/{id}/debug-unlock")

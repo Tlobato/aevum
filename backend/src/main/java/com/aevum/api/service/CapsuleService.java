@@ -184,7 +184,7 @@ public class CapsuleService {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.access.denied");
         }
 
-        return CapsuleResponse.fromEntity(capsule);
+        return CapsuleResponse.fromEntity(capsule).sanitizeForRecipient(userId);
     }
 
     @Transactional(readOnly = true)
@@ -269,9 +269,31 @@ public class CapsuleService {
     }
 
     @Transactional(readOnly = true)
-    public List<CapsuleResponse> listMyCapsules(String userId) {
-        return repository.findByOwner_Id(userId).stream()
+    public List<CapsuleResponse> listMyCapsules(String userId, String userEmail) {
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            finalEmail = userRepository.findById(userId)
+                    .map(User::getEmail)
+                    .orElse(null);
+        }
+
+        List<Capsule> myOwned = repository.findByOwner_Id(userId);
+
+        List<Capsule> myReceived = new java.util.ArrayList<>();
+        if (finalEmail != null && !finalEmail.isBlank()) {
+            myReceived = repository.findByRecipientEmail(finalEmail).stream()
+                    .filter(c -> c.getStatus() != com.aevum.api.domain.CapsuleStatus.DRAFT)
+                    .filter(c -> !c.getOwnerId().equals(userId))
+                    .collect(Collectors.toList());
+        }
+
+        List<Capsule> allCapsules = new java.util.ArrayList<>();
+        allCapsules.addAll(myOwned);
+        allCapsules.addAll(myReceived);
+
+        return allCapsules.stream()
                 .map(CapsuleResponse::fromEntity)
+                .map(res -> res.sanitizeForRecipient(userId))
                 .collect(Collectors.toList());
     }
 

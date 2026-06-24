@@ -23,6 +23,7 @@ public record CapsuleResponse(
     java.util.UUID accessToken,
     String earlyUnlockRule,
     String ownerId,
+    String ownerEmail,
     String targetTimezone
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
@@ -44,7 +45,39 @@ public record CapsuleResponse(
             capsule.getAccessToken(),
             capsule.getEarlyUnlockRule().name(),
             capsule.getOwnerId(),
+            capsule.getOwner() != null ? capsule.getOwner().getEmail() : null,
             capsule.getTargetTimezone()
         );
     }
+
+    public CapsuleResponse sanitizeForRecipient(String requesterUserId) {
+        boolean isOwner = this.ownerId != null && this.ownerId.equals(requesterUserId);
+        boolean isUnlocked = "UNLOCKED".equals(this.status) || "OPENED".equals(this.status);
+        
+        if (!isOwner && !isUnlocked) {
+            return new CapsuleResponse(
+                id,
+                themeId,
+                title,
+                description,
+                sealedAt,
+                unlockDate,
+                recipientEmail,
+                status,
+                planType,
+                storageStatus,
+                totalSizeBytes,
+                isTestMode,
+                isGift,
+                null, // Oculta a mensagem surpresa do criador até abrir
+                null, // Oculta o token de acesso público
+                earlyUnlockRule,
+                ownerId,
+                ownerEmail,
+                targetTimezone
+            );
+        }
+        return this;
+    }
 }
+
