@@ -41,6 +41,13 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "ACCESS_DENIED", "message", resolveMessage(ex.getMessage())));
     }
 
+    @ExceptionHandler(UserSyncPendingException.class)
+    public ResponseEntity<Map<String, String>> handleUserSyncPending(UserSyncPendingException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "USER_SYNC_PENDING", "message", resolveMessage(ex.getMessage())));
+    }
+
+
     @ExceptionHandler(ClerkReverificationRequiredException.class)
     public ResponseEntity<Map<String, Object>> handleReverificationRequired(ClerkReverificationRequiredException ex) {
         Map<String, Object> clerkError = Map.of(

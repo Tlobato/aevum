@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.oauth2.jwt.Jwt;
+import com.aevum.api.exception.UserSyncPendingException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,10 +42,9 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.unlockDate.future");
         }
 
-        // Garante registro local do usuário dono do rascunho
-        resolveEmailAndRegisterLazy(userId, userEmail);
+        // Valida se o usuário dono já existe no banco local (sincronizado pelo webhook)
         User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("user.notfound"));
+                .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
 
         Capsule capsule = new Capsule();
         if (request.themeId() != null && !request.themeId().isBlank()) {
@@ -172,7 +172,16 @@ public class CapsuleService {
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
 
-        String finalEmail = resolveEmailAndRegisterLazy(userId, userEmail);
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            if (userId != null && !userId.isBlank()) {
+                finalEmail = userRepository.findById(userId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
+            } else {
+                finalEmail = null;
+            }
+        }
 
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
@@ -233,7 +242,16 @@ public class CapsuleService {
 
         boolean isOwner = capsule.getOwnerId().equals(userId);
 
-        String finalEmail = resolveEmailAndRegisterLazy(userId, userEmail);
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            if (userId != null && !userId.isBlank()) {
+                finalEmail = userRepository.findById(userId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
+            } else {
+                finalEmail = null;
+            }
+        }
 
         boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
@@ -261,7 +279,16 @@ public class CapsuleService {
 
     @Transactional(readOnly = true)
     public List<CapsuleResponse> listMyCapsules(String userId, String userEmail) {
-        String finalEmail = resolveEmailAndRegisterLazy(userId, userEmail);
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            if (userId != null && !userId.isBlank()) {
+                finalEmail = userRepository.findById(userId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
+            } else {
+                finalEmail = null;
+            }
+        }
 
         List<Capsule> myOwned = repository.findByOwner_Id(userId);
 
@@ -376,7 +403,16 @@ public class CapsuleService {
 
         boolean isOwner = userId != null && capsule.getOwnerId().equals(userId);
 
-        String finalEmail = resolveEmailAndRegisterLazy(userId, userEmail);
+        String finalEmail = userEmail;
+        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
+            if (userId != null && !userId.isBlank()) {
+                finalEmail = userRepository.findById(userId)
+                        .map(User::getEmail)
+                        .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
+            } else {
+                finalEmail = null;
+            }
+        }
 
         boolean isRecipient = finalEmail != null && capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(finalEmail);
 
@@ -506,25 +542,5 @@ public class CapsuleService {
         }
         
         return CapsuleResponse.fromEntity(capsule);
-    }
-
-    private String resolveEmailAndRegisterLazy(String userId, String userEmail) {
-        String finalEmail = userEmail;
-        if (finalEmail == null || finalEmail.isBlank() || finalEmail.equalsIgnoreCase("unknown")) {
-            if (userId == null) return null;
-            return userRepository.findById(userId)
-                    .map(User::getEmail)
-                    .orElse(null);
-        } else if (userId != null && !userId.isBlank()) {
-            if (!userRepository.existsById(userId)) {
-                log.info("Usuário {} não encontrado no banco local. Realizando lazy-registration com e-mail: {}", userId, finalEmail);
-                User newUser = new User();
-                newUser.setId(userId);
-                newUser.setEmail(finalEmail);
-                newUser.setPlanType("PAY_PER_USE");
-                userRepository.save(newUser);
-            }
-        }
-        return finalEmail;
     }
 }
