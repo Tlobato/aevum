@@ -22,7 +22,8 @@ public record CapsuleResponse(
     String ownerMessage,
     java.util.UUID accessToken,
     String earlyUnlockRule,
-    String ownerId
+    String ownerId,
+    String targetTimezone
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
@@ -42,7 +43,8 @@ public record CapsuleResponse(
             capsule.getOwnerMessage(),
             capsule.getAccessToken(),
             capsule.getEarlyUnlockRule().name(),
-            capsule.getOwnerId()
+            capsule.getOwnerId(),
+            capsule.getTargetTimezone()
         );
     }
 }

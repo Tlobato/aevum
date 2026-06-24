@@ -89,6 +89,12 @@ public class Capsule {
     @Column(nullable = false, columnDefinition = "VARCHAR(30) DEFAULT 'TOTAL_LOCK'")
     private EarlyUnlockRule earlyUnlockRule = EarlyUnlockRule.TOTAL_LOCK;
 
+    @Column(name = "target_timezone", nullable = false, length = 50)
+    private String targetTimezone = "America/Sao_Paulo";
+
+    @Column(name = "awakening_email_sent", nullable = false)
+    private boolean awakeningEmailSent = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -116,6 +122,22 @@ public class Capsule {
 
     public void setLocale(String locale) {
         this.locale = locale;
+    }
+
+    public String getTargetTimezone() {
+        return targetTimezone;
+    }
+
+    public void setTargetTimezone(String targetTimezone) {
+        this.targetTimezone = targetTimezone;
+    }
+
+    public boolean isAwakeningEmailSent() {
+        return awakeningEmailSent;
+    }
+
+    public void setAwakeningEmailSent(boolean awakeningEmailSent) {
+        this.awakeningEmailSent = awakeningEmailSent;
     }
 
     // Getters and Setters

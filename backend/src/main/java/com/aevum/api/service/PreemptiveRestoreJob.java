@@ -10,6 +10,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Service
@@ -29,25 +31,25 @@ public class PreemptiveRestoreJob {
         this.capsuleService = capsuleService;
     }
 
-    // Executa diariamente à meia-noite (0 0 0 * * ?) -> Podemos setar para rodar a cada hora por precaução.
     @Scheduled(cron = "0 0 * * * *") 
     public void unfreezeCapsules() {
         log.info("Iniciando Job de Desgelo Preemptivo...");
 
-        // Procurando cápsulas seladas, atualmente congeladas, que vão abrir nas próximas 48 horas.
-        LocalDateTime threshold = LocalDateTime.now().plusHours(48);
-
-        List<Capsule> capsulesToRestore = capsuleRepository.findByUnlockDateBeforeAndStatus(threshold, CapsuleStatus.SEALED).stream()
+        List<Capsule> sealedCapsules = capsuleRepository.findByStatus(CapsuleStatus.SEALED).stream()
                 .filter(c -> c.getStorageStatus() == StorageStatus.FROZEN)
                 .toList();
 
-        for (Capsule capsule : capsulesToRestore) {
-            log.info("Solicitando Restore AWS Glacier para Cápsula: {}", capsule.getId());
-            
+        for (Capsule capsule : sealedCapsules) {
             try {
-                storageService.triggerRestoreTask(capsule);
-                capsule.setStorageStatus(StorageStatus.RESTORING);
-                capsuleRepository.save(capsule);
+                ZonedDateTime localNow = ZonedDateTime.now(ZoneId.of(capsule.getTargetTimezone()));
+                ZonedDateTime localUnlock = ZonedDateTime.of(capsule.getUnlockDate(), ZoneId.of(capsule.getTargetTimezone()));
+                
+                if (localNow.plusHours(48).isAfter(localUnlock)) {
+                    log.info("Solicitando Restore AWS Glacier para Cápsula: {}", capsule.getId());
+                    storageService.triggerRestoreTask(capsule);
+                    capsule.setStorageStatus(StorageStatus.RESTORING);
+                    capsuleRepository.save(capsule);
+                }
             } catch (Exception e) {
                 log.error("Falha ao iniciar restore da cápsula {}", capsule.getId(), e);
             }
@@ -63,39 +65,84 @@ public class PreemptiveRestoreJob {
         }
     }
 
-    // Executa a cada hora para despertar relíquias maduras próximas do horário correto
+    @Scheduled(cron = "0 0 * * * *")
+    public void checkRestoreStatus() {
+        log.info("Iniciando Job de Verificação de Restore S3...");
+
+        List<Capsule> restoringCapsules = capsuleRepository.findByStorageStatus(StorageStatus.RESTORING);
+
+        for (Capsule capsule : restoringCapsules) {
+            try {
+                if (storageService.areFilesAvailable(capsule)) {
+                    log.info("Arquivos restaurados e prontos no S3 para a cápsula: {}", capsule.getId());
+                    capsule.setStorageStatus(StorageStatus.AVAILABLE);
+                    capsuleRepository.save(capsule);
+                }
+            } catch (Exception e) {
+                log.error("Erro ao verificar restore da cápsula {}", capsule.getId(), e);
+            }
+        }
+        
+        log.info("Job de Verificação de Restore finalizado.");
+    }
+
     @Scheduled(cron = "0 0 * * * *")
     public void awakenRipeCapsules() {
         log.info("Iniciando Job de Despertar de Cápsulas Maduras...");
 
-        // Busca cápsulas seladas cuja data de destranca já chegou ou passou
-        LocalDateTime now = LocalDateTime.now();
-
-        List<Capsule> ripeCapsules = capsuleRepository.findByUnlockDateBeforeAndStatus(now, CapsuleStatus.SEALED).stream()
-                .filter(c -> c.getStorageStatus() != StorageStatus.AVAILABLE)
+        List<Capsule> sealedCapsules = capsuleRepository.findByStatus(CapsuleStatus.SEALED).stream()
+                .filter(c -> c.getStorageStatus() == StorageStatus.AVAILABLE)
                 .toList();
 
-        for (Capsule capsule : ripeCapsules) {
-            log.info("O tempo chegou! Despertando a cápsula: {}", capsule.getId());
+        for (Capsule capsule : sealedCapsules) {
             try {
-                capsule.setStorageStatus(StorageStatus.AVAILABLE);
-                capsule.setStatus(CapsuleStatus.UNLOCKED);
-                capsuleRepository.save(capsule);
-
-                // Dispara o Mensageiro!
-                emailService.sendAwakeningEmail(
-                    capsule.getRecipientEmail(),
-                    capsule.getTitle(),
-                    capsule.getOwnerMessage(),
-                    capsule.getId(),
-                    capsule.getAccessToken(),
-                    capsule.getLocale()
-                );
+                ZonedDateTime localNow = ZonedDateTime.now(ZoneId.of(capsule.getTargetTimezone()));
+                ZonedDateTime localUnlock = ZonedDateTime.of(capsule.getUnlockDate(), ZoneId.of(capsule.getTargetTimezone()));
+                
+                if (localNow.isAfter(localUnlock) || localNow.equals(localUnlock)) {
+                    log.info("O tempo chegou! Desbloqueando a cápsula no site: {}", capsule.getId());
+                    capsule.setStatus(CapsuleStatus.UNLOCKED);
+                    capsuleRepository.save(capsule);
+                }
             } catch (Exception e) {
                 log.error("Falha ao despertar a cápsula {}", capsule.getId(), e);
             }
         }
 
-        log.info("Job de Despertar finalizado. {} cápsulas acordadas.", ripeCapsules.size());
+        log.info("Job de Despertar finalizado.");
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    public void sendAwakeningEmails() {
+        log.info("Iniciando Job de Disparo de E-mails de Despertar...");
+
+        List<Capsule> unlockedCapsules = capsuleRepository.findByStatus(CapsuleStatus.UNLOCKED).stream()
+                .filter(c -> !c.isAwakeningEmailSent())
+                .filter(c -> c.getStorageStatus() == StorageStatus.AVAILABLE)
+                .toList();
+
+        for (Capsule capsule : unlockedCapsules) {
+            try {
+                ZonedDateTime localNow = ZonedDateTime.now(ZoneId.of(capsule.getTargetTimezone()));
+
+                if (localNow.getHour() >= 8) {
+                    log.info("Disparando e-mail de despertar para a cápsula: {}", capsule.getId());
+                    emailService.sendAwakeningEmail(
+                        capsule.getRecipientEmail(),
+                        capsule.getTitle(),
+                        capsule.getOwnerMessage(),
+                        capsule.getId(),
+                        capsule.getAccessToken(),
+                        capsule.getLocale()
+                    );
+                    capsule.setAwakeningEmailSent(true);
+                    capsuleRepository.save(capsule);
+                }
+            } catch (Exception e) {
+                log.error("Falha ao disparar e-mail de despertar para a cápsula {}", capsule.getId(), e);
+            }
+        }
+        
+        log.info("Job de Disparo de E-mails finalizado.");
     }
 }

@@ -135,6 +135,43 @@ public class StorageService {
         }
     }
 
+    public boolean areFilesAvailable(Capsule capsule) {
+        String capsuleIdStr = capsule.getId().toString();
+        for (MemoryItem item : capsule.getItems()) {
+            if (item.getFileName() == null || item.getFileName().isBlank()) continue;
+
+            String key = "sealed/" + capsuleIdStr + "/" + item.getFileName();
+            try {
+                HeadObjectRequest headReq = HeadObjectRequest.builder()
+                        .bucket(bucketName)
+                        .key(key)
+                        .build();
+
+                HeadObjectResponse headRes = s3Client.headObject(headReq);
+                StorageClass storageClass = headRes.storageClass();
+
+                // Se a StorageClass for nula ou STANDARD, o arquivo está pronto para leitura
+                if (storageClass == null || storageClass == StorageClass.STANDARD) {
+                    continue;
+                }
+
+                // Se for GLACIER ou DEEP_ARCHIVE, precisamos inspecionar o cabeçalho de restore
+                String restoreStr = headRes.restore();
+                if (restoreStr == null || !restoreStr.contains("ongoing-request=\"false\"")) {
+                    log.warn("Arquivo {} ainda indisponível na S3. Info de Restore: {}", key, restoreStr);
+                    return false;
+                }
+            } catch (NoSuchKeyException e) {
+                log.error("Arquivo da cápsula não encontrado no S3: {}", key);
+                return false;
+            } catch (Exception e) {
+                log.error("Erro ao verificar cabeçalhos do arquivo {} no S3", key, e);
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Força os arquivos de volta para STANDARD.
      * APENAS para uso via botão Admin (debug/testes).

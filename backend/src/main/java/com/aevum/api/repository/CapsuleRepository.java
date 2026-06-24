@@ -19,4 +19,8 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
 
     // BATCH / Cron jobs: Retornar todas as cápsulas que bateram a data de abertura e ainda estão seladas
     List<Capsule> findByUnlockDateBeforeAndStatus(LocalDateTime date, com.aevum.api.domain.CapsuleStatus status);
+
+    List<Capsule> findByStatus(com.aevum.api.domain.CapsuleStatus status);
+
+    List<Capsule> findByStorageStatus(com.aevum.api.domain.StorageStatus storageStatus);
 }

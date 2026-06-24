@@ -36,5 +36,8 @@ public record CapsuleCreateRequest(
     @Size(max = 1000, message = "{capsule.ownerMessage.size}")
     String ownerMessage,
 
-    String earlyUnlockRule
+    String earlyUnlockRule,
+
+    @NotBlank(message = "{capsule.targetTimezone.notblank}")
+    String targetTimezone
 ) {}

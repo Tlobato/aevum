@@ -62,6 +62,11 @@ public class CapsuleService {
         capsule.setStatus(CapsuleStatus.DRAFT);
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.DRAFT);
         capsule.setLocale(org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag());
+        if (request.targetTimezone() != null && !request.targetTimezone().isBlank()) {
+            capsule.setTargetTimezone(request.targetTimezone());
+        } else {
+            capsule.setTargetTimezone("America/Sao_Paulo");
+        }
 
         if (request.earlyUnlockRule() != null && !request.earlyUnlockRule().isBlank()) {
             capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.valueOf(request.earlyUnlockRule()));
@@ -191,8 +196,8 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.token.invalid");
         }
 
-        // Se não estiver em modo de teste, valida a data
-        if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
+        // Se não estiver em modo de teste e não estiver desbloqueada, valida a data
+        if (!capsule.isTestMode() && capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.UNLOCKED && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("capsule.unlockDate.notYet");
         }
 
@@ -208,7 +213,7 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.token.invalid");
         }
 
-        if (!capsule.isTestMode() && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
+        if (!capsule.isTestMode() && capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.UNLOCKED && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
             throw new IllegalArgumentException("capsule.memories.sealed");
         }
 
@@ -243,6 +248,10 @@ public class CapsuleService {
 
         if (!isOwner && !isRecipient) {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.memories.denied");
+        }
+
+        if (!capsule.isTestMode() && capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.UNLOCKED && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {
+            throw new IllegalArgumentException("capsule.memories.sealed");
         }
 
         if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.AVAILABLE) {
@@ -288,11 +297,11 @@ public class CapsuleService {
         }
 
         // Solicita o desgelo do Glacier (leva até 48h).
-        // O storageStatus permanece FROZEN até o PreemptiveRestoreJob confirmar que está pronto.
         storageService.triggerRestoreTask(capsule);
 
-        // Marca que o desgelo foi solicitado (o job diário vai marcar como AVAILABLE quando pronto)
+        // Marca que o desgelo foi solicitado e desbloqueia a cápsula imediatamente
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.RESTORING);
+        capsule.setStatus(com.aevum.api.domain.CapsuleStatus.UNLOCKED);
         repository.save(capsule);
 
         log.info("Desbloqueio antecipado solicitado para cápsula {}. Desgelo iniciado no Glacier.", id);
@@ -444,10 +453,13 @@ public class CapsuleService {
                 }
                 capsule.setUnlockDate(request.unlockDate());
             }
+            if (request.targetTimezone() != null && !request.targetTimezone().isBlank()) {
+                capsule.setTargetTimezone(request.targetTimezone());
+            }
             capsule = repository.save(capsule);
         } else if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.SEALED) {
-            // Se tentar alterar título ou data de destranca, bloqueia
-            if ((request.title() != null && !request.title().isBlank()) || request.unlockDate() != null) {
+            if ((request.title() != null && !request.title().isBlank()) || request.unlockDate() != null || 
+                (request.targetTimezone() != null && !request.targetTimezone().isBlank() && !request.targetTimezone().equalsIgnoreCase(capsule.getTargetTimezone()))) {
                 throw new IllegalArgumentException("capsule.already.sealed");
             }
 

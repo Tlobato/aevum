@@ -5,5 +5,6 @@ import java.time.LocalDateTime;
 public record CapsuleUpdateRequest(
         String title,
         String beneficiaryEmail,
-        LocalDateTime unlockDate
+        LocalDateTime unlockDate,
+        String targetTimezone
 ) {}
