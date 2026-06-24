@@ -13,6 +13,7 @@
     "tabForgeNew": "Forge New Relic",
     "signOut": "Sign Out",
     "loading": "Awakening relics...",
+    "syncingUser": "Synchronizing your Aevum account... Please wait a few moments.",
     "noCapsules": "The vault is empty.",
     "noCapsulesSubtitle": "Click on \"Forge New Relic\" to begin.",
     "capsulesCount_zero": "No relics forged.",

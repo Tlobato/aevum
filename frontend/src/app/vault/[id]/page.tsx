@@ -24,6 +24,7 @@ function VaultContent() {
 
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     // Se o Clerk carregou e o usuário não está logado nem possui token de acesso público,
     // redireciona de forma segura para a tela de login do Clerk e traz de volta para o cofre.
@@ -59,7 +60,18 @@ function VaultContent() {
                 if (res.ok) {
                     const data = await res.json();
                     setCapsuleData(data);
+                    setIsSyncing(false);
                 } else {
+                    try {
+                        const err = await res.json();
+                        if (err.error === "USER_SYNC_PENDING") {
+                            setIsSyncing(true);
+                            setTimeout(fetchCapsule, 2000);
+                            return; // Retorna sem desligar loading nem redirecionar
+                        }
+                    } catch {
+                        // ignorar
+                    }
                     // Se falhar a busca (ex: token inválido), vai pro dashboard ou home
                     router.push(user ? "/dashboard" : "/");
                 }
@@ -73,7 +85,7 @@ function VaultContent() {
         fetchCapsule();
     }, [id, user, isLoaded, router, accessToken, getToken]);
 
-    if (loading) {
+    if (loading || isSyncing) {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
                 <div className="w-24 h-24 overflow-hidden relative rounded-full drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">
@@ -83,8 +95,10 @@ function VaultContent() {
                         className="w-[115%] h-[115%] max-w-none object-cover -translate-x-[7%] -translate-y-[7%]" 
                     />
                 </div>
-                <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                    {t("vault.loading")}
+                <span className="text-amber-500/80 font-sans text-xs text-amber-500 uppercase tracking-widest text-center px-4 animate-pulse">
+                    {isSyncing 
+                        ? t("dashboard.syncingUser", "Sincronizando sua conta do Aevum... Por favor, aguarde alguns instantes.")
+                        : t("vault.loading")}
                 </span>
             </div>
         );

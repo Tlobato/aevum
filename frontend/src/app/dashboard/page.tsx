@@ -66,6 +66,7 @@ export default function Dashboard() {
 
     const [capsules, setCapsules] = useState<CapsuleCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSyncing, setIsSyncing] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     // Form state
@@ -246,7 +247,22 @@ export default function Dashboard() {
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
                 headers: getApiHeaders(token)
             });
-            if (res.ok) setCapsules(await res.json());
+            if (res.ok) {
+                setCapsules(await res.json());
+                setIsSyncing(false);
+            } else {
+                try {
+                    const err = await res.json();
+                    if (err.error === "USER_SYNC_PENDING") {
+                        setIsSyncing(true);
+                        setTimeout(() => {
+                            fetchCapsules();
+                        }, 2000);
+                    }
+                } catch {
+                    // ignorar
+                }
+            }
         } catch (e) {
             console.error("Erro ao buscar cápsulas:", e);
         } finally {
@@ -349,33 +365,51 @@ export default function Dashboard() {
         }
 
         setIsSaving(true);
-        try {
-            const token = await getToken({ template: 'aevum-session' });
-            const res = await fetch(`${API_URL}/api/v1/capsules`, {
-                method: "POST",
-                headers: getApiHeaders(token),
-                body: JSON.stringify({
-                    themeId, title, description,
-                    unlockDate: `${unlockDate}T00:00:00`,
-                    recipientEmail: isGift ? recipientEmail : userEmail,
-                    planType, isTestMode: false,
-                    isGift, ownerMessage: isGift ? ownerMessage : null,
-                    earlyUnlockRule,
-                    targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                router.push(`/vault/${data.id}`);
+        const submitCreate = async () => {
+            try {
+                const token = await getToken({ template: 'aevum-session' });
+                const res = await fetch(`${API_URL}/api/v1/capsules`, {
+                    method: "POST",
+                    headers: getApiHeaders(token),
+                    body: JSON.stringify({
+                        themeId, title, description,
+                        unlockDate: `${unlockDate}T00:00:00`,
+                        recipientEmail: isGift ? recipientEmail : userEmail,
+                        planType, isTestMode: false,
+                        isGift, ownerMessage: isGift ? ownerMessage : null,
+                        earlyUnlockRule,
+                        targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                    })
+                });
+                if (res.ok) {
+                    setIsSyncing(false);
+                    const data = await res.json();
+                    router.push(`/vault/${data.id}`);
+                } else {
+                    try {
+                        const err = await res.json();
+                        if (err.error === "USER_SYNC_PENDING") {
+                            setIsSyncing(true);
+                            setTimeout(submitCreate, 2000);
+                        } else {
+                            setIsSaving(false);
+                            alert(err.message || "Erro ao criar cápsula.");
+                        }
+                    } catch {
+                        setIsSaving(false);
+                        alert("Erro ao criar cápsula.");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                setIsSaving(false);
             }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setIsSaving(false);
-        }
+        };
+
+        await submitCreate();
     };
 
-    if (isLoading) {
+    if (isLoading || isSyncing) {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
                 <motion.img 
@@ -385,8 +419,10 @@ export default function Dashboard() {
                     alt="Loading..." 
                     className="w-24 h-24 object-contain drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                 />
-                <span className="text-amber-500/60 font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">
-                    {t("dashboard.loading")}
+                <span className="text-amber-500/80 font-sans text-xs text-amber-500 uppercase tracking-widest text-center px-4 animate-pulse">
+                    {isSyncing 
+                        ? t("dashboard.syncingUser", "Sincronizando sua conta do Aevum... Por favor, aguarde alguns instantes.")
+                        : t("dashboard.loading")}
                 </span>
             </div>
         );
