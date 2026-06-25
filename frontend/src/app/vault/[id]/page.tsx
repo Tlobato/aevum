@@ -25,10 +25,15 @@ function VaultContent() {
     const [capsuleData, setCapsuleData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Se o Clerk carregou e o usuário não está logado nem possui token de acesso público,
     // redireciona de forma segura para a tela de login do Clerk e traz de volta para o cofre.
-    if (isLoaded && !accessToken && !user) {
+    if (mounted && isLoaded && !accessToken && !user) {
         return (
             <RedirectToSignIn 
                 signInForceRedirectUrl={`/vault/${id}`}
@@ -85,7 +90,7 @@ function VaultContent() {
         fetchCapsule();
     }, [id, user, isLoaded, router, accessToken, getToken]);
 
-    if (loading || isSyncing) {
+    if (!mounted || loading || isSyncing) {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
                 <div className="w-24 h-24 overflow-hidden relative rounded-full drop-shadow-[0_0_20px_rgba(245,158,11,0.3)]">
