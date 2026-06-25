@@ -17,6 +17,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import com.aevum.api.exception.UserSyncPendingException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -40,6 +42,15 @@ public class CapsuleService {
     public CapsuleResponse createDraft(CapsuleCreateRequest request, String userId, String userEmail) {
         if (request.unlockDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("capsule.unlockDate.future");
+        }
+
+        // Validação de Trava Temporal (48h/D+3): Mínimo de 48 horas reais até a meia-noite local do fuso informado
+        String tz = (request.targetTimezone() != null && !request.targetTimezone().isBlank()) ? request.targetTimezone() : "America/Sao_Paulo";
+        ZoneId zoneId = ZoneId.of(tz);
+        ZonedDateTime nowInZone = ZonedDateTime.now(zoneId);
+        ZonedDateTime unlockInZone = ZonedDateTime.of(request.unlockDate(), zoneId);
+        if (unlockInZone.isBefore(nowInZone.plusHours(48))) {
+            throw new IllegalArgumentException("capsule.unlockDate.min48h");
         }
 
         // Valida se o usuário dono já existe no banco local (sincronizado pelo webhook)
@@ -486,14 +497,31 @@ public class CapsuleService {
             if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
                 capsule.setRecipientEmail(request.beneficiaryEmail());
             }
-            if (request.unlockDate() != null) {
-                if (request.unlockDate().isBefore(LocalDateTime.now())) {
+            if (request.unlockDate() != null || (request.targetTimezone() != null && !request.targetTimezone().isBlank())) {
+                String tz = (request.targetTimezone() != null && !request.targetTimezone().isBlank()) 
+                        ? request.targetTimezone() 
+                        : capsule.getTargetTimezone();
+                LocalDateTime unlockDate = (request.unlockDate() != null) 
+                        ? request.unlockDate() 
+                        : capsule.getUnlockDate();
+
+                if (unlockDate.isBefore(LocalDateTime.now())) {
                     throw new IllegalArgumentException("capsule.unlockDate.future");
                 }
-                capsule.setUnlockDate(request.unlockDate());
-            }
-            if (request.targetTimezone() != null && !request.targetTimezone().isBlank()) {
-                capsule.setTargetTimezone(request.targetTimezone());
+
+                ZoneId zoneId = ZoneId.of(tz);
+                ZonedDateTime nowInZone = ZonedDateTime.now(zoneId);
+                ZonedDateTime unlockInZone = ZonedDateTime.of(unlockDate, zoneId);
+                if (unlockInZone.isBefore(nowInZone.plusHours(48))) {
+                    throw new IllegalArgumentException("capsule.unlockDate.min48h");
+                }
+
+                if (request.unlockDate() != null) {
+                    capsule.setUnlockDate(request.unlockDate());
+                }
+                if (request.targetTimezone() != null && !request.targetTimezone().isBlank()) {
+                    capsule.setTargetTimezone(request.targetTimezone());
+                }
             }
             capsule = repository.save(capsule);
         } else if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.SEALED) {

@@ -343,8 +343,9 @@ export default function Dashboard() {
                 newErrors.unlockDate = t("forge.validation.dateInvalid");
             } else {
                 const minDate = new Date(`${minDateStr}T00:00:00`);
-                if (selectedDate < minDate) {
-                    newErrors.unlockDate = t("forge.validation.dateMin");
+                const fortyEightHoursFromNow = new Date(Date.now() + 48 * 60 * 60 * 1000);
+                if (selectedDate < minDate || selectedDate < fortyEightHoursFromNow) {
+                    newErrors.unlockDate = t("forge.validation.dateMin48h", "A data selecionada deve ser de pelo menos 48 horas no futuro.");
                 }
                 const maxDate = new Date();
                 maxDate.setFullYear(maxDate.getFullYear() + 100);

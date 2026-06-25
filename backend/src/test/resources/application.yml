@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+  mail:
+    host: localhost
+    port: 3025
+    username: test
+    password: test
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://enjoyed-airedale-42.clerk.accounts.dev
+aws:
+  s3:
+    bucket: aevum-test-bucket
+    region: us-east-1
+    endpoint: http://localhost:4566
+    access-key: test
+    secret-key: test
+stripe:
+  secret-key: sk_test_mock
+  webhook-secret: whsec_mock
+aevum:
+  frontend-url: http://localhost:3000
+  admin-emails: thyagollobato@gmail.com
+  admin-user-ids: user_admin123
+clerk:
+  webhook:
+    secret: dummy_secret
