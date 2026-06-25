@@ -964,11 +964,11 @@ export default function Dashboard() {
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
                                             {isReceivedGift && (
-                                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300">
+                                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300 whitespace-nowrap">
                                                     🎁 {t("dashboard.receivedGiftTag")}
                                                 </span>
                                             )}
-                                            <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]}`}>
+                                            <span className={`shrink-0 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full border ${STATUS_BADGE[cap.status] || STATUS_BADGE["DRAFT"]} whitespace-nowrap`}>
                                                 {t(`dashboard.badge.${cap.status}`, cap.status)}
                                             </span>
                                             {!isReceivedGift && (cap.status === "DRAFT" || cap.status === "SEALED") && (
