@@ -67,6 +67,7 @@ export default function Dashboard() {
     const [capsules, setCapsules] = useState<CapsuleCard[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSyncing, setIsSyncing] = useState(false);
+    const [isLogoRotating, setIsLogoRotating] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     // Form state
@@ -436,13 +437,22 @@ export default function Dashboard() {
             {/* Header */}
             <header className="border-b border-white/5 px-6 lg:px-12 py-6">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <img 
+                    <div 
+                        onClick={() => {
+                            setIsLogoRotating(true);
+                            setTimeout(() => setIsLogoRotating(false), 800);
+                            router.push("/dashboard");
+                        }}
+                        className="flex items-center gap-3 cursor-pointer group select-none"
+                    >
+                        <motion.img 
+                            animate={{ rotate: isLogoRotating ? 360 : 0 }}
+                            transition={{ duration: 0.8, ease: "easeInOut" }}
                             src="/logo-relic.png" 
                             alt="Aevum Logo" 
                             className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
                         />
-                        <span className="font-serif text-xl font-light tracking-tight">Aevum</span>
+                        <span className="font-serif text-xl font-light tracking-tight group-hover:text-amber-500 transition-colors">Aevum</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <LanguageSwitcher />
@@ -951,9 +961,9 @@ export default function Dashboard() {
                                     className="group bg-neutral-900/40 border border-neutral-800 hover:border-amber-500/30 rounded-3xl p-6 flex flex-col gap-5 transition-all duration-300 hover:shadow-[0_0_30px_rgba(245,158,11,0.06)]"
                                 >
                                     {/* Cabeçalho do Card */}
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h3 className="font-serif text-lg font-light leading-tight">{cap.title}</h3>
+                                    <div className="flex items-start justify-between gap-3 min-w-0">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-serif text-lg font-light leading-tight break-words">{cap.title}</h3>
                                             <p className="text-xs text-neutral-500 mt-1 truncate">
                                                 {isReceivedGift
                                                     ? t("dashboard.receivedGiftFrom", { email: cap.ownerEmail })
@@ -962,7 +972,7 @@ export default function Dashboard() {
                                                         : t("dashboard.table.gift", { email: cap.recipientEmail }))}
                                             </p>
                                         </div>
-                                        <div className="flex flex-col items-end gap-2">
+                                        <div className="flex flex-col items-end gap-2 shrink-0">
                                             {isReceivedGift && (
                                                 <span className="shrink-0 text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full border border-rose-500/30 bg-rose-500/10 text-rose-300 whitespace-nowrap">
                                                     🎁 {t("dashboard.receivedGiftTag")}
