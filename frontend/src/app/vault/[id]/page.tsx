@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useUser, useAuth, RedirectToSignIn } from "@clerk/nextjs";
+import { useUser, useAuth, useClerk } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { API_URL, getApiHeaders } from "@/lib/api";
 function VaultContent() {
     const { isLoaded, user } = useUser();
     const { getToken } = useAuth();
+    const clerk = useClerk();
     const router = useRouter();
     const params = useParams();
     const searchParams = useSearchParams();
@@ -31,16 +32,15 @@ function VaultContent() {
         setMounted(true);
     }, []);
 
-    // Se o Clerk carregou e o usuário não está logado nem possui token de acesso público,
-    // redireciona de forma segura para a tela de login do Clerk e traz de volta para o cofre.
-    if (mounted && isLoaded && !accessToken && !user) {
-        return (
-            <RedirectToSignIn 
-                signInForceRedirectUrl={`/vault/${id}`}
-                signUpForceRedirectUrl={`/vault/${id}`}
-            />
-        );
-    }
+    // Redirecionamento imperativo quando o usuário não estiver autenticado e não tiver token de acesso público
+    useEffect(() => {
+        if (mounted && isLoaded && !accessToken && !user) {
+            clerk.redirectToSignIn({
+                signInForceRedirectUrl: window.location.href,
+                signUpForceRedirectUrl: window.location.href
+            });
+        }
+    }, [mounted, isLoaded, accessToken, user, clerk]);
 
     useEffect(() => {
         if (!isLoaded) return;
