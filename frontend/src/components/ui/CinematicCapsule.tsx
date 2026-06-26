@@ -76,6 +76,8 @@ export function CinematicCapsule({
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
   const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
   const [isSealingVideoPlaying, setIsSealingVideoPlaying] = useState(false);
+  const [isOpeningRitualPlaying, setIsOpeningRitualPlaying] = useState(false);
+  const [isSealingRitualPlaying, setIsSealingRitualPlaying] = useState(false);
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
@@ -203,8 +205,12 @@ export function CinematicCapsule({
       const alreadySeen = sessionStorage.getItem(seenKey);
 
       if (!alreadySeen) {
-          setIsSealingVideoPlaying(true);
+          setIsSealingRitualPlaying(true);
           setIsSealed(true);
+          setTimeout(() => {
+              setIsSealingRitualPlaying(false);
+              setIsSealingVideoPlaying(true);
+          }, 3000);
       } else {
           // Se já viu, apenas atualiza o estado para o fim da animação
           setIsSealed(true);
@@ -386,32 +392,42 @@ export function CinematicCapsule({
   };
 
   const unsealVault = async () => {
-    setIsUnsealingVideoPlaying(true);
+    setIsOpeningRitualPlaying(true);
+    
+    let fetchPromise = Promise.resolve();
     // Em paralelo, carrega as memórias do backend para estarem prontas quando o vídeo acabar.
     if (capsuleId && user) {
-        try {
-            const token = await getToken({ template: 'aevum-session' });
-            const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
-                headers: getApiHeaders(token)
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const mappedMemories: Memory[] = data.map((m: any) => ({
-                  id: m.id,
-                  type: m.type as ItemType,
-                  label: m.fileName || t("vault.memory"),
-                  payload: m.presignedGetUrl || m.textContent || "",
-                  fileName: m.fileName,
-                  textContent: m.textContent,
-                  presignedGetUrl: m.presignedGetUrl,
-                  sizeBytes: m.sizeBytes
-                }));
-                setMemoriesList(mappedMemories);
+        fetchPromise = (async () => {
+            try {
+                const token = await getToken({ template: 'aevum-session' });
+                const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
+                    headers: getApiHeaders(token)
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const mappedMemories: Memory[] = data.map((m: any) => ({
+                      id: m.id,
+                      type: m.type as ItemType,
+                      label: m.fileName || t("vault.memory"),
+                      payload: m.presignedGetUrl || m.textContent || "",
+                      fileName: m.fileName,
+                      textContent: m.textContent,
+                      presignedGetUrl: m.presignedGetUrl,
+                      sizeBytes: m.sizeBytes
+                    }));
+                    setMemoriesList(mappedMemories);
+                }
+            } catch (e) {
+                console.error("Erro ao carregar relíquias", e);
             }
-        } catch (e) {
-            console.error("Erro ao carregar relíquias", e);
-        }
+        })();
     }
+
+    setTimeout(async () => {
+        setIsOpeningRitualPlaying(false);
+        setIsUnsealingVideoPlaying(true);
+        await fetchPromise;
+    }, 3500);
   };
 
   const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal;
@@ -648,12 +664,17 @@ export function CinematicCapsule({
                <button 
                   onClick={async () => {
                      try {
-                        setIsSealingVideoPlaying(true);
+                        setIsSealingRitualPlaying(true);
                         const token = await getToken({ template: 'aevum-session' });
-                        await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
+                        fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
                            method: "POST",
                            headers: getApiHeaders(token)
-                        });
+                        }).catch(e => console.error(e));
+                        
+                        setTimeout(() => {
+                           setIsSealingRitualPlaying(false);
+                           setIsSealingVideoPlaying(true);
+                        }, 3000);
                      } catch(e) { console.error(e); }
                   }}
                   className="flex items-center gap-2 text-xs font-mono text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest"
@@ -968,6 +989,62 @@ export function CinematicCapsule({
                </div>
             </motion.div>
          )}
+      </AnimatePresence>
+
+      {/* Ritual de Abertura Overlay */}
+      <AnimatePresence>
+        {isOpeningRitualPlaying && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-black"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ delay: 0.5, duration: 1.0 }}
+              className="max-w-xl px-6 text-center space-y-4"
+            >
+              <p className="text-xl md:text-2xl font-serif font-light text-amber-500 tracking-wide leading-relaxed italic drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                "A memória é o único paraíso do qual não podemos ser expulsos."
+              </p>
+              <p className="text-amber-500/60 text-sm tracking-widest font-sans font-light uppercase">
+                — Jean Paul
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Ritual de Selagem Overlay */}
+      <AnimatePresence>
+        {isSealingRitualPlaying && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="fixed inset-0 z-[250] flex flex-col items-center justify-center bg-black"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ delay: 0.5, duration: 1.0 }}
+              className="max-w-xl px-6 text-center space-y-4"
+            >
+              <p className="text-xl md:text-2xl font-serif font-light text-amber-500 tracking-wide leading-relaxed italic drop-shadow-[0_0_12px_rgba(245,158,11,0.25)]">
+                "O tempo é a imagem da eternidade em movimento."
+              </p>
+              <p className="text-amber-500/60 text-sm tracking-widest font-sans font-light uppercase">
+                — Platão
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
