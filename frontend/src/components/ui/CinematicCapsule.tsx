@@ -76,8 +76,20 @@ export function CinematicCapsule({
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
   const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
   const [isSealingVideoPlaying, setIsSealingVideoPlaying] = useState(false);
-  const [isOpeningRitualPlaying, setIsOpeningRitualPlaying] = useState(false);
-  const [isSealingRitualPlaying, setIsSealingRitualPlaying] = useState(false);
+  const [isOpeningRitualPlaying, setIsOpeningRitualPlaying] = useState(() => {
+    if (typeof window !== "undefined" && earlyUnlockSuccess && capsuleId) {
+      const seenKey = `aevum_unseal_seen_${capsuleId}`;
+      return !sessionStorage.getItem(seenKey);
+    }
+    return false;
+  });
+  const [isSealingRitualPlaying, setIsSealingRitualPlaying] = useState(() => {
+    if (typeof window !== "undefined" && paymentSuccess && capsuleId) {
+      const seenKey = `aevum_seal_seen_${capsuleId}`;
+      return !sessionStorage.getItem(seenKey);
+    }
+    return false;
+  });
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
 
@@ -249,7 +261,11 @@ export function CinematicCapsule({
 
       if (!alreadySeen) {
           setStorageStatus("RESTORING");
-          setIsUnsealingVideoPlaying(true);
+          setIsOpeningRitualPlaying(true);
+          setTimeout(() => {
+             setIsOpeningRitualPlaying(false);
+             setIsUnsealingVideoPlaying(true);
+          }, 3500);
       } else {
           setStorageStatus("RESTORING");
           // Se já viu a animação de restauração, apenas mantém no estado correto
@@ -432,6 +448,14 @@ export function CinematicCapsule({
 
   const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal;
 
+  const shouldHideChest = 
+    isBlurMode || 
+    showEarlyUnlockModal || 
+    isSealingVideoPlaying || 
+    isUnsealingVideoPlaying || 
+    isOpeningRitualPlaying || 
+    isSealingRitualPlaying;
+
   if (viewMode === "GALLERY") {
     if (memoriesList.length === 0 && capsuleId) {
       return (
@@ -454,6 +478,7 @@ export function CinematicCapsule({
 
   return (
     <div className="flex flex-col items-center w-full min-h-[650px] relative pointer-events-auto">
+      <div className={`w-full flex flex-col items-center transition-all duration-500 ${shouldHideChest ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
       {/* Marcador de Armazenamento - Barra de Quota Externa */}
       {storageStatus === "DRAFT" && (
@@ -468,7 +493,7 @@ export function CinematicCapsule({
       <div className={`flex flex-col ${isSealed ? 'md:flex-row md:items-center md:justify-center md:gap-16 w-full max-w-5xl' : 'items-center w-full'} transition-all duration-700`}>
 
         {/* Container Principal do Baú */}
-        <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 shrink-0 ${isBlurMode || showEarlyUnlockModal || isSealingVideoPlaying || isUnsealingVideoPlaying ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <div className={`relative w-[340px] h-[340px] md:w-[450px] md:h-[450px] mt-8 flex flex-col items-center justify-center transition-all duration-500 shrink-0 ${shouldHideChest ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
           <motion.div
             className="absolute w-[80%] h-[40%] bg-amber-600/30 blur-[40px] rounded-full bottom-[20%]"
             animate={{ scale: isOpened && !isSealed ? 1.2 : 1, opacity: isOpened && !isSealed ? 1 : 0.4 }}
@@ -723,8 +748,7 @@ export function CinematicCapsule({
             </div>
           </motion.div>
       )}
-
-
+      </div>
 
       {/* ======================================================== */}
       {/* COMPONENTE FILHO INJETADO: O MODAL DA FORJA INTELIGENTE  */}
