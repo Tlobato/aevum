@@ -621,7 +621,7 @@ export default function Dashboard() {
                                                     setUnlockDate(e.target.value);
                                                     if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
                                                 }}
-                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm ${
+                                                className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none font-mono text-sm gold-calendar-picker ${
                                                     errors.unlockDate
                                                         ? "border-rose-950/80 focus:border-rose-500/50"
                                                         : "border-neutral-800 focus:border-amber-500/50"
@@ -900,7 +900,7 @@ export default function Dashboard() {
                                                 className={`w-full border rounded-xl px-5 py-3.5 text-sm font-mono outline-none ${
                                                     editingCapsule.status === "SEALED"
                                                         ? "bg-neutral-900/50 border-neutral-900 text-neutral-500 cursor-not-allowed select-none"
-                                                        : `bg-black/50 text-white ${
+                                                        : `bg-black/50 text-white gold-calendar-picker ${
                                                             editErrors.unlockDate
                                                                 ? "border-rose-950/80 focus:border-rose-500/50"
                                                                 : "border-neutral-800 focus:border-amber-500/50"

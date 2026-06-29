@@ -44,3 +44,14 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Custom class to colorize the native calendar picker indicator in date inputs to gold */
+.gold-calendar-picker::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(73%) sepia(82%) saturate(1915%) hue-rotate(352deg) brightness(101%) contrast(97%);
+  transition: all 0.2s ease-in-out;
+}
+.gold-calendar-picker::-webkit-calendar-picker-indicator:hover {
+  transform: scale(1.1);
+  filter: invert(80%) sepia(85%) saturate(2200%) hue-rotate(355deg) brightness(105%) contrast(100%);
+}
