@@ -242,7 +242,6 @@ export default function Dashboard() {
     }, [showCreateForm, editingCapsule]);
 
     const fetchCapsules = useCallback(async () => {
-        setIsLoading(true);
         try {
             const token = await getToken({ template: 'aevum-session' });
             const res = await fetch(`${API_URL}/api/v1/capsules`, {
