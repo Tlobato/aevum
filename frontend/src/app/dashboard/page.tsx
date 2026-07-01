@@ -74,7 +74,7 @@ export default function Dashboard() {
     const [title, setTitle]           = useState("Meu Legado");
     const [description, setDescription] = useState("");
     const [unlockDate, setUnlockDate] = useState(() => {
-        const d = new Date(); d.setFullYear(d.getFullYear() + 10);
+        const d = new Date(); d.setDate(d.getDate() + 1);
         return d.toISOString().split("T")[0];
     });
     const [planType, setPlanType]           = useState("EPOCH_1GB");
