@@ -70,10 +70,17 @@ public class StorageService {
     }
 
     public void freezeCapsuleFiles(Capsule capsule) {
-        // Altera arquivos de STANDARD (em /drafts/) para DEEP_ARCHIVE (em /sealed/)
+        // Altera arquivos de STANDARD (em /drafts/) para sealed/ com a StorageClass adequada
         String capsuleIdStr = capsule.getId().toString();
 
-        // 1. Copia todos os arquivos para o Glacier Deep Archive (Se falhar aqui, o banco faz rollback)
+        // Armazenamento híbrido: Calcular a diferença em dias entre createdAt e unlockDate
+        java.time.LocalDate start = (capsule.getCreatedAt() != null) ? capsule.getCreatedAt().toLocalDate() : java.time.LocalDate.now();
+        java.time.LocalDate end = capsule.getUnlockDate().toLocalDate();
+        long diffInDays = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+
+        StorageClass storageClass = (diffInDays < 30) ? StorageClass.STANDARD : StorageClass.DEEP_ARCHIVE;
+
+        // 1. Copia todos os arquivos para a pasta sealed/ (Se falhar aqui, o banco faz rollback)
         for (MemoryItem item : capsule.getItems()) {
             if (item.getFileName() == null || item.getFileName().isBlank()) continue;
 
@@ -86,7 +93,7 @@ public class StorageService {
                         .sourceKey(sourceKey)
                         .destinationBucket(bucketName)
                         .destinationKey(destinationKey)
-                        .storageClass(StorageClass.DEEP_ARCHIVE)
+                        .storageClass(storageClass)
                         .build();
 
                 s3Client.copyObject(copyReq);

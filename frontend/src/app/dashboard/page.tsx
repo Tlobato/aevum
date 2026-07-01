@@ -219,10 +219,10 @@ export default function Dashboard() {
         capsuleId: null
     });
 
-    // Calculando a data mínima para ser de no mínimo 3 dias no futuro para garantir folga do desgelo Glacier
+    // Calculando a data mínima para ser de no mínimo amanhã (D+1)
     const getMinDateStr = () => {
         const d = new Date();
-        d.setDate(d.getDate() + 3);
+        d.setDate(d.getDate() + 1);
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, "0");
         const day = String(d.getDate()).padStart(2, "0");
@@ -342,9 +342,8 @@ export default function Dashboard() {
                 newErrors.unlockDate = t("forge.validation.dateInvalid");
             } else {
                 const minDate = new Date(`${minDateStr}T00:00:00`);
-                const fortyEightHoursFromNow = new Date(Date.now() + 48 * 60 * 60 * 1000);
-                if (selectedDate < minDate || selectedDate < fortyEightHoursFromNow) {
-                    newErrors.unlockDate = t("forge.validation.dateMin48h", "A data selecionada deve ser de pelo menos 48 horas no futuro.");
+                if (selectedDate < minDate) {
+                    newErrors.unlockDate = t("forge.validation.dateMin", "O despertar deve ser no mínimo amanhã.");
                 }
                 const maxDate = new Date();
                 maxDate.setFullYear(maxDate.getFullYear() + 100);

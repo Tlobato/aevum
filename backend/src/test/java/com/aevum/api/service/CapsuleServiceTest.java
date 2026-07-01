@@ -62,11 +62,11 @@ class CapsuleServiceTest {
     }
 
     @Test
-    void testCreateDraft_whenUnlockDateLessThan48h_shouldThrowException() {
-        // Criar uma data que resulta em 24h no futuro no timezone de SP
+    void testCreateDraft_whenUnlockDateLessThan1Day_shouldThrowException() {
+        // Criar uma data de hoje no fuso de SP (inválido, precisa ser no mínimo amanhã)
         ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime now = ZonedDateTime.now(zoneId);
-        LocalDateTime unlockDate = now.plusHours(24).toLocalDateTime();
+        LocalDateTime unlockDate = now.plusMinutes(30).toLocalDateTime();
 
         CapsuleCreateRequest request = new CapsuleCreateRequest(
                 "Minha Cápsula Crítica",
@@ -86,14 +86,14 @@ class CapsuleServiceTest {
             capsuleService.createDraft(request, owner.getId(), owner.getEmail());
         });
 
-        assertEquals("capsule.unlockDate.min48h", exception.getMessage());
+        assertEquals("capsule.unlockDate.min1day", exception.getMessage());
     }
 
     @Test
-    void testCreateDraft_whenUnlockDateMoreThan48h_shouldSucceed() {
+    void testCreateDraft_whenUnlockDateMoreThan1Day_shouldSucceed() {
         ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime now = ZonedDateTime.now(zoneId);
-        LocalDateTime unlockDate = now.plusHours(72).toLocalDateTime(); // 3 dias no futuro
+        LocalDateTime unlockDate = now.plusDays(1).plusHours(2).toLocalDateTime(); // amanhã no futuro
 
         CapsuleCreateRequest request = new CapsuleCreateRequest(
                 "Minha Cápsula Crítica Válida",
@@ -116,10 +116,10 @@ class CapsuleServiceTest {
     }
 
     @Test
-    void testUpdateCapsule_whenUnlockDateLessThan48h_shouldThrowException() {
+    void testUpdateCapsule_whenUnlockDateLessThan1Day_shouldThrowException() {
         ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime now = ZonedDateTime.now(zoneId);
-        LocalDateTime initialUnlockDate = now.plusHours(72).toLocalDateTime();
+        LocalDateTime initialUnlockDate = now.plusDays(1).plusHours(2).toLocalDateTime();
 
         CapsuleCreateRequest createRequest = new CapsuleCreateRequest(
                 "Cápsula Rascunho",
@@ -138,8 +138,8 @@ class CapsuleServiceTest {
         CapsuleResponse createResponse = capsuleService.createDraft(createRequest, owner.getId(), owner.getEmail());
         UUID capsuleId = createResponse.id();
 
-        // Tenta atualizar para uma data com menos de 48h
-        LocalDateTime invalidUnlockDate = now.plusHours(30).toLocalDateTime();
+        // Tenta atualizar para a data de hoje (inválida)
+        LocalDateTime invalidUnlockDate = now.plusMinutes(30).toLocalDateTime();
         CapsuleUpdateRequest updateRequest = new CapsuleUpdateRequest(
                 "Novo Título",
                 "recipient@example.com",
@@ -157,7 +157,7 @@ class CapsuleServiceTest {
             capsuleService.updateCapsule(capsuleId, updateRequest, jwt);
         });
 
-        assertEquals("capsule.unlockDate.min48h", exception.getMessage());
+        assertEquals("capsule.unlockDate.min1day", exception.getMessage());
     }
 
     @Test

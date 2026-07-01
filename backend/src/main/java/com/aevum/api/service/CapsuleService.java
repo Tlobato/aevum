@@ -44,13 +44,12 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.unlockDate.future");
         }
 
-        // Validação de Trava Temporal (48h/D+3): Mínimo de 48 horas reais até a meia-noite local do fuso informado
+        // Validação de Trava Temporal (mínimo de 1 dia de antecedência): Mínimo LocalDate.now().plusDays(1)
         String tz = (request.targetTimezone() != null && !request.targetTimezone().isBlank()) ? request.targetTimezone() : "America/Sao_Paulo";
         ZoneId zoneId = ZoneId.of(tz);
-        ZonedDateTime nowInZone = ZonedDateTime.now(zoneId);
-        ZonedDateTime unlockInZone = ZonedDateTime.of(request.unlockDate(), zoneId);
-        if (unlockInZone.isBefore(nowInZone.plusHours(48))) {
-            throw new IllegalArgumentException("capsule.unlockDate.min48h");
+        java.time.LocalDate tomorrow = java.time.LocalDate.now(zoneId).plusDays(1);
+        if (request.unlockDate().toLocalDate().isBefore(tomorrow)) {
+            throw new IllegalArgumentException("capsule.unlockDate.min1day");
         }
 
         // Valida se o usuário dono já existe no banco local (sincronizado pelo webhook)
@@ -100,8 +99,18 @@ public class CapsuleService {
         }
 
         capsule.setStatus(CapsuleStatus.SEALED);
-        capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.FROZEN);
         capsule.setSealedAt(LocalDateTime.now());
+
+        // Armazenamento híbrido: Calcular a diferença em dias entre createdAt e unlockDate
+        java.time.LocalDate start = (capsule.getCreatedAt() != null) ? capsule.getCreatedAt().toLocalDate() : java.time.LocalDate.now();
+        java.time.LocalDate end = capsule.getUnlockDate().toLocalDate();
+        long diffInDays = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+
+        if (diffInDays < 30) {
+            capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.AVAILABLE);
+        } else {
+            capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.FROZEN);
+        }
 
         capsule = repository.saveAndFlush(capsule);
 
@@ -510,10 +519,9 @@ public class CapsuleService {
                 }
 
                 ZoneId zoneId = ZoneId.of(tz);
-                ZonedDateTime nowInZone = ZonedDateTime.now(zoneId);
-                ZonedDateTime unlockInZone = ZonedDateTime.of(unlockDate, zoneId);
-                if (unlockInZone.isBefore(nowInZone.plusHours(48))) {
-                    throw new IllegalArgumentException("capsule.unlockDate.min48h");
+                java.time.LocalDate tomorrow = java.time.LocalDate.now(zoneId).plusDays(1);
+                if (unlockDate.toLocalDate().isBefore(tomorrow)) {
+                    throw new IllegalArgumentException("capsule.unlockDate.min1day");
                 }
 
                 if (request.unlockDate() != null) {

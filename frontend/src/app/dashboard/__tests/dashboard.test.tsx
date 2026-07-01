@@ -212,7 +212,7 @@ describe('Dashboard Component - Esteira de Testes Críticos', () => {
     });
   });
 
-  test('Validador do Formulário deve disparar erro e bloquear envio se a data violar a trava de 48h', async () => {
+  test('Validador do Formulário deve disparar erro e bloquear envio se a data for o dia atual (hoje)', async () => {
     render(<Dashboard />);
 
     // Clica no botão de abrir formulário (o findByText já espera o loading passar e o botão aparecer)
@@ -223,9 +223,8 @@ describe('Dashboard Component - Esteira de Testes Críticos', () => {
     const titleInput = await screen.findByPlaceholderText('forge.fieldTitlePlaceholder');
     fireEvent.change(titleInput, { target: { value: 'Cápsula Inválida' } });
 
-    // Configura uma data com menos de 48 horas no futuro (ex: amanhã / D+1)
+    // Configura a data de hoje (inválida, precisa ser no mínimo amanhã)
     const invalidDate = new Date();
-    invalidDate.setDate(invalidDate.getDate() + 1);
     const dateString = invalidDate.toISOString().split('T')[0];
 
     const dateInput = document.querySelector('input[type="date"]');
@@ -246,6 +245,6 @@ describe('Dashboard Component - Esteira de Testes Críticos', () => {
     expect(creationPostCalls.length).toBe(0);
 
     // E a mensagem de erro deve ser exibida na tela
-    expect(screen.getByText('forge.validation.dateMin48h')).toBeInTheDocument();
+    expect(screen.getByText('forge.validation.dateMin')).toBeInTheDocument();
   });
 });

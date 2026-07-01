@@ -110,7 +110,7 @@
       "emailInvalid": "Enter a valid email address.",
       "dateRequired": "Unlock date is required.",
       "dateInvalid": "Enter a valid date.",
-      "dateMin": "The unlock date must be at least 3 days in the future.",
+      "dateMin": "The unlock date must be at least tomorrow.",
       "dateMax": "The unlock date must be at most 100 years in the future."
     }
   },
