@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
-import { ptBR, enUS } from "@clerk/localizations";
-import { cookies } from "next/headers";
+import { ClerkLocalizationProvider } from "@/components/ClerkLocalizationProvider";
 import { Wrench } from "lucide-react";
 import { I18nProvider } from "@/components/I18nProvider";
 
@@ -22,22 +20,18 @@ export const metadata: Metadata = {
   description: "Cápsula do tempo digital construída para durar gerações.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const locale = cookieStore.get("aevum-locale")?.value || "pt-BR";
-  const localization = locale.startsWith("pt") ? ptBR : enUS;
-
   // Alterar para false quando quiser desativar o modo de manutenção
   const isMaintenance = false;
 
   if (isMaintenance) {
     return (
       <html
-        lang={locale}
+        lang="pt-BR"
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
         <body className="min-h-full flex flex-col bg-slate-950 text-white items-center justify-center p-4 font-sans">
@@ -75,15 +69,15 @@ export default async function RootLayout({
 
   return (
     <html
-      lang={locale}
+      lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ClerkProvider localization={localization}>
-          <I18nProvider>
+        <I18nProvider>
+          <ClerkLocalizationProvider>
             {children}
-          </I18nProvider>
-        </ClerkProvider>
+          </ClerkLocalizationProvider>
+        </I18nProvider>
       </body>
     </html>
   );
