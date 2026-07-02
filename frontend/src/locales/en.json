@@ -138,6 +138,8 @@
     "back": "Back to Vault",
     "noMemories": "No memories added to this capsule yet.",
     "addMemories": "Creation Altar",
+    "exitDraftNotice": "Changes will be kept in the draft.",
+    "draftSavedNotice": "Draft saved automatically. You can leave this page at any time.",
     "statusBadge": {
       "DRAFT": "Draft (Editable)",
       "SEALED": "Sealed",

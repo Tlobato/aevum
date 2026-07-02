@@ -129,10 +129,15 @@ function VaultContent() {
 
     return (
         <main className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-between md:justify-center p-4 md:p-6">
-            <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex justify-start">
+            <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex flex-col gap-1 items-start">
                 <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
                     <ArrowLeft className="w-4 h-4" /> {t("vault.addMemories")}
                 </button>
+                {capsuleData?.storageStatus === "DRAFT" && (
+                    <span className="text-[10px] text-neutral-600 font-sans tracking-wide">
+                        {t("vault.exitDraftNotice")}
+                    </span>
+                )}
             </div>
             
             <div className="w-full flex-1 flex items-center justify-center">

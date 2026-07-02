@@ -482,12 +482,22 @@ export function CinematicCapsule({
 
       {/* Marcador de Armazenamento - Barra de Quota Externa */}
       {storageStatus === "DRAFT" && (
-        <StorageBar
-          usedBytes={localUsedBytes}
-          maxBytes={maxSizeBytes}
-          isQuotaFull={isQuotaFull}
-          isBlurMode={isBlurMode}
-        />
+        <>
+          <StorageBar
+            usedBytes={localUsedBytes}
+            maxBytes={maxSizeBytes}
+            isQuotaFull={isQuotaFull}
+            isBlurMode={isBlurMode}
+          />
+          {!isBlurMode && (
+            <div className="mt-3 flex items-center justify-center gap-2 bg-neutral-950/40 border border-neutral-900/60 rounded-full px-4 py-1.5 backdrop-blur-md shadow-inner animate-fade-in select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+              <span className="text-[10px] text-neutral-400 font-sans tracking-wide">
+                {t("vault.draftSavedNotice")}
+              </span>
+            </div>
+          )}
+        </>
       )}
       {/* Wrapper de Layout (Side-by-Side no Desktop quando Selado) */}
       <div className={`flex flex-col ${isSealed ? 'md:flex-row md:items-center md:justify-center md:gap-16 w-full max-w-5xl' : 'items-center w-full'} transition-all duration-700`}>

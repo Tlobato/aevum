@@ -138,6 +138,8 @@
     "back": "Voltar ao Cofre",
     "noMemories": "Nenhuma memória adicionada a esta cápsula ainda.",
     "addMemories": "Altar de Criação",
+    "exitDraftNotice": "As alterações serão mantidas no rascunho.",
+    "draftSavedNotice": "Rascunho salvo automaticamente. Você pode sair desta página a qualquer momento.",
     "statusBadge": {
       "DRAFT": "Rascunho (Editável)",
       "SEALED": "Selada",
