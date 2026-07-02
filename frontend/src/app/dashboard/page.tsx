@@ -480,9 +480,6 @@ export default function Dashboard() {
                     </div>
                     <button
                         onClick={() => {
-                            setIsGift(false);
-                            setOwnerMessage("");
-                            setRecipientEmail("");
                             setErrors({});
                             setShowCreateForm(!showCreateForm);
                         }}
