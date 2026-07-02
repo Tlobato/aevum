@@ -607,7 +607,7 @@ export default function Dashboard() {
                                                             setRecipientName(e.target.value);
                                                             if (errors.recipientName) setErrors(prev => ({ ...prev, recipientName: "" }));
                                                         }}
-                                                        placeholder={t("forge.fieldRecipientNamePlaceholder", "Ex: Pedro Almeida")}
+                                                        placeholder={t("forge.fieldRecipientNamePlaceholder", "")}
                                                         className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
                                                             errors.recipientName 
                                                                 ? "border-rose-950/85 focus:border-rose-500/50" 
@@ -909,7 +909,7 @@ export default function Dashboard() {
                                                         setEditRecipientName(e.target.value);
                                                         if (editErrors.recipientName) setEditErrors(prev => ({ ...prev, recipientName: "" }));
                                                     }}
-                                                    placeholder={t("forge.fieldRecipientNamePlaceholder", "Ex: Pedro Almeida")}
+                                                    placeholder={t("forge.fieldRecipientNamePlaceholder", "")}
                                                     className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
                                                         editErrors.recipientName 
                                                             ? "border-rose-950/85 focus:border-rose-500/50" 

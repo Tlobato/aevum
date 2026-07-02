@@ -34,7 +34,7 @@
       "actions": "Ações",
       "personal": "Cápsula Pessoal",
       "gift": "Presente para {{email}}",
-      "giftWithName": "Presente para {{name}} ({{email}})"
+      "giftWithName": "Presente para {{name}}"
     },
     "receivedGiftTag": "Legado Recebido",
     "receivedGiftFrom": "Presente de {{email}}",
@@ -83,7 +83,7 @@
     "fieldRecipient": "E-mail do Destinatário (Portador)",
     "fieldRecipientPlaceholder": "email@destinatario.com",
     "fieldRecipientName": "Nome do Destinatário",
-    "fieldRecipientNamePlaceholder": "Ex: Pedro Almeida",
+    "fieldRecipientNamePlaceholder": "",
     "fieldIsGift": "Esta relíquia é um presente para outra pessoa?",
     "fieldGiftMsg": "Mensagem Especial 💌",
     "fieldGiftMsgPlaceholder": "Escreva algo para o destinatário ler quando o baú abrir...",

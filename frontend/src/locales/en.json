@@ -34,7 +34,7 @@
       "actions": "Actions",
       "personal": "Personal Capsule",
       "gift": "Gift for {{email}}",
-      "giftWithName": "Gift for {{name}} ({{email}})"
+      "giftWithName": "Gift for {{name}}"
     },
     "receivedGiftTag": "Received Legacy",
     "receivedGiftFrom": "Gift from {{email}}",
@@ -83,7 +83,7 @@
     "fieldRecipient": "Recipient Email (Bearer)",
     "fieldRecipientPlaceholder": "email@recipient.com",
     "fieldRecipientName": "Recipient Name",
-    "fieldRecipientNamePlaceholder": "e.g., Pedro Almeida",
+    "fieldRecipientNamePlaceholder": "",
     "fieldIsGift": "Is this relic a gift for someone else?",
     "fieldGiftMsg": "Special Message 💌",
     "fieldGiftMsgPlaceholder": "Write something for the recipient to read when the chest opens...",
