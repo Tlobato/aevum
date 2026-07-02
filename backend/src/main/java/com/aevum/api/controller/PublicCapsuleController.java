@@ -78,7 +78,8 @@ public class PublicCapsuleController {
                     id.toString(),
                     penaltyInCents,
                     response.title(),
-                    response.recipientEmail()
+                    response.recipientEmail(),
+                    requestLocale
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (Exception e) {

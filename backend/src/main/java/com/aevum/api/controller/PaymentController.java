@@ -61,7 +61,8 @@ public class PaymentController {
                     capsuleId.toString(),
                     summary.priceInCents(),
                     summary.planType(),
-                    userEmail
+                    userEmail,
+                    requestLocale
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (com.aevum.api.exception.AccessDeniedException | IllegalArgumentException e) {
@@ -96,7 +97,8 @@ public class PaymentController {
                     capsuleId.toString(),
                     penaltyInCents,
                     response.title(),
-                    userEmail
+                    userEmail,
+                    requestLocale
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (com.aevum.api.exception.AccessDeniedException | IllegalArgumentException e) {

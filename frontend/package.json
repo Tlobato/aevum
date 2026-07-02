@@ -10,6 +10,7 @@
     "test": "jest --watchAll=false"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.12.0",
     "@clerk/nextjs": "^7.2.7",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",

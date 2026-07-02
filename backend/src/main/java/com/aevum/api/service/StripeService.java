@@ -30,7 +30,7 @@ public class StripeService {
      * @param capsuleTitle Título da cápsula (aparece na fatura do Stripe)
      * @return URL da página de pagamento do Stripe
      */
-    public String createCheckoutSession(String capsuleId, long priceInCents, String capsuleTitle, String customerEmail) throws StripeException {
+    public String createCheckoutSession(String capsuleId, long priceInCents, String capsuleTitle, String customerEmail, String customerLocale) throws StripeException {
         Stripe.apiKey = secretKey;
 
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
@@ -63,6 +63,15 @@ public class StripeService {
             builder.setCustomerEmail(customerEmail);
         }
 
+        if (customerLocale != null && !customerLocale.trim().isEmpty()) {
+            String lower = customerLocale.toLowerCase().trim();
+            if (lower.startsWith("pt")) {
+                builder.setLocale(SessionCreateParams.Locale.PT_BR);
+            } else if (lower.startsWith("en")) {
+                builder.setLocale(SessionCreateParams.Locale.EN);
+            }
+        }
+
         Session session = Session.create(builder.build());
         log.info("Checkout Session (SEAL) criada para cápsula {}: {}", capsuleId, session.getId());
         return session.getUrl();
@@ -71,7 +80,7 @@ public class StripeService {
     /**
      * Cria uma Sessão de Checkout no Stripe para pagar a multa de Desbloqueio Antecipado.
      */
-    public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle, String customerEmail) throws StripeException {
+    public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle, String customerEmail, String customerLocale) throws StripeException {
         Stripe.apiKey = secretKey;
 
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
@@ -102,6 +111,15 @@ public class StripeService {
 
         if (customerEmail != null && !customerEmail.trim().isEmpty()) {
             builder.setCustomerEmail(customerEmail);
+        }
+
+        if (customerLocale != null && !customerLocale.trim().isEmpty()) {
+            String lower = customerLocale.toLowerCase().trim();
+            if (lower.startsWith("pt")) {
+                builder.setLocale(SessionCreateParams.Locale.PT_BR);
+            } else if (lower.startsWith("en")) {
+                builder.setLocale(SessionCreateParams.Locale.EN);
+            }
         }
 
         Session session = Session.create(builder.build());
