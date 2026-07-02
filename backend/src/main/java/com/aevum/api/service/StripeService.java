@@ -30,10 +30,10 @@ public class StripeService {
      * @param capsuleTitle Título da cápsula (aparece na fatura do Stripe)
      * @return URL da página de pagamento do Stripe
      */
-    public String createCheckoutSession(String capsuleId, long priceInCents, String capsuleTitle) throws StripeException {
+    public String createCheckoutSession(String capsuleId, long priceInCents, String capsuleTitle, String customerEmail) throws StripeException {
         Stripe.apiKey = secretKey;
 
-        SessionCreateParams params = SessionCreateParams.builder()
+        SessionCreateParams.Builder builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 // Redireciona direto de volta para o cofre para ativarmos o vídeo cinematográfico
                 .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?payment_success=true")
@@ -57,10 +57,13 @@ public class StripeService {
                 )
                 // Metadados para identificarmos a cápsula quando o webhook chegar
                 .putMetadata("capsule_id", capsuleId)
-                .putMetadata("action", "seal")
-                .build();
+                .putMetadata("action", "seal");
 
-        Session session = Session.create(params);
+        if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+            builder.setCustomerEmail(customerEmail);
+        }
+
+        Session session = Session.create(builder.build());
         log.info("Checkout Session (SEAL) criada para cápsula {}: {}", capsuleId, session.getId());
         return session.getUrl();
     }
@@ -68,10 +71,10 @@ public class StripeService {
     /**
      * Cria uma Sessão de Checkout no Stripe para pagar a multa de Desbloqueio Antecipado.
      */
-    public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle) throws StripeException {
+    public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle, String customerEmail) throws StripeException {
         Stripe.apiKey = secretKey;
 
-        SessionCreateParams params = SessionCreateParams.builder()
+        SessionCreateParams.Builder builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 // Redireciona direto de volta para o cofre com parâmetro de destranca paga
                 .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?early_unlock_success=true")
@@ -95,10 +98,13 @@ public class StripeService {
                 )
                 // Metadados para identificarmos a cápsula quando o webhook chegar
                 .putMetadata("capsule_id", capsuleId)
-                .putMetadata("action", "early_unlock")
-                .build();
+                .putMetadata("action", "early_unlock");
 
-        Session session = Session.create(params);
+        if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+            builder.setCustomerEmail(customerEmail);
+        }
+
+        Session session = Session.create(builder.build());
         log.info("Checkout Session (EARLY UNLOCK) criada para cápsula {}: {}", capsuleId, session.getId());
         return session.getUrl();
     }

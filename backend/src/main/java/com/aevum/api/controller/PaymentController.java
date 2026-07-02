@@ -55,11 +55,13 @@ public class PaymentController {
             String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
             capsuleService.updateLocale(capsuleId, requestLocale);
 
+            String userEmail = jwt.getClaimAsString("email");
             var summary = capsuleService.calculateSummary(capsuleId, pricingService);
             String checkoutUrl = stripeService.createCheckoutSession(
                     capsuleId.toString(),
                     summary.priceInCents(),
-                    summary.planType()
+                    summary.planType(),
+                    userEmail
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (com.aevum.api.exception.AccessDeniedException | IllegalArgumentException e) {
@@ -78,21 +80,23 @@ public class PaymentController {
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable UUID capsuleId) {
         try {
+            String userEmail = jwt.getClaimAsString("email");
             // Valida permissão (se o usuário não for dono nem recipient, vai lançar exception)
-            capsuleService.validateEarlyUnlockPermission(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
+            capsuleService.validateEarlyUnlockPermission(capsuleId, jwt.getSubject(), userEmail);
 
             // Atualiza o idioma da cápsula com o idioma do momento do resgate
             String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
             capsuleService.updateLocale(capsuleId, requestLocale);
 
             // Abre a cápsula para pegar os dados da resposta
-            var response = capsuleService.openCapsule(capsuleId, jwt.getSubject(), jwt.getClaimAsString("email"));
+            var response = capsuleService.openCapsule(capsuleId, jwt.getSubject(), userEmail);
             
             long penaltyInCents = capsuleService.calculateEarlyUnlockPenalty(capsuleId, pricingService);
             String checkoutUrl = stripeService.createEarlyUnlockCheckoutSession(
                     capsuleId.toString(),
                     penaltyInCents,
-                    response.title()
+                    response.title(),
+                    userEmail
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (com.aevum.api.exception.AccessDeniedException | IllegalArgumentException e) {

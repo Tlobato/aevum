@@ -77,7 +77,8 @@ public class PublicCapsuleController {
             String checkoutUrl = stripeService.createEarlyUnlockCheckoutSession(
                     id.toString(),
                     penaltyInCents,
-                    response.title()
+                    response.title(),
+                    response.recipientEmail()
             );
             return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
         } catch (Exception e) {
