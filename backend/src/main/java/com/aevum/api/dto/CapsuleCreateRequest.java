@@ -22,6 +22,8 @@ public record CapsuleCreateRequest(
     @NotBlank(message = "{capsule.recipientEmail.notblank}")
     String recipientEmail,
 
+    String recipientName,
+
     String themeId, // Optional field for the Capsule theme
 
     @NotNull(message = "{capsule.planType.required}")

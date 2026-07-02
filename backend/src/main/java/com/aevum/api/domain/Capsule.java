@@ -38,6 +38,9 @@ public class Capsule {
     @Column(nullable = false)
     private String recipientEmail;
 
+    // O nome de quem será presenteado
+    private String recipientName;
+
     // Indica se a cápsula é um presente para outra pessoa (vs. uma cápsula pessoal)
     @Column(nullable = false)
     private boolean isGift = false;
@@ -297,6 +300,14 @@ public class Capsule {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getRecipientName() {
+        return recipientName;
+    }
+
+    public void setRecipientName(String recipientName) {
+        this.recipientName = recipientName;
     }
 
     public LocalDateTime getUpdatedAt() {

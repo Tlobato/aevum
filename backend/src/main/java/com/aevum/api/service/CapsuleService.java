@@ -52,6 +52,11 @@ public class CapsuleService {
             throw new IllegalArgumentException("capsule.unlockDate.min1day");
         }
 
+        // Validação do nome do destinatário para presentes
+        if (request.isGift() && (request.recipientName() == null || request.recipientName().isBlank())) {
+            throw new IllegalArgumentException("capsule.recipientName.notblank");
+        }
+
         // Valida se o usuário dono já existe no banco local (sincronizado pelo webhook)
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new UserSyncPendingException("user.sync.pending"));
@@ -66,6 +71,7 @@ public class CapsuleService {
         capsule.setDescription(request.description());
         capsule.setUnlockDate(request.unlockDate());
         capsule.setRecipientEmail(request.recipientEmail());
+        capsule.setRecipientName(request.isGift() && request.recipientName() != null ? request.recipientName().trim() : null);
         capsule.setTestMode(request.isTestMode());
         capsule.setGift(request.isGift());
         capsule.setOwnerMessage(request.ownerMessage());
@@ -499,12 +505,17 @@ public class CapsuleService {
         }
 
         if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT) {
-            // Permite alterar tudo
             if (request.title() != null && !request.title().isBlank()) {
-                capsule.setTitle(request.title());
+                capsule.setTitle(request.title().trim());
             }
             if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
-                capsule.setRecipientEmail(request.beneficiaryEmail());
+                capsule.setRecipientEmail(request.beneficiaryEmail().trim().toLowerCase());
+            }
+            if (request.beneficiaryName() != null) {
+                if (capsule.isGift() && request.beneficiaryName().isBlank()) {
+                    throw new IllegalArgumentException("capsule.recipientName.notblank");
+                }
+                capsule.setRecipientName(request.beneficiaryName().trim());
             }
             if (request.unlockDate() != null || (request.targetTimezone() != null && !request.targetTimezone().isBlank())) {
                 String tz = (request.targetTimezone() != null && !request.targetTimezone().isBlank()) 
@@ -541,38 +552,49 @@ public class CapsuleService {
             // Exige e valida re-autenticação do Clerk para alterar destinatário de cápsula selada
             validateClerkReverification(jwt);
 
-            // Se alterar destinatário, permite
-            if (request.beneficiaryEmail() != null && !request.beneficiaryEmail().isBlank()) {
-                String oldEmail = capsule.getRecipientEmail();
-                String newEmail = request.beneficiaryEmail();
+            boolean emailChanged = false;
+            String oldEmail = capsule.getRecipientEmail();
+            String newEmail = request.beneficiaryEmail();
+
+            if (newEmail != null && !newEmail.isBlank() && !newEmail.equalsIgnoreCase(oldEmail)) {
+                capsule.setRecipientEmail(newEmail.trim().toLowerCase());
+                emailChanged = true;
+            }
+
+            if (request.beneficiaryName() != null) {
+                if (capsule.isGift() && request.beneficiaryName().isBlank()) {
+                    throw new IllegalArgumentException("capsule.recipientName.notblank");
+                }
+                capsule.setRecipientName(request.beneficiaryName().trim());
+            }
+
+            if (emailChanged || request.beneficiaryName() != null) {
+                capsule = repository.save(capsule);
+            }
+
+            if (emailChanged) {
+                // Dispara e-mail de alerta para o dono da cápsula
+                String ownerEmail = capsule.getOwner() != null ? capsule.getOwner().getEmail() : null;
+                if (ownerEmail != null) {
+                    emailService.sendSecurityAlertEmail(
+                        ownerEmail,
+                        capsule.getTitle(),
+                        oldEmail != null ? oldEmail : "nenhum",
+                        capsule.getRecipientEmail(),
+                        capsule.getLocale()
+                    );
+                }
                 
-                if (!newEmail.equalsIgnoreCase(oldEmail)) {
-                    capsule.setRecipientEmail(newEmail);
-                    capsule = repository.save(capsule);
-                    
-                    // Dispara e-mail de alerta para o dono da cápsula
-                    String ownerEmail = capsule.getOwner() != null ? capsule.getOwner().getEmail() : null;
-                    if (ownerEmail != null) {
-                        emailService.sendSecurityAlertEmail(
-                            ownerEmail,
-                            capsule.getTitle(),
-                            oldEmail != null ? oldEmail : "nenhum",
-                            newEmail,
-                            capsule.getLocale()
-                        );
-                    }
-                    
-                    // Se for um presente, notifica o NOVO destinatário
-                    if (capsule.isGift()) {
-                        java.time.LocalDate unlockLocalDate = capsule.getUnlockDate() != null ? capsule.getUnlockDate().toLocalDate() : java.time.LocalDate.now();
-                        emailService.sendGiftNotification(
-                            newEmail,
-                            capsule.getTitle(),
-                            unlockLocalDate,
-                            capsule.getId(),
-                            capsule.getLocale()
-                        );
-                    }
+                // Se for um presente, notifica o NOVO destinatário
+                if (capsule.isGift()) {
+                    java.time.LocalDate unlockLocalDate = capsule.getUnlockDate() != null ? capsule.getUnlockDate().toLocalDate() : java.time.LocalDate.now();
+                    emailService.sendGiftNotification(
+                        capsule.getRecipientEmail(),
+                        capsule.getTitle(),
+                        unlockLocalDate,
+                        capsule.getId(),
+                        capsule.getLocale()
+                    );
                 }
             }
         }

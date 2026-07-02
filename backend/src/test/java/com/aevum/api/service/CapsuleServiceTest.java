@@ -73,6 +73,7 @@ class CapsuleServiceTest {
                 "Descrição",
                 unlockDate,
                 "recipient@example.com",
+                "Pedro",
                 null,
                 "CHRONOS_2GB",
                 false,
@@ -90,6 +91,34 @@ class CapsuleServiceTest {
     }
 
     @Test
+    void testCreateDraft_whenGiftCapsule_andRecipientNameBlank_shouldThrowException() {
+        ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+        LocalDateTime unlockDate = now.plusDays(1).plusHours(2).toLocalDateTime();
+
+        CapsuleCreateRequest request = new CapsuleCreateRequest(
+                "Minha Cápsula Crítica",
+                "Descrição",
+                unlockDate,
+                "recipient@example.com",
+                "", // Nome em branco (inválido!)
+                null,
+                "CHRONOS_2GB",
+                false,
+                true, // isGift
+                "Mensagem Surpresa Secreta",
+                "TOTAL_LOCK",
+                "America/Sao_Paulo"
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            capsuleService.createDraft(request, owner.getId(), owner.getEmail());
+        });
+
+        assertEquals("capsule.recipientName.notblank", exception.getMessage());
+    }
+
+    @Test
     void testCreateDraft_whenUnlockDateMoreThan1Day_shouldSucceed() {
         ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime now = ZonedDateTime.now(zoneId);
@@ -100,6 +129,7 @@ class CapsuleServiceTest {
                 "Descrição",
                 unlockDate,
                 "recipient@example.com",
+                "Pedro",
                 null,
                 "CHRONOS_2GB",
                 false,
@@ -126,6 +156,7 @@ class CapsuleServiceTest {
                 "Descrição",
                 initialUnlockDate,
                 "recipient@example.com",
+                "Pedro",
                 null,
                 "CHRONOS_2GB",
                 false,
@@ -143,6 +174,7 @@ class CapsuleServiceTest {
         CapsuleUpdateRequest updateRequest = new CapsuleUpdateRequest(
                 "Novo Título",
                 "recipient@example.com",
+                "Pedro",
                 invalidUnlockDate,
                 "America/Sao_Paulo"
         );
@@ -251,6 +283,7 @@ class CapsuleServiceTest {
         CapsuleUpdateRequest updateRequest = new CapsuleUpdateRequest(
                 null,
                 "new_recipient@example.com",
+                "Pedro Novo",
                 null,
                 null
         );
@@ -299,6 +332,7 @@ class CapsuleServiceTest {
         CapsuleUpdateRequest updateRequest = new CapsuleUpdateRequest(
                 null,
                 "new_recipient@example.com",
+                "Pedro Novo II",
                 null,
                 null
         );

@@ -33,7 +33,8 @@
       "status": "Status",
       "actions": "Ações",
       "personal": "Cápsula Pessoal",
-      "gift": "Presente para {{email}}"
+      "gift": "Presente para {{email}}",
+      "giftWithName": "Presente para {{name}} ({{email}})"
     },
     "receivedGiftTag": "Legado Recebido",
     "receivedGiftFrom": "Presente de {{email}}",
@@ -81,6 +82,8 @@
     "fieldUnlock": "Data do Despertar",
     "fieldRecipient": "E-mail do Destinatário (Portador)",
     "fieldRecipientPlaceholder": "email@destinatario.com",
+    "fieldRecipientName": "Nome do Destinatário",
+    "fieldRecipientNamePlaceholder": "Ex: Pedro Almeida",
     "fieldIsGift": "Esta relíquia é um presente para outra pessoa?",
     "fieldGiftMsg": "Mensagem Especial 💌",
     "fieldGiftMsgPlaceholder": "Escreva algo para o destinatário ler quando o baú abrir...",
@@ -106,6 +109,7 @@
     "ruleEmergencyKeyDesc": "Permite que você mesmo pague a taxa para quebrar o lacre antes do prazo.",
     "validation": {
       "titleRequired": "O título da relíquia é obrigatório.",
+      "nameRequired": "O nome do destinatário é obrigatório.",
       "emailRequired": "O e-mail do destinatário é obrigatório.",
       "emailInvalid": "Insira um endereço de e-mail válido.",
       "dateRequired": "A data de despertar é obrigatória.",

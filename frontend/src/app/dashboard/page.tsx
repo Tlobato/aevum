@@ -21,6 +21,7 @@ type CapsuleCard = {
     unlockDate: string;
     totalSizeBytes: number;
     recipientEmail: string;
+    recipientName?: string;
     isGift: boolean;
     ownerId: string;
     ownerEmail: string;
@@ -50,12 +51,12 @@ export default function Dashboard() {
     const { t, i18n } = useTranslation();
 
     const updateSealedCapsule = useReverification(
-        async (capsuleId: string, email: string) => {
+        async (capsuleId: string, email: string, name: string) => {
             const token = await getToken({ skipCache: true });
             return fetch(`${API_URL}/api/v1/capsules/${capsuleId}`, {
                 method: "PATCH",
                 headers: getApiHeaders(token),
-                body: JSON.stringify({ beneficiaryEmail: email })
+                body: JSON.stringify({ beneficiaryEmail: email, beneficiaryName: name })
             });
         }
     );
@@ -79,6 +80,7 @@ export default function Dashboard() {
     });
     const [planType, setPlanType]           = useState("EPOCH_1GB");
     const [recipientEmail, setRecipientEmail] = useState("");
+    const [recipientName, setRecipientName] = useState("");
     const [isGift, setIsGift]               = useState(false);
     const [ownerMessage, setOwnerMessage]   = useState("");
     const [themeId, setThemeId]             = useState("bau-classico");
@@ -91,6 +93,7 @@ export default function Dashboard() {
     const [editingCapsule, setEditingCapsule] = useState<CapsuleCard | null>(null);
     const [editTitle, setEditTitle] = useState("");
     const [editRecipientEmail, setEditRecipientEmail] = useState("");
+    const [editRecipientName, setEditRecipientName] = useState("");
     const [editUnlockDate, setEditUnlockDate] = useState("");
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isUpdating, setIsUpdating] = useState(false);
@@ -99,6 +102,7 @@ export default function Dashboard() {
         setEditingCapsule(cap);
         setEditTitle(cap.title);
         setEditRecipientEmail(cap.recipientEmail || "");
+        setEditRecipientName(cap.recipientName || "");
         const dateOnly = cap.unlockDate.split("T")[0];
         setEditUnlockDate(dateOnly);
         setEditErrors({});
@@ -111,6 +115,12 @@ export default function Dashboard() {
         if (!isSealed) {
             if (!editTitle || editTitle.trim() === "") {
                 newErrors.title = t("forge.validation.titleRequired");
+            }
+        }
+
+        if (editingCapsule?.isGift) {
+            if (!editRecipientName || editRecipientName.trim() === "") {
+                newErrors.recipientName = t("forge.validation.nameRequired", "O nome do destinatário é obrigatório.");
             }
         }
 
@@ -162,7 +172,7 @@ export default function Dashboard() {
         try {
             if (isSealed) {
                 // A função envelopada pelo useReverification resolve diretamente para o JSON decodificado
-                const data = (await updateSealedCapsule(editingCapsule.id, editRecipientEmail)) as any;
+                const data = (await updateSealedCapsule(editingCapsule.id, editRecipientEmail, editRecipientName)) as any;
                 if (data && data.id) {
                     setCapsules(prev => prev.map(c => c.id === editingCapsule.id ? data : c));
                     setEditingCapsule(null);
@@ -177,6 +187,7 @@ export default function Dashboard() {
                     body: JSON.stringify({
                         title: editTitle,
                         beneficiaryEmail: editRecipientEmail,
+                        beneficiaryName: editRecipientName,
                         unlockDate: `${editUnlockDate}T00:00:00`,
                         targetTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
                     })
@@ -324,6 +335,9 @@ export default function Dashboard() {
         }
 
         if (isGift) {
+            if (!recipientName || recipientName.trim() === "") {
+                newErrors.recipientName = t("forge.validation.nameRequired", "O nome do destinatário é obrigatório.");
+            }
             if (!recipientEmail || recipientEmail.trim() === "") {
                 newErrors.recipientEmail = t("forge.validation.emailRequired");
             } else {
@@ -375,6 +389,7 @@ export default function Dashboard() {
                         themeId, title, description,
                         unlockDate: `${unlockDate}T00:00:00`,
                         recipientEmail: isGift ? recipientEmail : userEmail,
+                        recipientName: isGift ? recipientName : null,
                         planType, isTestMode: false,
                         isGift, ownerMessage: isGift ? ownerMessage : null,
                         earlyUnlockRule,
@@ -522,7 +537,7 @@ export default function Dashboard() {
                                     <div className="flex gap-3 mb-6 p-1 bg-black/40 rounded-2xl border border-neutral-800">
                                         <button
                                             type="button"
-                                            onClick={() => { setIsGift(false); setRecipientEmail(""); setOwnerMessage(""); }}
+                                            onClick={() => { setIsGift(false); setRecipientEmail(""); setRecipientName(""); setOwnerMessage(""); }}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
                                                 !isGift
                                                     ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-inner"
@@ -533,7 +548,7 @@ export default function Dashboard() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => { setIsGift(true); setRecipientEmail(""); }}
+                                            onClick={() => { setIsGift(true); setRecipientEmail(""); setRecipientName(""); }}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
                                                 isGift
                                                     ? "bg-rose-500/20 border border-rose-500/40 text-rose-300 shadow-inner"
@@ -582,28 +597,53 @@ export default function Dashboard() {
                                         </div>
 
                                         {isGift && (
-                                            <div className="space-y-2">
-                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
-                                                <input 
-                                                    type="email" 
-                                                    value={recipientEmail} 
-                                                    onChange={e => {
-                                                        setRecipientEmail(e.target.value);
-                                                        if (errors.recipientEmail) setErrors(prev => ({ ...prev, recipientEmail: "" }));
-                                                    }}
-                                                    placeholder={t("forge.fieldRecipientPlaceholder")}
-                                                    className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm font-mono ${
-                                                        errors.recipientEmail 
-                                                            ? "border-rose-950/85 focus:border-rose-500/50" 
-                                                            : "border-neutral-800 focus:border-rose-500/50"
-                                                    }`}
-                                                />
-                                                {errors.recipientEmail && (
-                                                    <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
-                                                        {errors.recipientEmail}
-                                                    </span>
-                                                )}
-                                            </div>
+                                            <>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipientName", "Nome do Destinatário")}</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={recipientName} 
+                                                        onChange={e => {
+                                                            setRecipientName(e.target.value);
+                                                            if (errors.recipientName) setErrors(prev => ({ ...prev, recipientName: "" }));
+                                                        }}
+                                                        placeholder={t("forge.fieldRecipientNamePlaceholder", "Ex: Pedro Almeida")}
+                                                        className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
+                                                            errors.recipientName 
+                                                                ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                                : "border-neutral-800 focus:border-rose-500/50"
+                                                        }`}
+                                                    />
+                                                    {errors.recipientName && (
+                                                        <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                            {errors.recipientName}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
+                                                    <input 
+                                                        type="email" 
+                                                        value={recipientEmail} 
+                                                        onChange={e => {
+                                                            setRecipientEmail(e.target.value);
+                                                            if (errors.recipientEmail) setErrors(prev => ({ ...prev, recipientEmail: "" }));
+                                                        }}
+                                                        placeholder={t("forge.fieldRecipientPlaceholder")}
+                                                        className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm font-mono ${
+                                                            errors.recipientEmail 
+                                                                ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                                : "border-neutral-800 focus:border-rose-500/50"
+                                                        }`}
+                                                    />
+                                                    {errors.recipientEmail && (
+                                                        <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                            {errors.recipientEmail}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </>
                                         )}
 
                                         <div className="space-y-2">
@@ -859,6 +899,31 @@ export default function Dashboard() {
                                             )}
                                         </div>
 
+                                        {editingCapsule.isGift && (
+                                            <div className="space-y-2">
+                                                <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipientName", "Nome do Destinatário")}</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={editRecipientName} 
+                                                    onChange={e => {
+                                                        setEditRecipientName(e.target.value);
+                                                        if (editErrors.recipientName) setEditErrors(prev => ({ ...prev, recipientName: "" }));
+                                                    }}
+                                                    placeholder={t("forge.fieldRecipientNamePlaceholder", "Ex: Pedro Almeida")}
+                                                    className={`w-full bg-black/50 border rounded-xl px-5 py-3.5 text-white outline-none placeholder:text-neutral-600 text-sm ${
+                                                        editErrors.recipientName 
+                                                            ? "border-rose-950/85 focus:border-rose-500/50" 
+                                                            : "border-neutral-800 focus:border-amber-500/50"
+                                                    }`}
+                                                />
+                                                {editErrors.recipientName && (
+                                                    <span className="text-xs text-rose-400 mt-1 block font-medium tracking-wide">
+                                                        {editErrors.recipientName}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+
                                         <div className="space-y-2">
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldRecipient")}</label>
                                             <input 
@@ -965,7 +1030,9 @@ export default function Dashboard() {
                                                     ? t("dashboard.receivedGiftFrom", { email: cap.ownerEmail })
                                                     : (cap.recipientEmail === userEmail 
                                                         ? t("dashboard.table.personal") 
-                                                        : t("dashboard.table.gift", { email: cap.recipientEmail }))}
+                                                        : (cap.recipientName 
+                                                            ? t("dashboard.table.giftWithName", { name: cap.recipientName, email: cap.recipientEmail })
+                                                            : t("dashboard.table.gift", { email: cap.recipientEmail })))}
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2 shrink-0">
