@@ -363,6 +363,14 @@ public class CapsuleService {
         // Marca que o desgelo foi solicitado e desbloqueia a cápsula imediatamente
         capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.RESTORING);
         capsule.setStatus(com.aevum.api.domain.CapsuleStatus.UNLOCKED);
+
+        // Inicializa a Assinatura (Trial de 30 dias)
+        com.aevum.api.domain.CapsuleSubscription sub = new com.aevum.api.domain.CapsuleSubscription();
+        sub.setCapsule(capsule);
+        sub.setStatus(com.aevum.api.domain.SubscriptionStatus.TRIAL);
+        sub.setExpiresAt(LocalDateTime.now().plusDays(30));
+        capsule.setSubscription(sub);
+
         repository.save(capsule);
 
         log.info("Desbloqueio antecipado solicitado para cápsula {}. Desgelo iniciado no Glacier.", id);
@@ -600,5 +608,82 @@ public class CapsuleService {
         }
         
         return CapsuleResponse.fromEntity(capsule);
+    }
+
+    @Transactional
+    public void activateSubscription(UUID capsuleId, String planTypeStr, com.aevum.api.service.StorageService storageService) {
+        Capsule capsule = repository.findById(capsuleId)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        com.aevum.api.domain.CapsuleSubscription sub = capsule.getSubscription();
+        if (sub == null) {
+            sub = new com.aevum.api.domain.CapsuleSubscription();
+            sub.setCapsule(capsule);
+        }
+
+        com.aevum.api.domain.SubscriptionPlanType planType = "ANNUAL".equalsIgnoreCase(planTypeStr)
+                ? com.aevum.api.domain.SubscriptionPlanType.ANNUAL
+                : com.aevum.api.domain.SubscriptionPlanType.MONTHLY;
+
+        sub.setStatus(com.aevum.api.domain.SubscriptionStatus.ACTIVE);
+        sub.setPlanType(planType);
+        sub.setExpiresAt(planType == com.aevum.api.domain.SubscriptionPlanType.ANNUAL
+                ? LocalDateTime.now().plusYears(1)
+                : LocalDateTime.now().plusMonths(1));
+
+        capsule.setSubscription(sub);
+        repository.save(capsule);
+
+        // Promover os arquivos no S3 para a classe Standard permanentemente
+        storageService.promoteRestoredObjectsToStandard(capsule);
+
+        log.info("Assinatura {} confirmada e ativada para cápsula {}. Mídias promovidas a Standard.", planType, capsuleId);
+    }
+
+    @Transactional(readOnly = true)
+    public com.aevum.api.dto.SubscriptionResponse getSubscriptionDetails(UUID id, String userId, String userEmail) {
+        Capsule capsule = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        // Validar se o solicitante é dono ou destinatário
+        boolean isOwner = capsule.getOwnerId() != null && capsule.getOwnerId().equals(userId);
+        boolean isRecipient = capsule.getRecipientEmail() != null && capsule.getRecipientEmail().equalsIgnoreCase(userEmail);
+
+        if (!isOwner && !isRecipient) {
+            throw new com.aevum.api.exception.AccessDeniedException("access.denied");
+        }
+
+        com.aevum.api.domain.CapsuleSubscription sub = capsule.getSubscription();
+        if (sub == null) {
+            // Se a cápsula já foi destravada mas não possui registro (ex: legado), retorna Trial simulado
+            if (capsule.getStatus() == com.aevum.api.domain.CapsuleStatus.UNLOCKED) {
+                LocalDateTime trialEnd = capsule.getUnlockDate() != null ? capsule.getUnlockDate().plusDays(30) : LocalDateTime.now().plusDays(30);
+                long days = java.time.temporal.ChronoUnit.DAYS.between(LocalDateTime.now(), trialEnd);
+                return new com.aevum.api.dto.SubscriptionResponse(
+                        com.aevum.api.domain.SubscriptionStatus.TRIAL,
+                        null,
+                        trialEnd,
+                        Math.max(0, days)
+                );
+            }
+            return new com.aevum.api.dto.SubscriptionResponse(
+                    com.aevum.api.domain.SubscriptionStatus.INACTIVE,
+                    null,
+                    null,
+                    0
+            );
+        }
+
+        long days = 0;
+        if (sub.getExpiresAt() != null) {
+            days = java.time.temporal.ChronoUnit.DAYS.between(LocalDateTime.now(), sub.getExpiresAt());
+        }
+
+        return new com.aevum.api.dto.SubscriptionResponse(
+                sub.getStatus(),
+                sub.getPlanType(),
+                sub.getExpiresAt(),
+                Math.max(0, days)
+        );
     }
 }
