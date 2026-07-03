@@ -102,6 +102,14 @@ public class PreemptiveRestoreJob {
                 if (localNow.isAfter(localUnlock) || localNow.equals(localUnlock)) {
                     log.info("O tempo chegou! Desbloqueando a cápsula no site: {}", capsule.getId());
                     capsule.setStatus(CapsuleStatus.UNLOCKED);
+
+                    // Inicializa a Assinatura (Trial de 30 dias)
+                    com.aevum.api.domain.CapsuleSubscription sub = new com.aevum.api.domain.CapsuleSubscription();
+                    sub.setCapsule(capsule);
+                    sub.setStatus(com.aevum.api.domain.SubscriptionStatus.TRIAL);
+                    sub.setExpiresAt(localNow.toLocalDateTime().plusDays(30));
+                    capsule.setSubscription(sub);
+
                     capsuleRepository.save(capsule);
                 }
             } catch (Exception e) {
@@ -144,5 +152,34 @@ public class PreemptiveRestoreJob {
         }
         
         log.info("Job de Disparo de E-mails finalizado.");
+    }
+
+    @Scheduled(cron = "0 0 3 * * *")
+    @org.springframework.transaction.annotation.Transactional
+    public void purgeExpiredCapsules() {
+        log.info("Iniciando Job de Purga de mídias de cápsulas expiradas...");
+        LocalDateTime limitDate = LocalDateTime.now().minusDays(30);
+        List<Capsule> toPurge = capsuleRepository.findExpiredCapsulesForPurge(limitDate);
+
+        for (Capsule capsule : toPurge) {
+            try {
+                log.info("Purgando mídias da cápsula: {}", capsule.getId());
+                // 1. Deleta arquivos de mídia do S3
+                storageService.deleteCapsuleFiles(capsule);
+
+                // 2. Limpa os metadados associados (MemoryItems)
+                capsule.getItems().clear();
+
+                // 3. Atualiza o status para PURGED
+                capsule.setStatus(CapsuleStatus.PURGED);
+                capsule.setStorageStatus(StorageStatus.PURGED);
+
+                capsuleRepository.save(capsule);
+                log.info("Cápsula {} purgada e limpa com sucesso.", capsule.getId());
+            } catch (Exception e) {
+                log.error("Falha ao purgar cápsula {}", capsule.getId(), e);
+            }
+        }
+        log.info("Job de Purga de mídias de cápsulas expiradas finalizado.");
     }
 }
