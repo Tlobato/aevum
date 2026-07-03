@@ -128,16 +128,60 @@ public class StorageService {
 
             try {
                 // Solicita o Restore do Glacier.
-                // Days = 7 -> A cópia temporária sumirá em 7 dias (T-minus 48h restaurando, sobra 5 dias pro destinatário abrir e ver).
+                // Days = 30 -> Mantém disponível em Standard por 30 dias de Trial grátis
                 RestoreObjectRequest restoreRequest = RestoreObjectRequest.builder()
                         .bucket(bucketName)
                         .key(key)
-                        .restoreRequest(r -> r.days(7).glacierJobParameters(g -> g.tier(Tier.STANDARD)))
+                        .restoreRequest(r -> r.days(30).glacierJobParameters(g -> g.tier(Tier.STANDARD)))
                         .build();
 
                 s3Client.restoreObject(restoreRequest);
             } catch (Exception e) {
                 System.out.println("Erro ao solicitar restore para " + key + ": " + e.getMessage());
+            }
+        }
+    }
+
+    public void promoteRestoredObjectsToStandard(Capsule capsule) {
+        String capsuleIdStr = capsule.getId().toString();
+
+        for (MemoryItem item : capsule.getItems()) {
+            if (item.getFileName() == null || item.getFileName().isBlank()) continue;
+
+            String key = "sealed/" + capsuleIdStr + "/" + item.getFileName();
+
+            try {
+                // CopyObject com storage class STANDARD sobrescrevendo o próprio objeto promove a mídia definitivamente
+                CopyObjectRequest copyReq = CopyObjectRequest.builder()
+                        .sourceBucket(bucketName)
+                        .sourceKey(key)
+                        .destinationBucket(bucketName)
+                        .destinationKey(key)
+                        .storageClass(StorageClass.STANDARD)
+                        .metadataDirective(MetadataDirective.REPLACE)
+                        .build();
+
+                s3Client.copyObject(copyReq);
+                log.info("S3: Arquivo {} promovido para Standard permanente com sucesso.", key);
+            } catch (Exception e) {
+                log.error("S3: Erro ao promover arquivo {} para Standard permanente: {}", key, e.getMessage(), e);
+            }
+        }
+    }
+
+    public void deleteCapsuleFiles(Capsule capsule) {
+        String capsuleIdStr = capsule.getId().toString();
+
+        for (MemoryItem item : capsule.getItems()) {
+            if (item.getFileName() == null || item.getFileName().isBlank()) continue;
+
+            String key = "sealed/" + capsuleIdStr + "/" + item.getFileName();
+
+            try {
+                s3Client.deleteObject(d -> d.bucket(bucketName).key(key));
+                log.info("AWS: Arquivo {} removido permanentemente devido a expiração.", key);
+            } catch (Exception e) {
+                log.error("AWS: Erro ao deletar arquivo {} durante purga: {}", key, e.getMessage(), e);
             }
         }
     }
