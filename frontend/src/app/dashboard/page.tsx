@@ -759,22 +759,69 @@ export default function Dashboard() {
                                              </div>
                                          </div>
 
-                                        <div className="space-y-2">
+                                        <div className="space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldPlan")}</label>
-                                                <span className="text-[10px] text-amber-500/80 font-bold uppercase tracking-wider animate-pulse">{t("forge.alphaPlanNote")}</span>
                                             </div>
-                                            <select value={planType} onChange={e => setPlanType(e.target.value)}
-                                                className="w-full bg-black/50 border border-neutral-800 focus:border-amber-500/50 rounded-xl px-5 py-3.5 text-white outline-none appearance-none cursor-pointer">
-                                                <option value="EPOCH_1GB">Epoch — 1GB ({t("filter.unlocked", "Disponível")})</option>
-                                                <option value="CHRONOS_2GB" disabled className="text-neutral-600">Chronos — 2GB ({t("forge.alphaPlanNote")})</option>
-                                                <option value="AEON_3GB" disabled className="text-neutral-600">Aeon — 3GB ({t("forge.alphaPlanNote")})</option>
-                                                <option value="ETERNITY_4GB" disabled className="text-neutral-600">Eternity — 4GB ({t("forge.alphaPlanNote")})</option>
-                                                <option value="AEVUM_5GB" disabled className="text-neutral-600">Aevum — 5GB ({t("forge.alphaPlanNote")})</option>
-                                            </select>
-                                            <p className="text-[10px] text-neutral-600 italic">{t("forge.storageNote")}</p>
-                                        </div>
-                                    </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                {/* Card Epoch 1GB */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPlanType("EPOCH_1GB")}
+                                                    className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between h-36 cursor-pointer ${
+                                                        planType === "EPOCH_1GB"
+                                                            ? "bg-amber-950/10 border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+                                                            : "bg-black/40 border-neutral-900 hover:border-neutral-800"
+                                                    }`}
+                                                >
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className={`text-xs font-bold uppercase tracking-wider ${planType === "EPOCH_1GB" ? "text-amber-400" : "text-neutral-400"}`}>
+                                                            Plano Epoch (1 GB)
+                                                        </span>
+                                                        <span className="text-[11px] text-neutral-500 leading-relaxed font-sans mt-1">
+                                                            Focado em textos, áudios e fotos essenciais.
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between items-end w-full font-mono font-bold uppercase tracking-wider text-[9px] text-neutral-600">
+                                                        <span>1 GB Max</span>
+                                                        {planType === "EPOCH_1GB" && (
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+                                                        )}
+                                                    </div>
+                                                </button>
+
+                                                {/* Card Aevum 5GB */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setPlanType("AEVUM_5GB")}
+                                                    className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between h-36 cursor-pointer ${
+                                                        planType === "AEVUM_5GB"
+                                                            ? "bg-amber-950/20 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.15)]"
+                                                            : "bg-black/40 border-neutral-900 hover:border-neutral-800"
+                                                    }`}
+                                                >
+                                                    <div className="absolute top-3 right-3 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[8px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider">
+                                                        Recomendado
+                                                    </div>
+                                                    <div className="flex flex-col gap-1 pr-14">
+                                                        <span className={`text-xs font-bold uppercase tracking-wider ${planType === "AEVUM_5GB" ? "text-amber-400" : "text-neutral-300"}`}>
+                                                            Plano Aevum (5 GB)
+                                                        </span>
+                                                        <span className="text-[11px] text-neutral-500 leading-relaxed font-sans mt-1">
+                                                            Focado em mídias completas e vídeos em alta qualidade.
+                                                        </span>
+                                                     </div>
+                                                     <div className="flex justify-between items-end w-full font-mono font-bold uppercase tracking-wider text-[9px] text-neutral-600">
+                                                         <span>5 GB Max</span>
+                                                         {planType === "AEVUM_5GB" && (
+                                                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+                                                         )}
+                                                     </div>
+                                                 </button>
+                                             </div>
+                                             <p className="text-[10px] text-neutral-600 italic">{t("forge.storageNote")}</p>
+                                         </div>
+                                     </div>
 
                                     {/* Campo de Mensagem Especial — aparece apenas em modo Presente */}
                                     {isGift && (

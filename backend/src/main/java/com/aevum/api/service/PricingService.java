@@ -11,43 +11,26 @@ public class PricingService {
     // Preços listados em CENTAVOS (R$ 10,00 = 1000 centavos)
     // Tabela de preços calculada para cobrir CAC (Custo de Aquisição) e Custos AWS de longo prazo
     public long calculatePriceInCents(CapsulePlan plan, java.time.LocalDateTime unlockDate) {
-        long basePrice = 0L;
-
-        // Base no tamanho (Garante margem de lucro para marketing e Stripe)
-        switch (plan) {
-            case EPOCH_1GB -> basePrice = 1990L;  // R$ 19,90
-            case CHRONOS_2GB -> basePrice = 2990L; // R$ 29,90
-            case AEON_3GB -> basePrice = 3990L;   // R$ 39,90
-            case ETERNITY_4GB -> basePrice = 4990L; // R$ 49,90
-            case AEVUM_5GB -> basePrice = 5990L;   // R$ 59,90
-        }
-
-        // Calcula a duração em dias (mínimo de 2 dias)
         long days = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDateTime.now(), unlockDate);
-        if (days < 2) {
-            days = 2;
+        if (days < 1) {
+            days = 1;
         }
 
-        // Aplica desconto na taxa base para prazos curtos
-        double baseMultiplier = 1.0;
+        // Mapeia os planos legados ou ativos nas duas faixas de preço estabelecidas:
+        // Menores ou iguais a 3GB (Epoch/Chronos/Aeon) são enquadrados como 1 GB.
+        // Maiores (Eternity/Aevum) são enquadrados como 5 GB.
+        boolean isSmallPlan = plan == CapsulePlan.EPOCH_1GB || plan == CapsulePlan.CHRONOS_2GB || plan == CapsulePlan.AEON_3GB;
+
         if (days < 30) {
-            baseMultiplier = 0.65; // 35% de desconto para prazos menores que 30 dias
-        } else if (days < 180) {
-            baseMultiplier = 0.80; // 20% de desconto para prazos menores que 180 dias
+            // Express (1 a 29 dias)
+            return isSmallPlan ? 490L : 990L; // R$ 4,90 ou R$ 9,90
+        } else if (days <= 365) {
+            // Temporada (30 a 365 dias)
+            return isSmallPlan ? 990L : 1990L; // R$ 9,90 ou R$ 19,90
+        } else {
+            // Legado (Mais de 1 ano)
+            return isSmallPlan ? 1990L : 3490L; // R$ 19,90 ou R$ 34,90
         }
-        long finalBasePrice = (long) (basePrice * baseMultiplier);
-
-        // Taxa de armazenamento anual: R$ 0,20 por GB ao ano.
-        // Sob a regra do AWS Glacier Deep Archive, o faturamento mínimo de armazenamento é de 180 dias.
-        double billingYears = days / 365.25;
-        if (days < 180) {
-            billingYears = 180.0 / 365.25; // Garante o repasse do mínimo de 180 dias cobrados pela AWS
-        }
-
-        long sizeInGB = plan.getMaxSizeBytes() / (1024L * 1024 * 1024);
-        long annualStorageFee = (long) (sizeInGB * billingYears * 20L); // 20 centavos por GB ao ano em centavos
-
-        return finalBasePrice + annualStorageFee;
     }
 
     public PricingSummary calculateSealSummary(Capsule capsule) {
