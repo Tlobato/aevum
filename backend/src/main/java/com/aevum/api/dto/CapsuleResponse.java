@@ -25,7 +25,9 @@ public record CapsuleResponse(
     String earlyUnlockRule,
     String ownerId,
     String ownerEmail,
-    String targetTimezone
+    String targetTimezone,
+    String subscriptionStatus,
+    LocalDateTime subscriptionExpiresAt
 ) {
     public static CapsuleResponse fromEntity(Capsule capsule) {
         return new CapsuleResponse(
@@ -48,13 +50,15 @@ public record CapsuleResponse(
             capsule.getEarlyUnlockRule().name(),
             capsule.getOwnerId(),
             capsule.getOwner() != null ? capsule.getOwner().getEmail() : null,
-            capsule.getTargetTimezone()
+            capsule.getTargetTimezone(),
+            capsule.getSubscription() != null ? capsule.getSubscription().getStatus().name() : null,
+            capsule.getSubscription() != null ? capsule.getSubscription().getExpiresAt() : null
         );
     }
 
     public CapsuleResponse sanitizeForRecipient(String requesterUserId) {
         boolean isOwner = this.ownerId != null && this.ownerId.equals(requesterUserId);
-        boolean isUnlocked = "UNLOCKED".equals(this.status) || "OPENED".equals(this.status);
+        boolean isUnlocked = "UNLOCKED".equals(this.status) || "OPENED".equals(this.status) || "PURGED".equals(this.status);
         
         if (!isOwner && !isUnlocked) {
             return new CapsuleResponse(
@@ -77,10 +81,11 @@ public record CapsuleResponse(
                 earlyUnlockRule,
                 ownerId,
                 ownerEmail,
-                targetTimezone
+                targetTimezone,
+                subscriptionStatus,
+                subscriptionExpiresAt
             );
         }
         return this;
     }
 }
-

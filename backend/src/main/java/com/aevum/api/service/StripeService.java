@@ -126,4 +126,50 @@ public class StripeService {
         log.info("Checkout Session (EARLY UNLOCK) criada para cápsula {}: {}", capsuleId, session.getId());
         return session.getUrl();
     }
+
+    public String createSubscriptionCheckoutSession(String capsuleId, long priceInCents, String planType, String customerEmail, String customerLocale) throws StripeException {
+        Stripe.apiKey = secretKey;
+
+        SessionCreateParams.Builder builder = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?subscription_success=true")
+                .setCancelUrl(frontendUrl + "/vault/" + capsuleId + "?subscription=cancelled")
+                .addLineItem(
+                        SessionCreateParams.LineItem.builder()
+                                .setQuantity(1L)
+                                .setPriceData(
+                                        SessionCreateParams.LineItem.PriceData.builder()
+                                                .setCurrency("brl")
+                                                .setUnitAmount(priceInCents)
+                                                .setProductData(
+                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                                                .setName("Aevum — Plano " + ("ANNUAL".equals(planType) ? "Anual" : "Mensal"))
+                                                                .setDescription("Assinatura de manutenção do cofre para acesso rápido e instantâneo.")
+                                                                .build()
+                                                )
+                                                .build()
+                                )
+                                .build()
+                )
+                .putMetadata("capsule_id", capsuleId)
+                .putMetadata("plan_type", planType)
+                .putMetadata("action", "subscribe");
+
+        if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+            builder.setCustomerEmail(customerEmail);
+        }
+
+        if (customerLocale != null && !customerLocale.trim().isEmpty()) {
+            String lower = customerLocale.toLowerCase().trim();
+            if (lower.startsWith("pt")) {
+                builder.setLocale(SessionCreateParams.Locale.PT_BR);
+            } else if (lower.startsWith("en")) {
+                builder.setLocale(SessionCreateParams.Locale.EN);
+            }
+        }
+
+        Session session = Session.create(builder.build());
+        log.info("Checkout Session (SUBSCRIBE) criada para cápsula {}: {}", capsuleId, session.getId());
+        return session.getUrl();
+    }
 }

@@ -109,6 +109,38 @@ public class PaymentController {
         }
     }
 
+    @PostMapping("/create-subscription-checkout/{capsuleId}")
+    public ResponseEntity<Map<String, String>> createSubscriptionCheckout(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID capsuleId,
+            @RequestParam String planType) {
+        try {
+            String userEmail = jwt.getClaimAsString("email");
+            if (userEmail == null) {
+                userEmail = jwt.getClaimAsString("primary_email_address");
+            }
+            // Valida propriedade
+            capsuleService.validateOwnership(capsuleId, jwt.getSubject());
+
+            String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
+
+            long priceInCents = "ANNUAL".equalsIgnoreCase(planType) ? 3990L : 490L;
+            String checkoutUrl = stripeService.createSubscriptionCheckoutSession(
+                    capsuleId.toString(),
+                    priceInCents,
+                    planType.toUpperCase(),
+                    userEmail,
+                    requestLocale
+            );
+            return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
+        } catch (com.aevum.api.exception.AccessDeniedException | IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Erro ao criar checkout de assinatura para cápsula {}", capsuleId, e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     /**
      * Webhook do Stripe — Chamado automaticamente pelo Stripe quando o pagamento é confirmado.
      * NÃO requer autenticação JWT (vem do servidor do Stripe, não do navegador do usuário).
@@ -145,6 +177,10 @@ public class PaymentController {
                 } else if ("early_unlock".equals(action)) {
                     log.info("Pagamento de multa confirmado! Quebrando selo da cápsula: {}", capsuleId);
                     capsuleService.earlyUnlockCapsule(UUID.fromString(capsuleId), storageService);
+                } else if ("subscribe".equals(action)) {
+                    log.info("Pagamento de assinatura confirmado para cápsula: {}", capsuleId);
+                    String planTypeStr = (metadata != null && metadata.has("plan_type")) ? metadata.get("plan_type").getAsString() : "MONTHLY";
+                    capsuleService.activateSubscription(UUID.fromString(capsuleId), planTypeStr, storageService);
                 } else {
                     log.warn("Ação desconhecida no webhook do Stripe: {}", action);
                 }

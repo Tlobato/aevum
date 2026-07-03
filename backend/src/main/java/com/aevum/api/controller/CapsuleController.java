@@ -231,4 +231,17 @@ public class CapsuleController {
         capsuleService.earlyUnlockCapsule(id, storageService);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{id}/subscription")
+    public ResponseEntity<com.aevum.api.dto.SubscriptionResponse> getSubscription(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id) {
+        String userId = jwt.getSubject();
+        String userEmail = jwt.getClaimAsString("email");
+        if (userEmail == null) {
+            userEmail = jwt.getClaimAsString("primary_email_address");
+        }
+        com.aevum.api.dto.SubscriptionResponse response = capsuleService.getSubscriptionDetails(id, userId, userEmail);
+        return ResponseEntity.ok(response);
+    }
 }
