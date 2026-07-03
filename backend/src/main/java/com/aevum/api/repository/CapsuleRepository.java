@@ -2,6 +2,8 @@ package com.aevum.api.repository;
 
 import com.aevum.api.domain.Capsule;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -23,4 +25,7 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
     List<Capsule> findByStatus(com.aevum.api.domain.CapsuleStatus status);
 
     List<Capsule> findByStorageStatus(com.aevum.api.domain.StorageStatus storageStatus);
+
+    @Query("SELECT c FROM Capsule c LEFT JOIN c.subscription s WHERE c.status = com.aevum.api.domain.CapsuleStatus.UNLOCKED AND c.unlockDate < :limitDate AND (s IS NULL OR s.status <> com.aevum.api.domain.SubscriptionStatus.ACTIVE)")
+    List<Capsule> findExpiredCapsulesForPurge(@Param("limitDate") LocalDateTime limitDate);
 }
