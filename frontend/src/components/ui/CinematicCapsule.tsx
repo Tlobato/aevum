@@ -75,6 +75,11 @@ export function CinematicCapsule({
 
   const [activeForgeMode, setActiveForgeMode] = useState<ItemType | null>(null);
   const [showEarlyUnlockModal, setShowEarlyUnlockModal] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [loadingSubscription, setLoadingSubscription] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [showSubscriptionPanel, setShowSubscriptionPanel] = useState(false);
+  const [showCancelSubModal, setShowCancelSubModal] = useState(false);
   const [isSealingVideoPlaying, setIsSealingVideoPlaying] = useState(false);
   const [isOpeningRitualPlaying, setIsOpeningRitualPlaying] = useState(() => {
     if (typeof window !== "undefined" && earlyUnlockSuccess && capsuleId) {
@@ -155,6 +160,71 @@ export function CinematicCapsule({
       fetchPenalty();
     }
   }, [showEarlyUnlockModal, capsuleId, getToken, accessToken]);
+
+  // Carrega informações de assinatura
+  const fetchSubscriptionInfo = async () => {
+    if (!capsuleId || storageStatus === "DRAFT") return;
+    setLoadingSubscription(true);
+    try {
+      let res;
+      if (accessToken) {
+        res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/subscription?token=${accessToken}`, {
+          headers: getApiHeaders()
+        });
+      } else {
+        const token = await getToken({ template: 'aevum-session' });
+        res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/subscription`, {
+          headers: getApiHeaders(token)
+        });
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setSubscription(data);
+      }
+    } catch (e) {
+      console.error("Erro ao carregar dados de assinatura:", e);
+    } finally {
+      setLoadingSubscription(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSubscriptionInfo();
+  }, [capsuleId, storageStatus, accessToken]);
+
+  const handleSubscribe = async (planType: string) => {
+    if (!capsuleId) return;
+    setIsSubscribing(true);
+    try {
+      let res;
+      if (accessToken) {
+        res = await fetch(`${API_URL}/api/v1/public/capsules/${capsuleId}/create-subscription-checkout?token=${accessToken}&planType=${planType}`, {
+          method: "POST",
+          headers: getApiHeaders()
+        });
+      } else {
+        const token = await getToken({ template: 'aevum-session' });
+        res = await fetch(`${API_URL}/api/v1/payments/create-subscription-checkout/${capsuleId}?planType=${planType}`, {
+          method: "POST",
+          headers: getApiHeaders(token)
+        });
+      }
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.checkoutUrl) {
+          window.location.href = data.checkoutUrl;
+        }
+      } else {
+        alert(t("vault.alerts.checkoutError"));
+      }
+    } catch (e) {
+      console.error("Erro ao iniciar assinatura:", e);
+      alert(t("vault.alerts.checkoutError"));
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   // Modo Admin (Bypass de Pagamentos e Tempo)
   const userEmail = user?.primaryEmailAddress?.emailAddress || "";
@@ -446,7 +516,7 @@ export function CinematicCapsule({
     }, 3500);
   };
 
-  const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal;
+  const isBlurMode = activeForgeMode !== null || showEarlyUnlockModal || showSubscriptionPanel || showCancelSubModal;
 
   const shouldHideChest = 
     isBlurMode || 
@@ -455,6 +525,32 @@ export function CinematicCapsule({
     isUnsealingVideoPlaying || 
     isOpeningRitualPlaying || 
     isSealingRitualPlaying;
+
+  if (storageStatus === "PURGED") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[500px] w-full max-w-md mx-auto p-6 bg-neutral-950/60 border border-red-500/20 rounded-3xl backdrop-blur-xl shadow-[0_0_50px_rgba(239,68,68,0.1)] z-10 text-center gap-6">
+        <div className="w-20 h-20 rounded-full bg-red-950/30 border border-red-500/30 flex items-center justify-center text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.2)] animate-pulse">
+          <Lock className="w-10 h-10" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-xl font-extrabold uppercase tracking-widest text-red-500">
+            {t("vault.subscriptionPurgedTitle")}
+          </h2>
+          <p className="text-sm text-neutral-400 leading-relaxed font-sans">
+            {t("vault.subscriptionPurgedDesc")}
+          </p>
+        </div>
+        {!accessToken && (
+          <button
+            onClick={() => window.location.href = "/dashboard"}
+            className="px-6 py-3 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-xs font-bold text-neutral-300 uppercase tracking-widest rounded-xl transition-all"
+          >
+            {t("dashboard.title")}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (viewMode === "GALLERY") {
     if (memoriesList.length === 0 && capsuleId) {
@@ -580,6 +676,49 @@ export function CinematicCapsule({
                     <Lock className="w-4 h-4 text-amber-200" />
                   )}
                 </div>
+
+                {/* Banner de Assinatura / Trial / Inativa */}
+                {subscription && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
+                  <div className={`p-4 text-xs font-medium border-b flex flex-col gap-2 ${
+                    subscription.status === "INACTIVE"
+                      ? "bg-red-950/40 border-red-500/20 text-red-300"
+                      : "bg-amber-950/40 border-amber-500/20 text-amber-300"
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full animate-pulse ${subscription.status === "INACTIVE" ? "bg-red-500" : "bg-amber-500"}`} />
+                      <span className="font-extrabold uppercase tracking-wider text-[10px]">
+                        {subscription.status === "INACTIVE" ? t("vault.subscriptionInactive") : t("vault.subscriptionTrial")}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-neutral-300">
+                      {subscription.status === "INACTIVE"
+                        ? t("vault.subscriptionInactiveDesc")
+                        : t("vault.subscriptionTrialDesc", { days: subscription.daysRemaining })}
+                    </p>
+                    <button
+                      onClick={() => setShowSubscriptionPanel(true)}
+                      className="mt-1 py-1.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-white transition-all text-center self-start"
+                    >
+                      {t("vault.subscriptionTitle")}
+                    </button>
+                  </div>
+                )}
+
+                {/* Banner de Assinatura Ativa */}
+                {subscription && subscription.status === "ACTIVE" && (
+                  <div className="p-4 bg-emerald-950/20 border-b border-emerald-500/10 text-emerald-400 text-xs font-semibold flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                      <span className="uppercase tracking-widest text-[10px]">{t("vault.subscriptionActive")}</span>
+                    </div>
+                    <button
+                      onClick={() => setShowCancelSubModal(true)}
+                      className="text-[9px] text-neutral-500 hover:text-neutral-300 underline uppercase tracking-wider"
+                    >
+                      {t("vault.cancelSubscriptionBtn")}
+                    </button>
+                  </div>
+                )}
 
                 {/* Corpo (Invoice / Metadados) */}
                 <div className="p-6 flex flex-col gap-5">
@@ -1077,6 +1216,97 @@ export function CinematicCapsule({
                 — Platão
               </p>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSubscriptionPanel && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fade-in"
+          >
+            <div className="bg-neutral-900/90 border border-amber-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_40px_rgba(245,158,11,0.15)] relative">
+              <div className="mx-auto w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+
+              <h3 className="text-2xl font-serif text-white font-light text-center mb-2">{t("vault.subscriptionTitle")}</h3>
+              <p className="text-sm text-neutral-400 text-center leading-relaxed mb-6 font-sans">
+                {t("vault.subscriptionTrialDesc", { days: subscription?.daysRemaining || 30 })}
+              </p>
+
+              <div className="flex flex-col gap-4 mt-6 mb-8">
+                {/* Plano Mensal */}
+                <button
+                  disabled={isSubscribing}
+                  onClick={() => handleSubscribe("MONTHLY")}
+                  className="w-full p-4 rounded-2xl bg-neutral-950/60 border border-neutral-800 hover:border-amber-500/50 hover:bg-neutral-950 text-left transition-all flex justify-between items-center group cursor-pointer"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-bold text-white uppercase tracking-wider">{t("vault.planMonthly")}</span>
+                    <span className="text-xs text-neutral-500 font-sans">Cobrança recorrente a cada 30 dias</span>
+                  </div>
+                  <span className="text-xs text-amber-500 group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+
+                {/* Plano Anual */}
+                <button
+                  disabled={isSubscribing}
+                  onClick={() => handleSubscribe("ANNUAL")}
+                  className="w-full p-4 rounded-2xl bg-neutral-950/60 border border-neutral-800 hover:border-amber-500/50 hover:bg-neutral-950 text-left transition-all flex justify-between items-center group cursor-pointer"
+                >
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-bold text-white uppercase tracking-wider">{t("vault.planAnnual")}</span>
+                    <span className="text-xs text-neutral-500 font-sans">Cobrança recorrente a cada 365 dias (Economize 30%)</span>
+                  </div>
+                  <span className="text-xs text-amber-500 group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  disabled={isSubscribing}
+                  onClick={() => setShowSubscriptionPanel(false)}
+                  className="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors"
+                >
+                  Fechar / Voltar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showCancelSubModal && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/80 backdrop-blur-xl animate-fade-in"
+          >
+            <div className="bg-neutral-900/90 border border-neutral-800 rounded-3xl p-8 max-w-md w-full shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
+              <div className="mx-auto w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center mb-6">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              </div>
+
+              <h3 className="text-xl font-serif text-white font-light text-center mb-2">{t("vault.cancelSubscriptionBtn")}</h3>
+              <p className="text-sm text-neutral-400 text-center leading-relaxed mb-6 font-sans">
+                {t("vault.cancelSubscriptionInstructions")}
+              </p>
+
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowCancelSubModal(false)}
+                  className="flex-1 py-3.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors"
+                >
+                  Entendi
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
