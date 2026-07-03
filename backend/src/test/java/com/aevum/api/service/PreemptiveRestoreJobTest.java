@@ -5,6 +5,7 @@ import com.aevum.api.domain.CapsulePlan;
 import com.aevum.api.domain.CapsuleStatus;
 import com.aevum.api.domain.StorageStatus;
 import com.aevum.api.domain.User;
+import com.aevum.api.domain.CapsuleSubscription;
 import com.aevum.api.repository.CapsuleRepository;
 import com.aevum.api.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -225,5 +226,109 @@ class PreemptiveRestoreJobTest {
         // E a flag da retida continua false
         Capsule updatedRetained = capsuleRepository.findById(capRetained.getId()).orElseThrow();
         assertFalse(updatedRetained.isAwakeningEmailSent());
+    }
+
+    @Test
+    void testAwakenRipeCapsules_shouldInitializeTrialSubscription() {
+        Capsule capsule = new Capsule();
+        capsule.setOwner(owner);
+        capsule.setTitle("Cápsula com Sub");
+        capsule.setPlanType(CapsulePlan.CHRONOS_2GB);
+        capsule.setRecipientEmail("recipient@example.com");
+        capsule.setUnlockDate(LocalDateTime.now().minusHours(1));
+        capsule.setTargetTimezone("America/Sao_Paulo");
+        capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK);
+        capsule.setStatus(CapsuleStatus.SEALED);
+        capsule.setStorageStatus(StorageStatus.AVAILABLE);
+        capsule = capsuleRepository.save(capsule);
+
+        preemptiveRestoreJob.awakenRipeCapsules();
+
+        Capsule updated = capsuleRepository.findById(capsule.getId()).orElseThrow();
+        assertEquals(CapsuleStatus.UNLOCKED, updated.getStatus());
+        assertNotNull(updated.getSubscription());
+        assertEquals(com.aevum.api.domain.SubscriptionStatus.TRIAL, updated.getSubscription().getStatus());
+        assertNotNull(updated.getSubscription().getExpiresAt());
+    }
+
+    @Test
+    void testPurgeExpiredCapsules_whenTrialExpiredAndNoActiveSub_shouldDeleteFilesAndSetPurged() {
+        // Criar cápsula desbloqueada há 31 dias com Trial
+        Capsule capsule = new Capsule();
+        capsule.setOwner(owner);
+        capsule.setTitle("Cápsula Expirada");
+        capsule.setPlanType(CapsulePlan.CHRONOS_2GB);
+        capsule.setRecipientEmail("recipient@example.com");
+        capsule.setUnlockDate(LocalDateTime.now().minusDays(31));
+        capsule.setTargetTimezone("America/Sao_Paulo");
+        capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK);
+        capsule.setStatus(CapsuleStatus.UNLOCKED);
+        capsule.setStorageStatus(StorageStatus.AVAILABLE);
+
+        CapsuleSubscription sub = new CapsuleSubscription();
+        sub.setCapsule(capsule);
+        sub.setStatus(com.aevum.api.domain.SubscriptionStatus.TRIAL);
+        sub.setExpiresAt(LocalDateTime.now().minusDays(1));
+        capsule.setSubscription(sub);
+
+        // Adicionar um item para simular metadados
+        com.aevum.api.domain.MemoryItem item = new com.aevum.api.domain.MemoryItem();
+        item.setCapsule(capsule);
+        item.setType(com.aevum.api.domain.ItemType.PHOTO);
+        item.setFileName("foto.jpg");
+        item.setContentPayload("url");
+        capsule.getItems().add(item);
+
+        capsule = capsuleRepository.save(capsule);
+
+        preemptiveRestoreJob.purgeExpiredCapsules();
+
+        // Verifica que storageService deletou os arquivos do S3
+        verify(storageService, times(1)).deleteCapsuleFiles(any(Capsule.class));
+
+        Capsule updated = capsuleRepository.findById(capsule.getId()).orElseThrow();
+        assertEquals(CapsuleStatus.PURGED, updated.getStatus());
+        assertEquals(StorageStatus.PURGED, updated.getStorageStatus());
+        // Verifica que os MemoryItems foram deletados (metadados limpos)
+        assertTrue(updated.getItems().isEmpty());
+    }
+
+    @Test
+    void testPurgeExpiredCapsules_whenSubscriptionActive_shouldNotPurge() {
+        Capsule capsule = new Capsule();
+        capsule.setOwner(owner);
+        capsule.setTitle("Cápsula Ativa Assinada");
+        capsule.setPlanType(CapsulePlan.CHRONOS_2GB);
+        capsule.setRecipientEmail("recipient@example.com");
+        capsule.setUnlockDate(LocalDateTime.now().minusDays(31));
+        capsule.setTargetTimezone("America/Sao_Paulo");
+        capsule.setEarlyUnlockRule(com.aevum.api.domain.EarlyUnlockRule.TOTAL_LOCK);
+        capsule.setStatus(CapsuleStatus.UNLOCKED);
+        capsule.setStorageStatus(StorageStatus.AVAILABLE);
+
+        CapsuleSubscription sub = new CapsuleSubscription();
+        sub.setCapsule(capsule);
+        sub.setStatus(com.aevum.api.domain.SubscriptionStatus.ACTIVE);
+        sub.setExpiresAt(LocalDateTime.now().plusMonths(1));
+        capsule.setSubscription(sub);
+
+        com.aevum.api.domain.MemoryItem item = new com.aevum.api.domain.MemoryItem();
+        item.setCapsule(capsule);
+        item.setType(com.aevum.api.domain.ItemType.PHOTO);
+        item.setFileName("foto.jpg");
+        item.setContentPayload("url");
+        capsule.getItems().add(item);
+
+        capsule = capsuleRepository.save(capsule);
+
+        preemptiveRestoreJob.purgeExpiredCapsules();
+
+        // Não deve deletar os arquivos do S3
+        verify(storageService, never()).deleteCapsuleFiles(any(Capsule.class));
+
+        Capsule updated = capsuleRepository.findById(capsule.getId()).orElseThrow();
+        assertEquals(CapsuleStatus.UNLOCKED, updated.getStatus());
+        assertEquals(StorageStatus.AVAILABLE, updated.getStorageStatus());
+        assertFalse(updated.getItems().isEmpty());
     }
 }
