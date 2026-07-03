@@ -79,6 +79,9 @@ public class Capsule {
     @OneToMany(mappedBy = "capsule", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CapsuleGuardian> guardians = new ArrayList<>();
 
+    @OneToOne(mappedBy = "capsule", cascade = CascadeType.ALL, orphanRemoval = true)
+    private CapsuleSubscription subscription;
+
     // Data de criação e última atualização (Auditoria básica)
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -312,5 +315,16 @@ public class Capsule {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    public CapsuleSubscription getSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(CapsuleSubscription subscription) {
+        this.subscription = subscription;
+        if (subscription != null && subscription.getCapsule() != this) {
+            subscription.setCapsule(this);
+        }
     }
 }
