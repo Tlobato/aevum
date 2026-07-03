@@ -174,7 +174,21 @@
     "unsealingCutscene": "Awakening Relics",
     "memory": "Memory",
     "unknownMemory": "Unknown Memory",
-    "connectionFailed": "The dimensional connection failed during the transfer."
+    "connectionFailed": "The dimensional connection failed during the transfer.",
+    "subscriptionTitle": "Vault Maintenance",
+    "subscriptionActive": "Secure Vault — Active Subscription",
+    "subscriptionTrial": "Vault in Trial Period",
+    "subscriptionTrialDesc": "Your files have been unfrozen and are temporarily available. You have {{days}} days of free access left to view and download all media. Subscribe to a maintenance plan to keep your files permanently.",
+    "subscriptionInactive": "Inactive Subscription",
+    "subscriptionInactiveDesc": "Your files have expired from the free period. To regain access to media, subscribe to a maintenance plan. Otherwise, they will be permanently deleted from the server.",
+    "subscriptionPurgedTitle": "Purged Vault",
+    "subscriptionPurgedDesc": "This vault has expired and all physical files (photos, videos, and audios) have been permanently deleted from the server due to lack of maintenance.",
+    "planMonthly": "Monthly Plan (R$ 4,90)",
+    "planAnnual": "Annual Plan (R$ 39,90)",
+    "cancelSubscriptionBtn": "Cancel Automatic Renewal",
+    "cancelSubscriptionInstructions": "To cancel the automatic renewal of your subscription, you can manage your settings directly through the Stripe email received in the payment confirmation.",
+    "subscribingBtn": "Processing subscription...",
+    "checkoutSubscriptionBtn": "Subscribe to Plan"
   },
   "dropzone": {
     "dragText": "Drag physical memories or click to explore",

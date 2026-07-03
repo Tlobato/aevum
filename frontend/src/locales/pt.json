@@ -174,7 +174,21 @@
     "unsealingCutscene": "Despertando Relíquias",
     "memory": "Memória",
     "unknownMemory": "Memória Desconhecida",
-    "connectionFailed": "A conexão dimensional falhou durante a transferência."
+    "connectionFailed": "A conexão dimensional falhou durante a transferência.",
+    "subscriptionTitle": "Manutenção do Cofre",
+    "subscriptionActive": "Cofre Seguro — Assinatura Ativa",
+    "subscriptionTrial": "Cofre em Período de Trial",
+    "subscriptionTrialDesc": "Seus arquivos foram desgelados e estão disponíveis temporariamente. Você tem mais {{days}} dias de acesso gratuito para visualizar e baixar todas as mídias. Assine um plano de manutenção para manter os arquivos permanentemente.",
+    "subscriptionInactive": "Assinatura Inativa",
+    "subscriptionInactiveDesc": "Seus arquivos expiraram do período gratuito. Para recuperar o acesso às mídias, assine um plano de manutenção. Caso contrário, elas serão excluídas permanentemente do servidor.",
+    "subscriptionPurgedTitle": "Cofre Purgado",
+    "subscriptionPurgedDesc": "Este cofre expirou e todos os arquivos físicos (fotos, vídeos e áudios) foram permanentemente excluídos do servidor devido à falta de manutenção.",
+    "planMonthly": "Plano Mensal (R$ 4,90)",
+    "planAnnual": "Plano Anual (R$ 39,90)",
+    "cancelSubscriptionBtn": "Cancelar Renovação Automática",
+    "cancelSubscriptionInstructions": "Para cancelar a renovação automática da assinatura, você pode gerenciar suas configurações diretamente pelo e-mail da Stripe recebido na confirmação de pagamento.",
+    "subscribingBtn": "Processando assinatura...",
+    "checkoutSubscriptionBtn": "Assinar Plano"
   },
   "dropzone": {
     "dragText": "Arraste memórias físicas ou clique para explorar",
