@@ -6,6 +6,8 @@ import com.aevum.api.service.StripeService;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
 import com.stripe.model.checkout.Session;
+import com.stripe.model.Invoice;
+import com.stripe.model.Subscription;
 import com.stripe.net.Webhook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,10 +126,8 @@ public class PaymentController {
 
             String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
 
-            long priceInCents = "ANNUAL".equalsIgnoreCase(planType) ? 3990L : 490L;
             String checkoutUrl = stripeService.createSubscriptionCheckoutSession(
                     capsuleId.toString(),
-                    priceInCents,
                     planType.toUpperCase(),
                     userEmail,
                     requestLocale
@@ -177,12 +177,28 @@ public class PaymentController {
                 } else if ("early_unlock".equals(action)) {
                     log.info("Pagamento de multa confirmado! Quebrando selo da cápsula: {}", capsuleId);
                     capsuleService.earlyUnlockCapsule(UUID.fromString(capsuleId), storageService);
-                } else if ("subscribe".equals(action)) {
-                    log.info("Pagamento de assinatura confirmado para cápsula: {}", capsuleId);
-                    String planTypeStr = (metadata != null && metadata.has("plan_type")) ? metadata.get("plan_type").getAsString() : "MONTHLY";
-                    capsuleService.activateSubscription(UUID.fromString(capsuleId), planTypeStr, storageService);
                 } else {
-                    log.warn("Ação desconhecida no webhook do Stripe: {}", action);
+                    log.warn("Ação desconhecida no webhook do Stripe (checkout.session.completed): {}", action);
+                }
+            } else if ("invoice.payment_succeeded".equals(event.getType())) {
+                Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
+                if (invoice != null && invoice.getSubscription() != null) {
+                    Subscription stripeSub = Subscription.retrieve(invoice.getSubscription());
+                    String capsuleId = stripeSub.getMetadata().get("capsule_id");
+                    String planTypeStr = stripeSub.getMetadata().get("plan_type");
+                    if (capsuleId != null) {
+                        log.info("Assinatura faturada/renovada com sucesso via invoice para cápsula: {}", capsuleId);
+                        capsuleService.activateSubscription(UUID.fromString(capsuleId), planTypeStr != null ? planTypeStr : "MONTHLY", storageService);
+                    }
+                }
+            } else if ("customer.subscription.deleted".equals(event.getType())) {
+                Subscription stripeSub = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
+                if (stripeSub != null) {
+                    String capsuleId = stripeSub.getMetadata().get("capsule_id");
+                    if (capsuleId != null) {
+                        log.info("Assinatura cancelada/encerrada na Stripe para cápsula: {}", capsuleId);
+                        capsuleService.cancelSubscription(UUID.fromString(capsuleId));
+                    }
                 }
             }
 

@@ -686,4 +686,17 @@ public class CapsuleService {
                 Math.max(0, days)
         );
     }
+
+    @Transactional
+    public void cancelSubscription(UUID capsuleId) {
+        Capsule capsule = repository.findById(capsuleId)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        com.aevum.api.domain.CapsuleSubscription sub = capsule.getSubscription();
+        if (sub != null) {
+            sub.setStatus(com.aevum.api.domain.SubscriptionStatus.INACTIVE);
+            repository.save(capsule);
+            log.info("Assinatura da cápsula {} cancelada com sucesso na Stripe e atualizada para INACTIVE.", capsuleId);
+        }
+    }
 }

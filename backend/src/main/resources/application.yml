@@ -55,6 +55,8 @@ aws:
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  price-monthly: ${STRIPE_PRICE_MONTHLY:price_monthly_dummy}
+  price-annual: ${STRIPE_PRICE_ANNUAL:price_annual_dummy}
 
 aevum:
   frontend-url: ${FRONTEND_URL:http://localhost:3000}

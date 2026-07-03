@@ -87,4 +87,35 @@ public class PublicCapsuleController {
             return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/{id}/subscription")
+    public ResponseEntity<com.aevum.api.dto.SubscriptionResponse> getPublicSubscription(
+            @PathVariable UUID id,
+            @RequestParam UUID token) {
+        CapsuleResponse capsule = capsuleService.getPublicCapsuleForEarlyUnlock(id, token);
+        com.aevum.api.dto.SubscriptionResponse response = capsuleService.getSubscriptionDetails(id, null, capsule.recipientEmail());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/create-subscription-checkout")
+    public ResponseEntity<Map<String, String>> createPublicSubscriptionCheckout(
+            @PathVariable UUID id,
+            @RequestParam UUID token,
+            @RequestParam String planType) {
+        try {
+            CapsuleResponse response = capsuleService.getPublicCapsuleForEarlyUnlock(id, token);
+            String requestLocale = org.springframework.context.i18n.LocaleContextHolder.getLocale().toLanguageTag();
+
+            String checkoutUrl = stripeService.createSubscriptionCheckoutSession(
+                    id.toString(),
+                    planType.toUpperCase(),
+                    response.recipientEmail(),
+                    requestLocale
+            );
+            return ResponseEntity.ok(Map.of("checkoutUrl", checkoutUrl));
+        } catch (Exception e) {
+            log.error("Erro ao criar checkout de assinatura pública para a cápsula {}", id, e);
+            return ResponseEntity.internalServerError().body(Map.of("error", e.getMessage()));
+        }
+    }
 }

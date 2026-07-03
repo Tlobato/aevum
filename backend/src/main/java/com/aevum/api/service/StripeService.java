@@ -20,6 +20,12 @@ public class StripeService {
     @Value("${aevum.frontend-url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Value("${stripe.price-monthly:price_monthly_dummy}")
+    private String priceMonthly;
+
+    @Value("${stripe.price-annual:price_annual_dummy}")
+    private String priceAnnual;
+
     /**
      * Cria uma Sessão de Checkout no Stripe.
      * O cliente é redirecionado para a página segura do Stripe para pagar.
@@ -127,28 +133,25 @@ public class StripeService {
         return session.getUrl();
     }
 
-    public String createSubscriptionCheckoutSession(String capsuleId, long priceInCents, String planType, String customerEmail, String customerLocale) throws StripeException {
+    public String createSubscriptionCheckoutSession(String capsuleId, String planType, String customerEmail, String customerLocale) throws StripeException {
         Stripe.apiKey = secretKey;
 
+        String priceId = "ANNUAL".equalsIgnoreCase(planType) ? priceAnnual : priceMonthly;
+
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
-                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                 .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?subscription_success=true")
                 .setCancelUrl(frontendUrl + "/vault/" + capsuleId + "?subscription=cancelled")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
-                                .setPriceData(
-                                        SessionCreateParams.LineItem.PriceData.builder()
-                                                .setCurrency("brl")
-                                                .setUnitAmount(priceInCents)
-                                                .setProductData(
-                                                        SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                .setName("Aevum — Plano " + ("ANNUAL".equals(planType) ? "Anual" : "Mensal"))
-                                                                .setDescription("Assinatura de manutenção do cofre para acesso rápido e instantâneo.")
-                                                                .build()
-                                                )
-                                                .build()
-                                )
+                                .setPrice(priceId)
+                                .build()
+                )
+                .setSubscriptionData(
+                        SessionCreateParams.SubscriptionData.builder()
+                                .putMetadata("capsule_id", capsuleId)
+                                .putMetadata("plan_type", planType)
                                 .build()
                 )
                 .putMetadata("capsule_id", capsuleId)
