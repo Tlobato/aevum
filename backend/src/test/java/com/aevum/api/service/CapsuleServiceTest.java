@@ -66,7 +66,7 @@ class CapsuleServiceTest {
         // Criar uma data de hoje no fuso de SP (inválido, precisa ser no mínimo amanhã)
         ZoneId zoneId = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime now = ZonedDateTime.now(zoneId);
-        LocalDateTime unlockDate = now.plusMinutes(30).toLocalDateTime();
+        LocalDateTime unlockDate = now.plusSeconds(2).toLocalDateTime();
 
         CapsuleCreateRequest request = new CapsuleCreateRequest(
                 "Minha Cápsula Crítica",
@@ -170,7 +170,7 @@ class CapsuleServiceTest {
         UUID capsuleId = createResponse.id();
 
         // Tenta atualizar para a data de hoje (inválida)
-        LocalDateTime invalidUnlockDate = now.plusMinutes(30).toLocalDateTime();
+        LocalDateTime invalidUnlockDate = now.plusSeconds(2).toLocalDateTime();
         CapsuleUpdateRequest updateRequest = new CapsuleUpdateRequest(
                 "Novo Título",
                 "recipient@example.com",

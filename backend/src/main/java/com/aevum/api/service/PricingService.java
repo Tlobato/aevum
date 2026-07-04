@@ -28,8 +28,18 @@ public class PricingService {
             // Temporada (30 a 365 dias)
             return isSmallPlan ? 990L : 1990L; // R$ 9,90 ou R$ 19,90
         } else {
-            // Legado (Mais de 1 ano)
-            return isSmallPlan ? 1990L : 3490L; // R$ 19,90 ou R$ 34,90
+            // Legado (Mais de 365 dias / 1 ano)
+            double years = days / 365.25;
+            if (years <= 10.0) {
+                // 1 a 10 anos inclusive
+                return isSmallPlan ? 1990L : 3490L; // R$ 19,90 ou R$ 34,90
+            } else if (years <= 30.0) {
+                // 11 a 30 anos inclusive
+                return isSmallPlan ? 3990L : 6990L; // R$ 39,90 ou R$ 69,90
+            } else {
+                // Acima de 30 anos (até 100 anos)
+                return isSmallPlan ? 7990L : 12990L; // R$ 79,90 ou R$ 129,90
+            }
         }
     }
 
