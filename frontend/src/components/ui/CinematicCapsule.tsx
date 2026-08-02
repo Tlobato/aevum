@@ -10,6 +10,7 @@ import { ForgeModal } from "./forge/ForgeModal";
 import { StorageBar } from "./StorageBar";
 import { RelicGallery } from "./RelicGallery";
 import { TermsModal } from "./TermsModal";
+import { VisualRitual } from "./VisualRitual";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -1067,39 +1068,22 @@ export function CinematicCapsule({
       {/* ======================================================== */}
       <AnimatePresence>
          {isSealingVideoPlaying && (
-            <motion.div
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl px-4"
-            >
-               <div className="relative w-full max-w-3xl aspect-video rounded-3xl overflow-hidden shadow-[0_0_120px_rgba(245,158,11,0.15)] bg-black flex items-center justify-center border border-white/5">
-                  <video 
-                     autoPlay muted playsInline
-                     onEnded={() => {
-                        setShowFlash(true);
-                        // Marca como visto para não repetir no F5
-                        if (capsuleId) sessionStorage.setItem(`aevum_seal_seen_${capsuleId}`, "true");
-                        
-                        setTimeout(() => {
-                           setIsSealingVideoPlaying(false);
-                           setStorageStatus("FROZEN");
-                           setIsSealed(true);
-                           setIsOpened(false);
-                        }, 200); // peak of flash
-                        setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
-                     }}
-                     src="/themes/bau-classico/bau-classico-video-selado.webm" 
-                     className="w-full h-full object-contain max-h-[75vh] px-4"
-                  />
-                  {/* Overlay Cinematográfico */}
-                  <div className="absolute bottom-8 w-full text-center pointer-events-none">
-                     <span className="text-amber-500/70 text-xs md:text-sm tracking-[0.5em] uppercase font-bold animate-pulse">
-                        {t("vault.sealingCutscene")}
-                     </span>
-                  </div>
-               </div>
-            </motion.div>
+            <VisualRitual
+               type="seal"
+               themeId={themeId}
+               onComplete={() => {
+                  setShowFlash(true);
+                  if (capsuleId) sessionStorage.setItem(`aevum_seal_seen_${capsuleId}`, "true");
+                  
+                  setTimeout(() => {
+                     setIsSealingVideoPlaying(false);
+                     setStorageStatus("FROZEN");
+                     setIsSealed(true);
+                     setIsOpened(false);
+                  }, 200); // peak of flash
+                  setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
+               }}
+            />
          )}
       </AnimatePresence>
 
@@ -1122,45 +1106,27 @@ export function CinematicCapsule({
       {/* ======================================================== */}
       <AnimatePresence>
          {isUnsealingVideoPlaying && (
-            <motion.div
-               initial={{ opacity: 0 }}
-               animate={{ opacity: 1 }}
-               exit={{ opacity: 0 }}
-               className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-3xl px-4"
-            >
-               <div className="relative w-full max-w-3xl aspect-video rounded-3xl overflow-hidden shadow-[0_0_120px_rgba(245,158,11,0.15)] bg-black flex items-center justify-center border border-white/5">
-                  <video 
-                     autoPlay muted playsInline
-                     onEnded={() => {
-                        setShowFlash(true);
-                        // Marca como visto no sessionStorage para não repetir o vídeo na mesma sessão
-                        if (capsuleId) sessionStorage.setItem(`aevum_unseal_seen_${capsuleId}`, "true");
-                        // Salva no localStorage que o selo foi quebrado definitivamente
-                        if (capsuleId) localStorage.setItem(`aevum_unsealed_${capsuleId}`, "true");
+            <VisualRitual
+               type="unseal"
+               themeId={themeId}
+               onComplete={() => {
+                  setShowFlash(true);
+                  if (capsuleId) sessionStorage.setItem(`aevum_unseal_seen_${capsuleId}`, "true");
+                  if (capsuleId) localStorage.setItem(`aevum_unsealed_${capsuleId}`, "true");
 
-                        setIsUnsealed(true);
+                  setIsUnsealed(true);
 
-                        setTimeout(() => {
-                           setIsUnsealingVideoPlaying(false);
-                            if (earlyUnlockSuccess || storageStatusRef.current === "RESTORING") {
-                               setViewMode("VAULT");
-                            } else {
-                               setViewMode("GALLERY");
-                            }
-                        }, 200); // peak of flash
-                        setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
-                     }}
-                     src="/themes/bau-classico/bau-classico-video-abrindo.webm" 
-                     className="w-full h-full object-contain max-h-[75vh] px-4"
-                  />
-                  {/* Overlay Cinematográfico */}
-                  <div className="absolute bottom-8 w-full text-center pointer-events-none">
-                     <span className="text-amber-500/70 text-xs md:text-sm tracking-[0.5em] uppercase font-bold animate-pulse">
-                        Despertando Relíquias
-                     </span>
-                  </div>
-               </div>
-            </motion.div>
+                  setTimeout(() => {
+                     setIsUnsealingVideoPlaying(false);
+                     if (earlyUnlockSuccess || storageStatusRef.current === "RESTORING") {
+                        setViewMode("VAULT");
+                     } else {
+                        setViewMode("GALLERY");
+                     }
+                  }, 200); // peak of flash
+                  setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
+               }}
+            />
          )}
       </AnimatePresence>
 
