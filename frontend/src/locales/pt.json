@@ -187,8 +187,11 @@
     "planAnnual": "Plano Anual (R$ 39,90)",
     "cancelSubscriptionBtn": "Cancelar Renovação Automática",
     "cancelSubscriptionInstructions": "Para cancelar a renovação automática da assinatura, você pode gerenciar suas configurações diretamente pelo e-mail da Stripe recebido na confirmação de pagamento.",
-    "subscribingBtn": "Processando assinatura...",
-    "checkoutSubscriptionBtn": "Assinar Plano"
+    "subscribingBtn": "Processing subscription...",
+    "checkoutSubscriptionBtn": "Assinar Plano",
+    "celebrationTitle": "O grande momento chegou!",
+    "celebrationDesc": "Suas relíquias foram trazidas de volta através do tempo. O selo foi desfeito e as suas memórias estão prontas para serem exploradas.",
+    "celebrationDismiss": "Ver Detalhes do Cofre"
   },
   "dropzone": {
     "dragText": "Arraste memórias físicas ou clique para explorar",
@@ -204,7 +207,7 @@
   },
   "earlyUnlock": {
     "modalTitle": "Quebra do Selo Temporal",
-    "modalDesc": "Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético.",
+    "modalDesc": "Interromper a linha do tempo e extrair suas relíquias antes da data programada requer uma descompressão forçada do cofre. Esta ação possui um custo energético. Nota: Como os seus arquivos físicos foram mantidos em estado de crio-preservação profunda para garantir a integridade absoluta através dos anos, o processo de despertar e descompressão das mídias não é imediato e levará até 48 horas para ser concluído após a quebra do selo.",
     "penaltyLabel": "Resgate Antecipado",
     "penaltyPct": "30% do Selo Original",
     "penaltyMin": "Taxa Mínima",

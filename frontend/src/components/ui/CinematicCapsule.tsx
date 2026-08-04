@@ -98,6 +98,14 @@ export function CinematicCapsule({
   });
   const [isRedirectingToStripe, setIsRedirectingToStripe] = useState(false);
   const [showFlash, setShowFlash] = useState(false);
+  const [isFirstOpen, setIsFirstOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && isUnsealed && capsuleId) {
+      const hasSeen = localStorage.getItem(`aevum_first_open_seen_${capsuleId}`) === "true";
+      setIsFirstOpen(!hasSeen);
+    }
+  }, [isUnsealed, capsuleId]);
 
   const [earlyUnlockPenalty, setEarlyUnlockPenalty] = useState<number | null>(null);
   const [loadingPenalty, setLoadingPenalty] = useState(false);
@@ -678,8 +686,30 @@ export function CinematicCapsule({
                   )}
                 </div>
 
+                {/* Banner de Celebração de Abertura (Esconde cobranças no primeiro momento) */}
+                {isUnsealed && isFirstOpen && (
+                  <div className="p-5 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 border-b border-amber-500/20 text-amber-300 text-xs text-center flex flex-col gap-2">
+                    <span className="text-xl">✨</span>
+                    <h4 className="font-serif text-sm font-bold uppercase tracking-wider text-amber-200 animate-pulse">
+                      {t("vault.celebrationTitle")}
+                    </h4>
+                    <p className="text-[11px] leading-relaxed text-neutral-300">
+                      {t("vault.celebrationDesc")}
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setIsFirstOpen(false);
+                        localStorage.setItem(`aevum_first_open_seen_${capsuleId}`, "true");
+                      }}
+                      className="mt-2 py-1.5 px-4 bg-amber-500 hover:bg-amber-600 text-black font-extrabold rounded-lg text-[10px] uppercase tracking-wider transition-all self-center shadow-[0_0_10px_rgba(245,158,11,0.4)] cursor-pointer"
+                    >
+                      {t("vault.celebrationDismiss")}
+                    </button>
+                  </div>
+                )}
+
                 {/* Banner de Assinatura / Trial / Inativa */}
-                {subscription && isUnsealed && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
+                {subscription && isUnsealed && !isFirstOpen && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
                   <div className={`p-4 text-xs font-medium border-b flex flex-col gap-2 ${
                     subscription.status === "INACTIVE"
                       ? "bg-red-950/40 border-red-500/20 text-red-300"
@@ -698,7 +728,7 @@ export function CinematicCapsule({
                     </p>
                     <button
                       onClick={() => setShowSubscriptionPanel(true)}
-                      className="mt-1 py-1.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-white transition-all text-center self-start"
+                      className="mt-1 py-1.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-white transition-all text-center self-start cursor-pointer"
                     >
                       {t("vault.subscriptionTitle")}
                     </button>

@@ -188,7 +188,10 @@
     "cancelSubscriptionBtn": "Cancel Automatic Renewal",
     "cancelSubscriptionInstructions": "To cancel the automatic renewal of your subscription, you can manage your settings directly through the Stripe email received in the payment confirmation.",
     "subscribingBtn": "Processing subscription...",
-    "checkoutSubscriptionBtn": "Subscribe to Plan"
+    "checkoutSubscriptionBtn": "Subscribe to Plan",
+    "celebrationTitle": "The great moment has arrived!",
+    "celebrationDesc": "Your relics have been brought back through time. The seal is broken and your memories are ready to be explored.",
+    "celebrationDismiss": "View Vault Details"
   },
   "dropzone": {
     "dragText": "Drag physical memories or click to explore",
@@ -204,7 +207,7 @@
   },
   "earlyUnlock": {
     "modalTitle": "Temporal Seal Break",
-    "modalDesc": "Interrupting the timeline and extracting your relics before the scheduled date requires a forced decompression of the vault. This action has an energy cost.",
+    "modalDesc": "Interrupting the timeline and extracting your relics before the scheduled date requires a forced decompression of the vault. This action has an energy cost. Note: Because your physical files were kept in a state of deep cryo-preservation to guarantee absolute integrity through the years, the process of awakening and decompressing the media is not immediate and will take up to 48 hours to complete after the seal is broken.",
     "penaltyLabel": "Early Redemption",
     "penaltyPct": "30% of the Original Seal",
     "penaltyMin": "Minimum Fee",
