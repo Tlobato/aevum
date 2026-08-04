@@ -679,7 +679,7 @@ export function CinematicCapsule({
                 </div>
 
                 {/* Banner de Assinatura / Trial / Inativa */}
-                {subscription && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
+                {subscription && isUnsealed && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
                   <div className={`p-4 text-xs font-medium border-b flex flex-col gap-2 ${
                     subscription.status === "INACTIVE"
                       ? "bg-red-950/40 border-red-500/20 text-red-300"

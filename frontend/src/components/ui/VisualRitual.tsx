@@ -306,15 +306,25 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
           }}
         />
 
-        {/* Efeito de Feixe de Luz Centralizado */}
+        {/* Efeito de Feixe de Luz Volumétrico e Núcleo de Energia (Evita erros de centralização) */}
+        <motion.div 
+          initial={{ scale: 0, opacity: 0 }}
+          animate={type === "seal" 
+            ? { scale: [0, 0.5, 1.2, 0.8, 2.5], opacity: [0, 0.4, 0.8, 0.5, 1] }
+            : { scale: [0, 0.8, 2.0, 1.2, 3.5], opacity: [0, 0.6, 1.0, 0.7, 1] }
+          }
+          transition={{ duration: 3.2, ease: "easeIn" }}
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r from-amber-500/10 via-amber-300/40 to-amber-500/10 rounded-full blur-[25px] z-25 mix-blend-screen"
+        />
+
         <motion.div 
           initial={{ scaleX: 0, opacity: 0 }}
           animate={type === "seal" 
-            ? { scaleX: [0, 0.1, 1, 0.2, 8], opacity: [0, 0.3, 0.8, 0.4, 1] }
-            : { scaleX: [0, 0.5, 2, 0.8, 10], opacity: [0, 0.5, 0.9, 0.6, 1] }
+            ? { scaleX: [0, 0.1, 1, 0.2, 6], opacity: [0, 0.3, 0.7, 0.4, 0.9] }
+            : { scaleX: [0, 0.3, 2, 0.6, 8], opacity: [0, 0.4, 0.8, 0.5, 0.9] }
           }
           transition={{ duration: 3.2, ease: "easeIn" }}
-          className="absolute w-2.5 h-[150%] bg-gradient-to-b from-transparent via-amber-200 to-transparent blur-[2px] z-30 mix-blend-screen"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-[160%] bg-gradient-to-b from-transparent via-amber-100/15 to-transparent blur-[20px] z-30 mix-blend-screen"
         />
       </div>
 
