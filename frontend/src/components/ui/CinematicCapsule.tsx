@@ -686,67 +686,33 @@ export function CinematicCapsule({
                   )}
                 </div>
 
-                {/* Banner de Celebração de Abertura (Esconde cobranças no primeiro momento) */}
+                {/* Banner de Celebração de Abertura (Esconde cobranças no primeiro momento e adapta ao status do desgelo) */}
                 {isUnsealed && isFirstOpen && (
                   <div className="p-5 bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 border-b border-amber-500/20 text-amber-300 text-xs text-center flex flex-col gap-2">
                     <span className="text-xl">✨</span>
                     <h4 className="font-serif text-sm font-bold uppercase tracking-wider text-amber-200 animate-pulse">
-                      {t("vault.celebrationTitle")}
+                      {storageStatus === "AVAILABLE" 
+                        ? t("vault.celebrationTitle") 
+                        : t("vault.celebrationTitleRestoring")}
                     </h4>
                     <p className="text-[11px] leading-relaxed text-neutral-300">
-                      {t("vault.celebrationDesc")}
+                      {storageStatus === "AVAILABLE" 
+                        ? t("vault.celebrationDesc") 
+                        : t("vault.celebrationDescRestoring")}
                     </p>
                     <button 
                       onClick={() => {
                         setIsFirstOpen(false);
                         localStorage.setItem(`aevum_first_open_seen_${capsuleId}`, "true");
+                        if (storageStatus === "AVAILABLE") {
+                          setViewMode("GALLERY");
+                        }
                       }}
                       className="mt-2 py-1.5 px-4 bg-amber-500 hover:bg-amber-600 text-black font-extrabold rounded-lg text-[10px] uppercase tracking-wider transition-all self-center shadow-[0_0_10px_rgba(245,158,11,0.4)] cursor-pointer"
                     >
-                      {t("vault.celebrationDismiss")}
-                    </button>
-                  </div>
-                )}
-
-                {/* Banner de Assinatura / Trial / Inativa */}
-                {subscription && isUnsealed && !isFirstOpen && (subscription.status === "TRIAL" || subscription.status === "INACTIVE") && (
-                  <div className={`p-4 text-xs font-medium border-b flex flex-col gap-2 ${
-                    subscription.status === "INACTIVE"
-                      ? "bg-red-950/40 border-red-500/20 text-red-300"
-                      : "bg-amber-950/40 border-amber-500/20 text-amber-300"
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full animate-pulse ${subscription.status === "INACTIVE" ? "bg-red-500" : "bg-amber-500"}`} />
-                      <span className="font-extrabold uppercase tracking-wider text-[10px]">
-                        {subscription.status === "INACTIVE" ? t("vault.subscriptionInactive") : t("vault.subscriptionTrial")}
-                      </span>
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-neutral-300">
-                      {subscription.status === "INACTIVE"
-                        ? t("vault.subscriptionInactiveDesc")
-                        : t("vault.subscriptionTrialDesc", { days: subscription.daysRemaining })}
-                    </p>
-                    <button
-                      onClick={() => setShowSubscriptionPanel(true)}
-                      className="mt-1 py-1.5 px-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-lg text-[10px] font-extrabold uppercase tracking-widest text-white transition-all text-center self-start cursor-pointer"
-                    >
-                      {t("vault.subscriptionTitle")}
-                    </button>
-                  </div>
-                )}
-
-                {/* Banner de Assinatura Ativa */}
-                {subscription && subscription.status === "ACTIVE" && (
-                  <div className="p-4 bg-emerald-950/20 border-b border-emerald-500/10 text-emerald-400 text-xs font-semibold flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                      <span className="uppercase tracking-widest text-[10px]">{t("vault.subscriptionActive")}</span>
-                    </div>
-                    <button
-                      onClick={() => setShowCancelSubModal(true)}
-                      className="text-[9px] text-neutral-500 hover:text-neutral-300 underline uppercase tracking-wider"
-                    >
-                      {t("vault.cancelSubscriptionBtn")}
+                      {storageStatus === "AVAILABLE" 
+                        ? t("vault.celebrationDismiss") 
+                        : t("vault.celebrationDismissRestoring")}
                     </button>
                   </div>
                 )}
@@ -780,6 +746,42 @@ export function CinematicCapsule({
                       </span>
                     </div>
                   </div>
+
+                  {/* Status de Manutenção do Plano - Apenas quando desbloqueado */}
+                  {isUnsealed && subscription && (
+                    <div className="flex items-center gap-4 border-t border-white/5 pt-4">
+                      <div className="w-10 h-10 rounded-full bg-neutral-500/10 flex flex-shrink-0 items-center justify-center border border-neutral-700/30">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">{t("vault.maintenancePlan")}</span>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${subscription.status === "ACTIVE" ? "bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.6)]" : subscription.status === "TRIAL" ? "bg-amber-500 animate-pulse shadow-[0_0_6px_rgba(245,158,11,0.6)]" : "bg-red-500"}`} />
+                          <span className="text-xs font-mono font-bold text-neutral-300">
+                            {subscription.status === "ACTIVE" 
+                              ? t("vault.subscriptionActiveShort") 
+                              : subscription.status === "TRIAL" 
+                                ? t("vault.subscriptionTrialShort", { days: subscription.daysRemaining }) 
+                                : t("vault.subscriptionInactiveShort")}
+                          </span>
+                          <button
+                            onClick={() => setShowSubscriptionPanel(true)}
+                            className="ml-2 px-2 py-0.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded text-[9px] font-bold uppercase tracking-wider text-white transition-all cursor-pointer"
+                          >
+                            {t("vault.manageBtn")}
+                          </button>
+                          {subscription.status === "ACTIVE" && (
+                            <button
+                              onClick={() => setShowCancelSubModal(true)}
+                              className="ml-2 text-[9px] text-neutral-500 hover:text-neutral-300 underline uppercase tracking-wider cursor-pointer"
+                            >
+                              {t("vault.cancelSubscriptionBtn")}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Mensagem Rodapé / Destravamento */}
                   <div className="mt-2 pt-4 border-t border-white/5 text-center flex flex-col gap-3">

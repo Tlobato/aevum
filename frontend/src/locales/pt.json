@@ -191,7 +191,15 @@
     "checkoutSubscriptionBtn": "Assinar Plano",
     "celebrationTitle": "O grande momento chegou!",
     "celebrationDesc": "Suas relíquias foram trazidas de volta através do tempo. O selo foi desfeito e as suas memórias estão prontas para serem exploradas.",
-    "celebrationDismiss": "Ver Detalhes do Cofre"
+    "celebrationDismiss": "Explorar Relíquias",
+    "celebrationTitleRestoring": "Processo de Despertar Iniciado!",
+    "celebrationDescRestoring": "O selo temporal foi quebrado com sucesso! Suas relíquias físicas estão sendo recuperadas da crio-preservação profunda. Por segurança, os arquivos de mídia estarão disponíveis para exploração em até 48 horas.",
+    "celebrationDismissRestoring": "Entendido",
+    "maintenancePlan": "Plano de Manutenção",
+    "subscriptionActiveShort": "Seguro & Ativo",
+    "subscriptionTrialShort": "Período de Graça ({{days}} dias)",
+    "subscriptionInactiveShort": "Suspenso / Expirado",
+    "manageBtn": "Planos"
   },
   "dropzone": {
     "dragText": "Arraste memórias físicas ou clique para explorar",

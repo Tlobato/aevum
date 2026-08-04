@@ -191,7 +191,15 @@
     "checkoutSubscriptionBtn": "Subscribe to Plan",
     "celebrationTitle": "The great moment has arrived!",
     "celebrationDesc": "Your relics have been brought back through time. The seal is broken and your memories are ready to be explored.",
-    "celebrationDismiss": "View Vault Details"
+    "celebrationDismiss": "Explore Relics",
+    "celebrationTitleRestoring": "Awakening Process Started!",
+    "celebrationDescRestoring": "The temporal seal has been broken successfully! Your physical relics are being retrieved from deep cryo-preservation. For safety reasons, media files will become available for exploration within 48 hours.",
+    "celebrationDismissRestoring": "Understood",
+    "maintenancePlan": "Maintenance Plan",
+    "subscriptionActiveShort": "Secure & Active",
+    "subscriptionTrialShort": "Grace Period ({{days}} days)",
+    "subscriptionInactiveShort": "Suspended / Expired",
+    "manageBtn": "Plans"
   },
   "dropzone": {
     "dragText": "Drag physical memories or click to explore",
