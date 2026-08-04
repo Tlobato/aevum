@@ -357,11 +357,22 @@ public class CapsuleService {
             return;
         }
 
-        // Solicita o desgelo do Glacier (leva até 48h).
-        storageService.triggerRestoreTask(capsule);
+        // Verifica se a cápsula possui algum arquivo físico (mídia) associado
+        boolean hasPhysicalFiles = capsule.getItems().stream()
+                .anyMatch(item -> item.getFileName() != null && !item.getFileName().isBlank());
 
-        // Marca que o desgelo foi solicitado e desbloqueia a cápsula imediatamente
-        capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.RESTORING);
+        // Se ela não tem arquivos físicos OU se o status de armazenamento já é AVAILABLE,
+        // o desbloqueio é imediato. Caso contrário, inicia o desgelo do Glacier (RESTORING).
+        if (!hasPhysicalFiles || capsule.getStorageStatus() == com.aevum.api.domain.StorageStatus.AVAILABLE) {
+            capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.AVAILABLE);
+            log.info("Desbloqueio antecipado imediato para cápsula {}. (Possui mídias físicas: {}, Status original: {})", id, hasPhysicalFiles, capsule.getStorageStatus());
+        } else {
+            // Solicita o desgelo do Glacier (leva até 48h).
+            storageService.triggerRestoreTask(capsule);
+            capsule.setStorageStatus(com.aevum.api.domain.StorageStatus.RESTORING);
+            log.info("Desbloqueio antecipado com desgelo iniciado para cápsula {}.", id);
+        }
+
         capsule.setStatus(com.aevum.api.domain.CapsuleStatus.UNLOCKED);
 
         // Inicializa a Assinatura (Trial de 30 dias)

@@ -340,15 +340,11 @@ export function CinematicCapsule({
       const alreadySeen = sessionStorage.getItem(seenKey);
 
       if (!alreadySeen) {
-          setStorageStatus("RESTORING");
           setIsOpeningRitualPlaying(true);
           setTimeout(() => {
              setIsOpeningRitualPlaying(false);
              setIsUnsealingVideoPlaying(true);
           }, 3500);
-      } else {
-          setStorageStatus("RESTORING");
-          // Se já viu a animação de restauração, apenas mantém no estado correto
       }
     }
   }, [earlyUnlockSuccess, capsuleId]);
@@ -1151,11 +1147,11 @@ export function CinematicCapsule({
 
                   setTimeout(() => {
                      setIsUnsealingVideoPlaying(false);
-                     if (earlyUnlockSuccess || storageStatusRef.current === "RESTORING") {
-                        setViewMode("VAULT");
-                     } else {
-                        setViewMode("GALLERY");
-                     }
+                      if (storageStatusRef.current === "RESTORING") {
+                         setViewMode("VAULT");
+                      } else {
+                         setViewMode("GALLERY");
+                      }
                   }, 200); // peak of flash
                   setTimeout(() => setShowFlash(false), 800); // flash fade-out duration
                }}
