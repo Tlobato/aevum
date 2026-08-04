@@ -118,6 +118,7 @@ export function CinematicCapsule({
 
   const isOwner = !accessToken && user && ownerId && user.id === ownerId;
   const isRecipient = !!accessToken || (user && recipientEmail && user.primaryEmailAddress?.emailAddress?.toLowerCase() === recipientEmail.toLowerCase());
+  const isTimeElapsed = new Date(unlockDate).getTime() <= Date.now();
 
   const canEarlyUnlock = 
     earlyUnlockRule === "ALLOW_RECIPIENT" 
@@ -788,7 +789,7 @@ export function CinematicCapsule({
                     <span className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">
                       {isUnsealed ? t("vault.unlockedSubtitle") : t("vault.sealedFooter")}
                     </span>
-                    {storageStatus !== "AVAILABLE" && storageStatus === "FROZEN" && canEarlyUnlock && (
+                    {!isTimeElapsed && canEarlyUnlock && !isUnsealed && (storageStatus === "FROZEN" || storageStatus === "AVAILABLE") && (
                         <button
                           onClick={() => setShowEarlyUnlockModal(true)}
                           className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-xl text-xs font-bold text-red-400 uppercase tracking-widest transition-all">
@@ -894,8 +895,8 @@ export function CinematicCapsule({
         );
       })()}
 
-      {/* Botão de Quebrar o Selo — só aparece quando disponível e o selo ainda não foi quebrado */}
-      {storageStatus === "AVAILABLE" && !isUnsealed && (
+      {/* Botão de Quebrar o Selo — só aparece quando disponível, o selo ainda não foi quebrado e a data de despertar chegou */}
+      {storageStatus === "AVAILABLE" && !isUnsealed && isTimeElapsed && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

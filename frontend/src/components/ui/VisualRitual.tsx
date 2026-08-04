@@ -31,9 +31,9 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
   const [showFlash, setShowFlash] = useState(false);
 
   // Estados das imagens do baú
-  const chestImage = type === "seal" 
-    ? activeTheme.assets.vault.opened 
-    : activeTheme.assets.vault.closed;
+  const [currentChestImage, setCurrentChestImage] = useState(
+    type === "seal" ? activeTheme.assets.vault.opened : activeTheme.assets.vault.closed
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -239,9 +239,16 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
 
     // Controle de tempo do ritual (Duração total de 3.5 segundos)
     // - Aos 2.8s, dispara o flash de luz
+    // - Aos 3.0s (pico do brilho), altera a imagem do baú para o estado final
     // - Aos 3.5s, executa o onComplete
+    let chestImageTimer: any;
     const flashTimer = setTimeout(() => {
       setShowFlash(true);
+      chestImageTimer = setTimeout(() => {
+        setCurrentChestImage(
+          type === "seal" ? activeTheme.assets.vault.closed : activeTheme.assets.vault.opened
+        );
+      }, 200);
     }, 2800);
 
     const completeTimer = setTimeout(() => {
@@ -253,6 +260,7 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
       window.removeEventListener("resize", resizeCanvas);
       clearTimeout(flashTimer);
       clearTimeout(completeTimer);
+      if (chestImageTimer) clearTimeout(chestImageTimer);
     };
   }, [type, onComplete]);
 
@@ -295,7 +303,7 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
 
         {/* Baú estático animado com tremor de física */}
         <motion.img
-          src={chestImage}
+          src={currentChestImage}
           alt="Aevum Vault"
           className="w-[85%] max-h-[85%] object-contain filter drop-shadow-[0_0_30px_rgba(245,158,11,0.25)]"
           animate={shakeAnimation}
