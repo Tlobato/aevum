@@ -62,7 +62,7 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
-    // Cores de ouro e âmbar premium
+    // Cores de ouro e âmbar premium (fallback)
     const goldColors = [
       "rgba(212, 175, 55, ", // Gold
       "rgba(181, 149, 47, ", // Goldenrod
@@ -70,9 +70,10 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
       "rgba(251, 191, 36, ", // Yellow-500
       "rgba(255, 255, 255, "  // White sparkles
     ];
+    const themeColors = activeTheme.ritualColors || goldColors;
 
     const getRandomColor = (alpha: number) => {
-      const base = goldColors[Math.floor(Math.random() * goldColors.length)];
+      const base = themeColors[Math.floor(Math.random() * themeColors.length)];
       return `${base}${alpha})`;
     };
 
@@ -140,17 +141,20 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
         currentCenterX, currentCenterY, 5, 
         currentCenterX, currentCenterY, type === "seal" ? 120 : 180
       );
+
+      const glowBase = themeColors[2] || "rgba(245, 158, 11, ";
+      const glowBaseAlt = themeColors[3] || "rgba(251, 191, 36, ";
       
       if (type === "seal") {
         // Glow que encolhe/concentra com o tempo
-        radialGlow.addColorStop(0, `rgba(245, 158, 11, ${0.15 + Math.sin(frameCount * 0.02) * 0.05})`);
-        radialGlow.addColorStop(0.5, "rgba(245, 158, 11, 0.05)");
+        radialGlow.addColorStop(0, `${glowBase}${0.15 + Math.sin(frameCount * 0.02) * 0.05})`);
+        radialGlow.addColorStop(0.5, `${glowBase}0.05)`);
         radialGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
       } else {
         // Glow expansivo no início
         const sizeMultiplier = Math.min(1.5, frameCount * 0.03);
-        radialGlow.addColorStop(0, `rgba(251, 191, 36, ${Math.max(0, 0.3 - frameCount * 0.002)})`);
-        radialGlow.addColorStop(0.4 * sizeMultiplier, "rgba(245, 158, 11, 0.08)");
+        radialGlow.addColorStop(0, `${glowBaseAlt}${Math.max(0, 0.3 - frameCount * 0.002)})`);
+        radialGlow.addColorStop(0.4 * sizeMultiplier, `${glowBase}0.08)`);
         radialGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
       }
 
@@ -322,7 +326,10 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
             : { scale: [0, 0.8, 2.0, 1.2, 3.5], opacity: [0, 0.6, 1.0, 0.7, 1] }
           }
           transition={{ duration: 3.2, ease: "easeIn" }}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r from-amber-500/10 via-amber-300/40 to-amber-500/10 rounded-full blur-[25px] z-25 mix-blend-screen"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[25px] z-25 mix-blend-screen"
+          style={{
+            backgroundImage: `radial-gradient(circle, ${activeTheme.glowColor || "rgba(245, 158, 11, 0.4)"} 0%, transparent 70%)`
+          }}
         />
 
         <motion.div 
@@ -332,7 +339,10 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
             : { scaleX: [0, 0.3, 2, 0.6, 8], opacity: [0, 0.4, 0.8, 0.5, 0.9] }
           }
           transition={{ duration: 3.2, ease: "easeIn" }}
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-[160%] bg-gradient-to-b from-transparent via-amber-100/15 to-transparent blur-[20px] z-30 mix-blend-screen"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-[160%] blur-[20px] z-30 mix-blend-screen"
+          style={{
+            backgroundImage: `linear-gradient(to bottom, transparent, ${activeTheme.ritualColors?.[4] || "rgba(255, 255, 255, "}0.15), transparent)`
+          }}
         />
       </div>
 
