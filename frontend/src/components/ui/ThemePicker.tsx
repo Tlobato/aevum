@@ -19,7 +19,7 @@ export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold pl-1">
                 {t("themes.label")}
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[310px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-amber-500/20 scrollbar-track-transparent">
                 {themes.map((theme) => {
                     const isSelected = selectedThemeId === theme.id;
                     return (

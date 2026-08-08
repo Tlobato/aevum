@@ -295,7 +295,12 @@
   "themes": {
     "label": "Tema do Baú",
     "bau-classico": "Baú Clássico",
-    "bau-maritimo": "Baú Marítimo"
+    "bau-maritimo": "Baú Marítimo",
+    "bau-astronauta": "Baú Astronauta",
+    "bau-caveira-assombrada": "Baú Caveira Assombrada",
+    "bau-grego": "Baú Grego",
+    "bau-selva": "Baú Selvagem",
+    "bau-terror": "Baú do Terror"
   },
   "common": {
     "confirm": "Confirmar",

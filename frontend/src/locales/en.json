@@ -295,7 +295,12 @@
   "themes": {
     "label": "Vault Theme",
     "bau-classico": "Classic Chest",
-    "bau-maritimo": "Maritime Chest"
+    "bau-maritimo": "Maritime Chest",
+    "bau-astronauta": "Astronaut Chest",
+    "bau-caveira-assombrada": "Haunted Skull Chest",
+    "bau-grego": "Greek Chest",
+    "bau-selva": "Jungle Chest",
+    "bau-terror": "Terror Chest"
   },
   "common": {
     "confirm": "Confirm",
