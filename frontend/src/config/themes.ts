@@ -95,18 +95,5 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
         // Ícones serão adicionados futuramente
       }
     }
-  },
-  "bau-terror": {
-    id: "bau-terror",
-    name: "Baú do Terror",
-    assets: {
-      vault: {
-        closed: "/themes/bau-terror/bau-terror-fechado.png",
-        opened: "/themes/bau-terror/bau-terror-aberto.png"
-      },
-      relics: {
-        // Ícones serão adicionados futuramente
-      }
-    }
   }
 };
