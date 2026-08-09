@@ -1100,7 +1100,7 @@ export default function Dashboard() {
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
                                             )}
-                                            {!isReceivedGift && (cap.status === "DRAFT" || isAdmin) && (
+                                            {(!isReceivedGift || isAdmin) && (cap.status === "DRAFT" || isAdmin) && (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); setDeleteModal({ isOpen: true, capsuleId: cap.id }); }}
                                                     className="p-1.5 text-neutral-600 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all cursor-pointer"
