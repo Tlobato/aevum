@@ -3,6 +3,54 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ItemType } from "@/types/capsule";
 
+function getSupportedMimeType(mode: "VIDEO" | "AUDIO"): string {
+  if (typeof MediaRecorder === "undefined") {
+    return "";
+  }
+
+  const videoTypes = [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm;codecs=h264,opus",
+    "video/webm",
+    "video/mp4;codecs=h264,aac",
+    "video/mp4",
+    "video/quicktime"
+  ];
+
+  const audioTypes = [
+    "audio/webm;codecs=opus",
+    "audio/webm",
+    "audio/mp4",
+    "audio/aac",
+    "audio/ogg",
+    "audio/wav"
+  ];
+
+  const typesToCheck = mode === "VIDEO" ? videoTypes : audioTypes;
+
+  for (const type of typesToCheck) {
+    if (MediaRecorder.isTypeSupported(type)) {
+      return type;
+    }
+  }
+
+  return "";
+}
+
+function getExtensionFromMimeType(mimeType: string): string {
+  const mimeLower = mimeType.toLowerCase();
+  if (mimeLower.includes("video/mp4")) return "mp4";
+  if (mimeLower.includes("video/quicktime")) return "mov";
+  if (mimeLower.includes("video/webm")) return "webm";
+  if (mimeLower.includes("audio/mp4") || mimeLower.includes("audio/m4a")) return "m4a";
+  if (mimeLower.includes("audio/aac")) return "aac";
+  if (mimeLower.includes("audio/webm")) return "webm";
+  if (mimeLower.includes("audio/ogg")) return "ogg";
+  if (mimeLower.includes("audio/wav")) return "wav";
+  return "bin";
+}
+
 export function useWebRTC() {
   const [recordState, setRecordState] = useState<"IDLE" | "RECORDING" | "CAMERA_READY" | "DONE" | "ERROR">("IDLE");
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -57,7 +105,9 @@ export function useWebRTC() {
           return;
       }
 
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: mode === "VIDEO" ? 'video/webm' : 'audio/webm' });
+      const mimeType = getSupportedMimeType(mode as "VIDEO" | "AUDIO");
+      const options = mimeType ? { mimeType } : {};
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {
@@ -65,11 +115,13 @@ export function useWebRTC() {
       };
 
       mediaRecorder.onstop = () => {
-        const mimeType = mode === "VIDEO" ? 'video/webm' : 'audio/webm';
-        const blob = new Blob(chunksRef.current, { type: mimeType });
-        const fakeFile = new File([blob], `gravacao_${Date.now()}.webm`, { type: mimeType });
+        const actualMimeType = mediaRecorder.mimeType || (mode === "VIDEO" ? 'video/webm' : 'audio/webm');
+        const ext = getExtensionFromMimeType(actualMimeType);
+        const blob = new Blob(chunksRef.current, { type: actualMimeType });
+        const fakeFile = new File([blob], `gravacao_${Date.now()}.${ext}`, { type: actualMimeType });
         setCapturedFile(fakeFile);
         cleanupHardwareTracks();
+        setRecordState("DONE");
       };
 
       mediaRecorder.start();
@@ -84,11 +136,16 @@ export function useWebRTC() {
   };
 
   const stopHardwareRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.stop();
-      setRecordState("DONE");
+    if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state === "recording") {
+        mediaRecorderRef.current.stop();
+      } else {
+        // Se já parou por conta própria (ex: evento do browser), força estado final
+        setRecordState("DONE");
+        cleanupHardwareTracks();
+      }
     }
-  }, []);
+  }, [cleanupHardwareTracks]);
 
   const capturePhoto = useCallback(() => {
       if (!liveVideoRef.current || !streamRef.current) return;
