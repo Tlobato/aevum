@@ -86,9 +86,16 @@ export function TermsModal({ isOpen, onClose, onAgree }: TermsModalProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h4 className="font-serif text-white font-medium text-base">6. Governing Law and Forum</h4>
-                                <p><strong>6.1.</strong> To resolve any doubts or disputes arising from this Agreement, the forum of the domicile of the Founders of the Aevum Platform is elected.</p>
-                                <p><strong>6.2. (International Users and Local Compliance)</strong> Users accessing the platform outside the Brazilian territory are solely responsible for ensuring compliance with the laws and regulations of their respective countries of residence.</p>
+                                <h4 className="font-serif text-white font-medium text-base">6. Service Discontinuation Policy and Digital Preservation</h4>
+                                <p><strong>6.1.</strong> In the event that Aevum decides to discontinue or terminate the platform, all active registered Users will be formally notified with a minimum of 60 (sixty) calendar days advance notice via email.</p>
+                                <p><strong>6.2. (Early Delivery Protocol)</strong> To safeguard all memories, in case of discontinuation, all active Capsules will be unlocked early and delivered for full download to creators and designated recipients.</p>
+                                <p><strong>6.3.</strong> The User agrees that execution of the Early Delivery Protocol fully satisfies Aevum's obligations, discharging Aevum from any perpetual infrastructure maintenance.</p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h4 className="font-serif text-white font-medium text-base">7. Governing Law and Forum</h4>
+                                <p><strong>7.1.</strong> To resolve any doubts or disputes arising from this Agreement, the forum of the domicile of the Founders of the Aevum Platform is elected.</p>
+                                <p><strong>7.2. (International Users and Local Compliance)</strong> Users accessing the platform outside the Brazilian territory are solely responsible for ensuring compliance with the laws and regulations of their respective countries of residence.</p>
                             </section>
                         </div>
                     ) : (
@@ -109,7 +116,7 @@ export function TermsModal({ isOpen, onClose, onAgree }: TermsModalProps) {
                             <section className="space-y-2">
                                 <h4 className="font-serif text-white font-medium text-base">2. Infraestrutura de Terceiros e Limitação de Responsabilidade</h4>
                                 <p><strong>2.1.</strong> O Usuário declara estar ciente de que a Aevum atua como uma camada de interface de software e que o armazenamento físico definitivo dos arquivos é realizado em subcontratados de classe mundial, especificamente na infraestrutura de nuvem da Amazon Web Services (AWS), utilizando a tecnologia AWS Glacier.</p>
-                                <p><strong>2.2.</strong> A Aevum obriga-se a manter as provisões financeiras necessárias para o custeio do armazenamento contratado junto à AWS durante todo o prazo escolhido pelo Usuário.</p>
+                                <p><strong>2.2.</strong> A Aevum obriga-se a manter as provisões financeiras necessárias para o custeio do armazenamento contratado junto à AWS durante todo o prazo escolhido pelo Usuário, observada a Cláusula 6.</p>
                                 <p><strong>2.3.</strong> Em virtude da dependência técnica de redes globais de telecomunicação e servidores de terceiros, a Aevum não será responsabilizada por falhas de força maior, caso fortuito ou imprevistos técnicos alheios ao seu controle, incluindo ataques cibernéticos ou indisponibilidade global dos servidores da AWS.</p>
                                 <p><strong>2.4. (Transferência Internacional de Dados)</strong> O Usuário declara-se ciente e consente expressamente que seus arquivos e dados cadastrais serão armazenados e processados em servidores de nuvem seguros da AWS localizados nos Estados Unidos da América (região us-east-1).</p>
                             </section>
@@ -135,9 +142,16 @@ export function TermsModal({ isOpen, onClose, onAgree }: TermsModalProps) {
                             </section>
 
                             <section className="space-y-2">
-                                <h4 className="font-serif text-white font-medium text-base">6. Foro de Eleição</h4>
-                                <p><strong>6.1.</strong> Para dirimir quaisquer dúvidas ou litígios decorrentes deste Contrato, fica eleito o foro da comarca de domicílio dos Fundadores da Plataforma Aevum.</p>
-                                <p><strong>6.2. (Usuários Internacionais e Conformidade Local)</strong> Usuários acessando a plataforma fora do território brasileiro são exclusivamente responsáveis por garantir a conformidade com as leis e regulamentações de seus respectivos países de residência.</p>
+                                <h4 className="font-serif text-white font-medium text-base">6. Política de Descontinuidade do Serviço e Preservação Digital</h4>
+                                <p><strong>6.1.</strong> Caso a Aevum decida, por razões estratégicas, operacionais, mercadológicas ou legais, encerrar ou descontinuar a operação da plataforma, todos os Usuários ativos serão formalmente notificados com antecedência mínima de 60 (sessenta) dias corridos por e-mail.</p>
+                                <p><strong>6.2. (Protocolo de Entrega Antecipada)</strong> Para assegurar a preservação incondicional das memórias e arquivos digitais, na hipótese de descontinuidade da plataforma, todas as Cápsulas ativas serão desbloqueadas antecipadamente e disponibilizadas para download integral, sendo enviados links de acesso seguro ao criador e aos respectivos destinatários cadastrados.</p>
+                                <p><strong>6.3.</strong> O Usuário declara expressamente concordar que o cumprimento do Protocolo de Entrega Antecipada e a disponibilização dos arquivos originais cumprem integralmente as obrigações da Aevum, exonerando a plataforma de qualquer obrigação de manter infraestrutura de servidores ativa perpetuamente ou do pagamento de indenizações complementares.</p>
+                            </section>
+
+                            <section className="space-y-2">
+                                <h4 className="font-serif text-white font-medium text-base">7. Foro de Eleição</h4>
+                                <p><strong>7.1.</strong> Para dirimir quaisquer dúvidas ou litígios decorrentes deste Contrato, fica eleito o foro da comarca de domicílio dos Fundadores da Plataforma Aevum.</p>
+                                <p><strong>7.2. (Usuários Internacionais e Conformidade Local)</strong> Usuários acessando a plataforma fora do território brasileiro são exclusivamente responsáveis por garantir a conformidade com as leis e regulamentações de seus respectivos países de residência.</p>
                             </section>
                         </div>
                     )}
