@@ -58,6 +58,7 @@ public class StorageService {
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(destinationKey)
+                .responseContentDisposition("attachment; filename=\"" + fileName + "\"")
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()

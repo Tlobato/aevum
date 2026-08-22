@@ -177,31 +177,16 @@ export function RelicGallery({ memories, title }: { memories: Memory[], title: s
                )}
 
                {selectedMemory.presignedGetUrl && (
-                  <button 
-                     onClick={async (e) => {
-                        e.preventDefault();
-                        try {
-                           const res = await fetch(selectedMemory.presignedGetUrl!);
-                           const blob = await res.blob();
-                           const url = window.URL.createObjectURL(blob);
-                           const a = document.createElement('a');
-                           a.style.display = 'none';
-                           a.href = url;
-                           a.download = selectedMemory.fileName || "reliquia_aevum";
-                           document.body.appendChild(a);
-                           a.click();
-                           window.URL.revokeObjectURL(url);
-                           document.body.removeChild(a);
-                        } catch (err) {
-                           console.error(t("relicGallery.downloadFail"), err);
-                           window.open(selectedMemory.presignedGetUrl, "_blank");
-                        }
-                     }}
-                     className="mt-8 px-6 py-3 bg-white/10 hover:bg-amber-600/20 border border-white/20 hover:border-amber-500/50 hover:text-amber-400 rounded-full text-white font-bold uppercase tracking-widest text-sm transition-all flex items-center gap-2"
+                  <a 
+                     href={selectedMemory.presignedGetUrl}
+                     download={selectedMemory.fileName || "reliquia_aevum"}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className="mt-8 px-6 py-3 bg-white/10 hover:bg-amber-600/20 border border-white/20 hover:border-amber-500/50 hover:text-amber-400 rounded-full text-white font-bold uppercase tracking-widest text-sm transition-all flex items-center gap-2 cursor-pointer"
                   >
                      <Download className="w-4 h-4" />
                      {t("relicGallery.downloadFile")}
-                  </button>
+                  </a>
                )}
 
             </div>
