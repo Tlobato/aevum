@@ -391,10 +391,7 @@ public class CapsuleService {
         log.info("Iniciando varredura por rascunhos abandonados (DRAFT > 24h)...");
         LocalDateTime limit = LocalDateTime.now().minusHours(24);
         
-        List<Capsule> abandoned = repository.findAll().stream()
-                .filter(c -> c.getStatus() == com.aevum.api.domain.CapsuleStatus.DRAFT)
-                .filter(c -> c.getCreatedAt().isBefore(limit))
-                .toList();
+        List<Capsule> abandoned = repository.findByStatusAndCreatedAtBefore(com.aevum.api.domain.CapsuleStatus.DRAFT, limit);
                 
         for (Capsule c : abandoned) {
             log.info("Limpando cápsula abandonada: {} (Dono: {})", c.getId(), c.getOwnerId());

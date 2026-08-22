@@ -24,6 +24,8 @@ public interface CapsuleRepository extends JpaRepository<Capsule, UUID> {
 
     List<Capsule> findByStatus(com.aevum.api.domain.CapsuleStatus status);
 
+    List<Capsule> findByStatusAndCreatedAtBefore(com.aevum.api.domain.CapsuleStatus status, LocalDateTime createdAt);
+
     List<Capsule> findByStorageStatus(com.aevum.api.domain.StorageStatus storageStatus);
 
     @Query("SELECT c FROM Capsule c LEFT JOIN c.subscription s WHERE c.status = com.aevum.api.domain.CapsuleStatus.UNLOCKED AND c.unlockDate < :limitDate AND (s IS NULL OR s.status <> com.aevum.api.domain.SubscriptionStatus.ACTIVE)")

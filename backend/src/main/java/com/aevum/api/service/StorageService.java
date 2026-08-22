@@ -33,8 +33,19 @@ public class StorageService {
     }
 
 
+    public static String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) {
+            return "unnamed_file";
+        }
+        // Extrai apenas o nome base (evita path traversal como ../../)
+        String baseName = java.nio.file.Paths.get(fileName).getFileName().toString();
+        // Remove caracteres perigosos mantendo extensão e caracteres alfanuméricos normais
+        return baseName.replaceAll("[\\\\/\\r\\n]", "_");
+    }
+
     public String generatePresignedUploadUrl(String capsuleId, String fileName, long sizeBytes) {
-        String draftKey = "drafts/" + capsuleId + "/" + fileName;
+        String cleanFileName = sanitizeFileName(fileName);
+        String draftKey = "drafts/" + capsuleId + "/" + cleanFileName;
 
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -53,12 +64,13 @@ public class StorageService {
     }
 
     public String generatePresignedGetUrl(String capsuleId, String fileName) {
-        String destinationKey = "sealed/" + capsuleId + "/" + fileName;
+        String cleanFileName = sanitizeFileName(fileName);
+        String destinationKey = "sealed/" + capsuleId + "/" + cleanFileName;
 
         GetObjectRequest objectRequest = GetObjectRequest.builder()
                 .bucket(bucketName)
                 .key(destinationKey)
-                .responseContentDisposition("attachment; filename=\"" + fileName + "\"")
+                .responseContentDisposition("attachment; filename=\"" + cleanFileName + "\"")
                 .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
