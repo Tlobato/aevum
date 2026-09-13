@@ -265,9 +265,13 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
       }, 200);
     }, 2800);
 
+    // Duração total sincronizada:
+    // O som dispara aos 2.8s e dura ~1.4s. Aguardamos até 4.25s para que o som
+    // e a animação do baú aberto finalizem antes da transição para o dashboard.
+    const duration = type === "unseal" ? 4250 : 4100;
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 3500);
+    }, duration);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
