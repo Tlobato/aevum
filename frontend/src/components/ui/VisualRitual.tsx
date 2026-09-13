@@ -243,15 +243,11 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
 
     render();
 
-    // Dispara o som inicial do ritual
-    if (type === "seal") {
-      play("seal-ambient");
-    } else {
-      play("unseal-chime");
-    }
+    // Dispara o som ambiente de brisa suave durante o acúmulo de partículas
+    play("seal-ambient");
 
     // Controle de tempo do ritual (Duração total de 3.5 segundos)
-    // - Aos 2.8s, dispara o flash de luz e o som de tranca
+    // - Aos 2.8s, dispara o flash de luz e o som de tranca / destranca
     // - Aos 3.0s (pico do brilho), altera a imagem do baú para o estado final
     // - Aos 3.5s, executa o onComplete
     let chestImageTimer: any;
@@ -259,6 +255,8 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
       setShowFlash(true);
       if (type === "seal") {
         play("seal-lock");
+      } else {
+        play("unseal-chime");
       }
       chestImageTimer = setTimeout(() => {
         setCurrentChestImage(

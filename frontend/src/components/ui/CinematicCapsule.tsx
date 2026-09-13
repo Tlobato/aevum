@@ -383,7 +383,6 @@ export function CinematicCapsule({
     };
 
     // 1. Optimistic UI Update (Animação voando na hora!)
-    play("click");
     setFlyingItem(newMemory);
     setLocalMemoriesCount(prev => prev + 1);
     setLocalUsedBytes(prev => prev + actualSizeBytes);

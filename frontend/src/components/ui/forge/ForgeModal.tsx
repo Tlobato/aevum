@@ -89,7 +89,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
   const executeLaunch = () => {
     if (recordState === "RECORDING") stopHardwareRecording();
     cleanupHardwareTracks();
-    play("success");
+    play("wind-launch");
     
     // O file físico que será entregue à cápsula
     const targetFile = (forgeSubMode === "WRITE" && (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO")) ? capturedFile : forgeFile;

@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 export type SoundEffect =
   | "click"
   | "drop"
+  | "wind-launch"
   | "keystroke"
   | "crystallize"
   | "modal-open"
@@ -249,6 +250,33 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
           break;
         }
 
+        case "wind-launch": {
+          // Sopro de vento puro ao arremessar a memória (substitui o antigo som de puzzle)
+          const bufferSize = Math.floor(ctx.sampleRate * 0.22);
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.2;
+          }
+          const wind = ctx.createBufferSource();
+          wind.buffer = buffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = "bandpass";
+          filter.frequency.setValueAtTime(450, now);
+          filter.frequency.exponentialRampToValueAtTime(950, now + 0.08);
+          filter.frequency.exponentialRampToValueAtTime(250, now + 0.22);
+
+          const windGain = ctx.createGain();
+          windGain.gain.setValueAtTime(0.22, now);
+          windGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+          wind.connect(filter);
+          filter.connect(windGain);
+          windGain.connect(master);
+          wind.start(now);
+          break;
+        }
+
         case "modal-open": {
           // Abertura etérea de modal
           const osc1 = ctx.createOscillator();
@@ -294,97 +322,109 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
         }
 
         case "seal-ambient": {
-          // Acúmulo de energia mística durante a citação de Platão
-          const osc1 = ctx.createOscillator();
-          const osc2 = ctx.createOscillator();
+          // Brisa suave e silenciosa durante a convergência das partículas (SEM zumbidos agudos)
+          const bufferSize = Math.floor(ctx.sampleRate * 2.8);
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.06;
+          }
+          const breeze = ctx.createBufferSource();
+          breeze.buffer = buffer;
           const filter = ctx.createBiquadFilter();
-          const gain = ctx.createGain();
-
-          osc1.type = "sawtooth";
-          osc2.type = "sine";
-          osc1.frequency.setValueAtTime(110, now); // A2
-          osc2.frequency.setValueAtTime(111.5, now); // leve batimento binaural
-
           filter.type = "lowpass";
-          filter.frequency.setValueAtTime(200, now);
-          filter.frequency.exponentialRampToValueAtTime(1800, now + 2.5);
+          filter.frequency.setValueAtTime(160, now);
+          filter.frequency.linearRampToValueAtTime(220, now + 2.5);
 
-          gain.gain.setValueAtTime(0.001, now);
-          gain.gain.linearRampToValueAtTime(0.25, now + 1.2);
-          gain.gain.linearRampToValueAtTime(0.4, now + 2.4);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 2.8);
+          const breezeGain = ctx.createGain();
+          breezeGain.gain.setValueAtTime(0.001, now);
+          breezeGain.gain.linearRampToValueAtTime(0.08, now + 1.0);
+          breezeGain.gain.exponentialRampToValueAtTime(0.001, now + 2.8);
 
-          osc1.connect(filter);
-          osc2.connect(filter);
-          filter.connect(gain);
-          gain.connect(master);
-
-          osc1.start(now);
-          osc2.start(now);
-          osc1.stop(now + 2.85);
-          osc2.stop(now + 2.85);
+          breeze.connect(filter);
+          filter.connect(breezeGain);
+          breezeGain.connect(master);
+          breeze.start(now);
+          breeze.stop(now + 2.85);
           break;
         }
 
         case "seal-lock": {
-          // Fechamento e tranca mecânica pesada do baú
-          // 1. Estalo metálico
-          const metal = ctx.createOscillator();
-          const metalGain = ctx.createGain();
-          metal.type = "triangle";
-          metal.frequency.setValueAtTime(1250, now);
-          metal.frequency.exponentialRampToValueAtTime(600, now + 0.1);
-          metalGain.gain.setValueAtTime(0.35, now);
-          metalGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-          metal.connect(metalGain);
-          metalGain.connect(master);
-          metal.start(now);
-          metal.stop(now + 0.12);
+          // Tranca sutil, mecânica e limpa de baú antigo (sem estrondos ou estridências)
+          // 1. Clique mecânico de encaixe da tranca
+          const latch = ctx.createOscillator();
+          const latchGain = ctx.createGain();
+          latch.type = "sine";
+          latch.frequency.setValueAtTime(580, now);
+          latch.frequency.exponentialRampToValueAtTime(240, now + 0.025);
 
-          // 2. Batida pesada de tranca do cofre
-          const clunk = ctx.createOscillator();
-          const clunkGain = ctx.createGain();
-          clunk.type = "square";
-          clunk.frequency.setValueAtTime(95, now + 0.02);
-          clunk.frequency.exponentialRampToValueAtTime(35, now + 0.35);
+          latchGain.gain.setValueAtTime(0.18, now);
+          latchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
 
-          const clunkFilter = ctx.createBiquadFilter();
-          clunkFilter.type = "lowpass";
-          clunkFilter.frequency.setValueAtTime(250, now);
+          latch.connect(latchGain);
+          latchGain.connect(master);
+          latch.start(now);
+          latch.stop(now + 0.03);
 
-          clunkGain.gain.setValueAtTime(0.001, now);
-          clunkGain.gain.setValueAtTime(0.45, now + 0.02);
-          clunkGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          // 2. Batida seca e suave da tampa de madeira assentando
+          const thud = ctx.createOscillator();
+          const thudGain = ctx.createGain();
+          thud.type = "triangle";
+          thud.frequency.setValueAtTime(85, now + 0.01);
+          thud.frequency.exponentialRampToValueAtTime(35, now + 0.14);
 
-          clunk.connect(clunkFilter);
-          clunkFilter.connect(clunkGain);
-          clunkGain.connect(master);
-          clunk.start(now + 0.02);
-          clunk.stop(now + 0.38);
+          thudGain.gain.setValueAtTime(0.001, now);
+          thudGain.gain.setValueAtTime(0.25, now + 0.01);
+          thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+          thud.connect(thudGain);
+          thudGain.connect(master);
+          thud.start(now + 0.01);
+          thud.stop(now + 0.15);
           break;
         }
 
         case "unseal-chime": {
-          // Despertar celestial / fanfarra mística (arpeggio pentatônico com sino ressonante)
-          const notes = [523.25, 659.25, 783.99, 987.77, 1046.50]; // C5, E5, G5, B5, C6
-          notes.forEach((freq, idx) => {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            const startTime = now + idx * 0.08;
+          // Destranca sutil e sopro de ar ao abrir o baú (sem fanfarra alta ou zumbido)
+          // 1. Estalo suave da tranca se soltando
+          const unlatch = ctx.createOscillator();
+          const unlatchGain = ctx.createGain();
+          unlatch.type = "sine";
+          unlatch.frequency.setValueAtTime(460, now);
+          unlatch.frequency.exponentialRampToValueAtTime(680, now + 0.03);
 
-            osc.type = "sine";
-            osc.frequency.setValueAtTime(freq, startTime);
+          unlatchGain.gain.setValueAtTime(0.16, now);
+          unlatchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
 
-            gain.gain.setValueAtTime(0.001, startTime);
-            gain.gain.linearRampToValueAtTime(0.28, startTime + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.2);
+          unlatch.connect(unlatchGain);
+          unlatchGain.connect(master);
+          unlatch.start(now);
+          unlatch.stop(now + 0.035);
 
-            osc.connect(gain);
-            gain.connect(master);
+          // 2. Sopro de ar escapando da cápsula
+          const airSize = Math.floor(ctx.sampleRate * 0.3);
+          const airBuffer = ctx.createBuffer(1, airSize, ctx.sampleRate);
+          const airData = airBuffer.getChannelData(0);
+          for (let i = 0; i < airSize; i++) {
+            airData[i] = (Math.random() * 2 - 1) * 0.12;
+          }
+          const air = ctx.createBufferSource();
+          air.buffer = airBuffer;
+          const airFilter = ctx.createBiquadFilter();
+          airFilter.type = "bandpass";
+          airFilter.frequency.setValueAtTime(400, now + 0.02);
+          airFilter.frequency.exponentialRampToValueAtTime(700, now + 0.15);
+          airFilter.frequency.exponentialRampToValueAtTime(200, now + 0.3);
 
-            osc.start(startTime);
-            osc.stop(startTime + 1.25);
-          });
+          const airGain = ctx.createGain();
+          airGain.gain.setValueAtTime(0.001, now + 0.02);
+          airGain.gain.linearRampToValueAtTime(0.14, now + 0.08);
+          airGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+          air.connect(airFilter);
+          airFilter.connect(airGain);
+          airGain.connect(master);
+          air.start(now + 0.02);
           break;
         }
 
