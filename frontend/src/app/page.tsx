@@ -144,35 +144,27 @@ export default function Home() {
                         {t("landing.heroSubtitle")}
                     </p>
 
-                    {/* Botões de Ação do Hero */}
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md">
+                    {/* Botão de Ação do Hero */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm">
                         <Show when="signed-out">
                             <SignUpButton mode="modal">
                                 <button 
                                     onClick={() => { play("click"); trackEvent("create_legacy_clicked", { source: "hero" }); }}
-                                    className="w-full sm:w-auto flex-1 px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                                    className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:shadow-[0_0_45px_rgba(245,158,11,0.6)] transition-all cursor-pointer flex items-center justify-center gap-3 group"
                                 >
                                     <span>{t("landing.ctaPrimary")}</span>
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </SignUpButton>
-                            <SignInButton mode="modal">
-                                <button 
-                                    onClick={() => { play("click"); trackEvent("enter_vault_clicked", { source: "hero" }); }}
-                                    className="w-full sm:w-auto px-8 py-4 bg-white/5 hover:bg-white/10 border border-neutral-800 hover:border-amber-500/40 text-neutral-300 hover:text-white font-bold text-sm uppercase tracking-widest rounded-2xl transition-all cursor-pointer"
-                                >
-                                    {t("landing.ctaSecondary")}
-                                </button>
-                            </SignInButton>
                         </Show>
 
                         <Show when="signed-in">
                             <button 
                                 onClick={() => { play("click"); trackEvent("access_dashboard_clicked", { source: "hero" }); router.push("/dashboard"); }}
-                                className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.4)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                                className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:shadow-[0_0_45px_rgba(245,158,11,0.6)] transition-all cursor-pointer flex items-center justify-center gap-3 group"
                             >
                                 <span>{t("home.accessDashboard")}</span>
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </button>
                         </Show>
                     </div>
