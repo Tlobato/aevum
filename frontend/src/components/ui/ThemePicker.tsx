@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { THEME_REGISTRY } from "@/config/themes";
 import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useSound } from "@/hooks/useSound";
 
 interface ThemePickerProps {
     selectedThemeId: string;
@@ -12,6 +13,7 @@ interface ThemePickerProps {
 
 export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
     const { t } = useTranslation();
+    const { play } = useSound();
     const themes = Object.values(THEME_REGISTRY);
 
     return (
@@ -26,7 +28,10 @@ export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
                         <motion.button
                             key={theme.id}
                             type="button"
-                            onClick={() => onChange(theme.id)}
+                            onClick={() => {
+                                play("click");
+                                onChange(theme.id);
+                            }}
                             whileHover={{ scale: 1.03 }}
                             whileTap={{ scale: 0.97 }}
                             className={`relative flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all duration-200 cursor-pointer
@@ -42,12 +47,6 @@ export function ThemePicker({ selectedThemeId, onChange }: ThemePickerProps) {
                                     alt={theme.name}
                                     className="max-h-full max-w-full object-contain drop-shadow-lg"
                                 />
-                                {/* Badge de "Em Breve" para temas sem ícones */}
-                                {Object.keys(theme.assets.relics).length === 0 && (
-                                    <div className="absolute top-0 right-0 bg-neutral-700/80 text-neutral-300 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full">
-                                        WIP
-                                    </div>
-                                )}
                             </div>
 
                             {/* Nome */}

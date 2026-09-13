@@ -381,6 +381,7 @@ export default function Dashboard() {
             return;
         }
 
+        play("crystallize");
         setIsSaving(true);
         const submitCreate = async () => {
             try {
@@ -528,21 +529,21 @@ export default function Dashboard() {
                                 transition={{ duration: 0.4, ease: "easeOut" }}
                                 className="w-full max-w-5xl bg-neutral-950 border border-white/5 rounded-3xl p-6 md:p-8 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative cursor-default"
                             >
-                            <button onClick={() => setShowCreateForm(false)}
-                                className="absolute top-8 right-8 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-1.5 rounded-full z-20 cursor-pointer">
+                            <button onClick={() => { play("modal-close"); setShowCreateForm(false); }}
+                                className="absolute top-4 right-4 md:top-6 md:right-6 text-neutral-500 hover:text-white transition-all hover:scale-110 active:scale-95 bg-white/5 p-2 rounded-full z-20 cursor-pointer">
                                 <X className="w-5 h-5" />
                             </button>
 
                             <div className="grid lg:grid-cols-3 gap-8 items-start">
                                 {/* Form */}
                                 <form onSubmit={handleCreateCapsule} noValidate className="lg:col-span-2 space-y-5">
-                                    <h2 className="text-xl font-light tracking-tight mb-2">{t("forge.subtitle")}</h2>
+                                    <h2 className="text-xl font-light tracking-tight mb-2 pr-12 md:pr-0">{t("forge.subtitle")}</h2>
 
                                     {/* Seletor de Fluxo: Para Mim vs Presente */}
                                     <div className="flex gap-3 mb-6 p-1 bg-black/40 rounded-2xl border border-neutral-800">
                                         <button
                                             type="button"
-                                            onClick={() => { setIsGift(false); setRecipientEmail(""); setRecipientName(""); setOwnerMessage(""); }}
+                                            onClick={() => { play("click"); setIsGift(false); setRecipientEmail(""); setRecipientName(""); setOwnerMessage(""); }}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
                                                 !isGift
                                                     ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-inner"
@@ -553,7 +554,7 @@ export default function Dashboard() {
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => { setIsGift(true); setRecipientEmail(""); setRecipientName(""); }}
+                                            onClick={() => { play("click"); setIsGift(true); setRecipientEmail(""); setRecipientName(""); }}
                                             className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold uppercase tracking-widest transition-all cursor-pointer ${
                                                 isGift
                                                     ? "bg-rose-500/20 border border-rose-500/40 text-rose-300 shadow-inner"
@@ -570,6 +571,7 @@ export default function Dashboard() {
                                             <input 
                                                 type="text" 
                                                 value={title} 
+                                                onKeyDown={() => play("keystroke")}
                                                 onChange={e => {
                                                     setTitle(e.target.value);
                                                     if (errors.title) setErrors(prev => ({ ...prev, title: "" }));
@@ -592,6 +594,7 @@ export default function Dashboard() {
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldDesc")}</label>
                                             <textarea 
                                                 value={description} 
+                                                onKeyDown={() => play("keystroke")}
                                                 onChange={e => setDescription(e.target.value)}
                                                 placeholder={t("forge.fieldDescPlaceholder")}
                                                 maxLength={500}
@@ -608,6 +611,7 @@ export default function Dashboard() {
                                                     <input 
                                                         type="text" 
                                                         value={recipientName} 
+                                                        onKeyDown={() => play("keystroke")}
                                                         onChange={e => {
                                                             setRecipientName(e.target.value);
                                                             if (errors.recipientName) setErrors(prev => ({ ...prev, recipientName: "" }));
@@ -631,6 +635,7 @@ export default function Dashboard() {
                                                     <input 
                                                         type="email" 
                                                         value={recipientEmail} 
+                                                        onKeyDown={() => play("keystroke")}
                                                         onChange={e => {
                                                             setRecipientEmail(e.target.value);
                                                             if (errors.recipientEmail) setErrors(prev => ({ ...prev, recipientEmail: "" }));
@@ -657,6 +662,7 @@ export default function Dashboard() {
                                                 type="date" 
                                                 value={unlockDate} 
                                                 max="2099-12-31" min={minDateStr}
+                                                onClick={() => play("click")}
                                                 onChange={e => {
                                                     setUnlockDate(e.target.value);
                                                     if (errors.unlockDate) setErrors(prev => ({ ...prev, unlockDate: "" }));
@@ -700,7 +706,7 @@ export default function Dashboard() {
                                                              name="earlyUnlockRule"
                                                              value="TOTAL_LOCK"
                                                              checked={earlyUnlockRule === "TOTAL_LOCK"}
-                                                             onChange={() => setEarlyUnlockRule("TOTAL_LOCK")}
+                                                             onChange={() => { play("click"); setEarlyUnlockRule("TOTAL_LOCK"); }}
                                                              className="accent-amber-500 cursor-pointer"
                                                          />
                                                          <span className="text-xs font-bold text-white">
@@ -724,7 +730,7 @@ export default function Dashboard() {
                                                              name="earlyUnlockRule"
                                                              value="CREATOR_ONLY"
                                                              checked={earlyUnlockRule === "CREATOR_ONLY"}
-                                                             onChange={() => setEarlyUnlockRule("CREATOR_ONLY")}
+                                                             onChange={() => { play("click"); setEarlyUnlockRule("CREATOR_ONLY"); }}
                                                              className="accent-amber-500 cursor-pointer"
                                                          />
                                                          <span className="text-xs font-bold text-white">
@@ -749,7 +755,7 @@ export default function Dashboard() {
                                                                  name="earlyUnlockRule"
                                                                  value="ALLOW_RECIPIENT"
                                                                  checked={earlyUnlockRule === "ALLOW_RECIPIENT"}
-                                                                 onChange={() => setEarlyUnlockRule("ALLOW_RECIPIENT")}
+                                                                 onChange={() => { play("click"); setEarlyUnlockRule("ALLOW_RECIPIENT"); }}
                                                                  className="accent-amber-500 cursor-pointer"
                                                              />
                                                              <span className="text-xs font-bold text-white">
@@ -772,7 +778,7 @@ export default function Dashboard() {
                                                 {/* Card Epoch 1GB */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setPlanType("EPOCH_1GB")}
+                                                    onClick={() => { play("click"); setPlanType("EPOCH_1GB"); }}
                                                     className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between h-36 cursor-pointer ${
                                                         planType === "EPOCH_1GB"
                                                             ? "bg-amber-950/10 border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
@@ -798,7 +804,7 @@ export default function Dashboard() {
                                                 {/* Card Aevum 5GB */}
                                                 <button
                                                     type="button"
-                                                    onClick={() => setPlanType("AEVUM_5GB")}
+                                                    onClick={() => { play("click"); setPlanType("AEVUM_5GB"); }}
                                                     className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between h-36 cursor-pointer ${
                                                         planType === "AEVUM_5GB"
                                                             ? "bg-amber-950/20 border-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.15)]"
@@ -834,6 +840,7 @@ export default function Dashboard() {
                                             <label className="text-xs uppercase tracking-widest text-neutral-500 font-semibold">{t("forge.fieldGiftMsg")}</label>
                                             <textarea
                                                 value={ownerMessage}
+                                                onKeyDown={() => play("keystroke")}
                                                 onChange={e => setOwnerMessage(e.target.value)}
                                                 maxLength={1000}
                                                 rows={4}
@@ -1146,7 +1153,7 @@ export default function Dashboard() {
                                     </div>
 
                                     {/* Botão de Entrar */}
-                                    <button onClick={() => router.push(`/vault/${cap.id}`)}
+                                    <button onClick={() => { play("click"); router.push(`/vault/${cap.id}`); }}
                                         className="mt-auto w-full py-3 bg-white/5 hover:bg-amber-500/10 border border-white/10 hover:border-amber-500/30 rounded-xl text-sm font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 text-neutral-300 hover:text-amber-400 cursor-pointer">
                                         {t("dashboard.actions.view")} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </button>

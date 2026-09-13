@@ -5,6 +5,8 @@ import React, { createContext, useContext, useEffect, useRef, useState, useCallb
 export type SoundEffect =
   | "click"
   | "drop"
+  | "keystroke"
+  | "crystallize"
   | "modal-open"
   | "modal-close"
   | "seal-ambient"
@@ -100,67 +102,150 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
       switch (sound) {
         case "click": {
-          // Clique tátil estilo jogo mobile (bubble pop / wood tap com leve variação de pitch)
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          const variance = 0.95 + Math.random() * 0.1; // pitch ligeiramente diferente a cada clique
-
-          osc.type = "sine";
-          osc.frequency.setValueAtTime(560 * variance, now);
-          osc.frequency.exponentialRampToValueAtTime(180 * variance, now + 0.035);
-
-          gain.gain.setValueAtTime(0.35, now);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
-
-          osc.connect(gain);
-          gain.connect(master);
-
-          osc.start(now);
-          osc.stop(now + 0.04);
-          break;
-        }
-
-        case "drop": {
-          // Relíquia caindo no baú (whoosh de ar + impacto ressonante no fundo de madeira)
-          // 1. Whoosh
-          const bufferSize = ctx.sampleRate * 0.08;
+          // Clique orgânico e atemporal: sopro sutil de vento/pergaminho com leve toque em madeira antiga
+          const bufferSize = Math.floor(ctx.sampleRate * 0.04);
           const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
           const data = buffer.getChannelData(0);
           for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * 0.15;
+            data[i] = (Math.random() * 2 - 1) * 0.2;
           }
           const noise = ctx.createBufferSource();
           noise.buffer = buffer;
           const noiseFilter = ctx.createBiquadFilter();
           noiseFilter.type = "bandpass";
-          noiseFilter.frequency.setValueAtTime(900, now);
-          noiseFilter.frequency.exponentialRampToValueAtTime(250, now + 0.08);
+          noiseFilter.frequency.setValueAtTime(650, now);
+          noiseFilter.frequency.exponentialRampToValueAtTime(180, now + 0.04);
 
           const noiseGain = ctx.createGain();
-          noiseGain.gain.setValueAtTime(0.2, now);
-          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+          noiseGain.gain.setValueAtTime(0.18, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
           noise.connect(noiseFilter);
           noiseFilter.connect(noiseGain);
           noiseGain.connect(master);
           noise.start(now);
 
-          // 2. Thud
-          const thud = ctx.createOscillator();
-          const thudGain = ctx.createGain();
-          thud.type = "triangle";
-          thud.frequency.setValueAtTime(140, now + 0.04);
-          thud.frequency.exponentialRampToValueAtTime(45, now + 0.22);
+          // Toque suave e profundo de madeira rústica
+          const tap = ctx.createOscillator();
+          const tapGain = ctx.createGain();
+          tap.type = "sine";
+          tap.frequency.setValueAtTime(220, now);
+          tap.frequency.exponentialRampToValueAtTime(80, now + 0.035);
 
-          thudGain.gain.setValueAtTime(0.001, now);
-          thudGain.gain.setValueAtTime(0.4, now + 0.04);
-          thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          tapGain.gain.setValueAtTime(0.15, now);
+          tapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
 
-          thud.connect(thudGain);
-          thudGain.connect(master);
+          tap.connect(tapGain);
+          tapGain.connect(master);
+          tap.start(now);
+          tap.stop(now + 0.04);
+          break;
+        }
 
-          thud.start(now + 0.04);
-          thud.stop(now + 0.24);
+        case "drop": {
+          // Relíquia caindo no baú: sopro de vento temporal + fundo oco de baú de carvalho antigo
+          // 1. Vento suave
+          const windSize = Math.floor(ctx.sampleRate * 0.22);
+          const windBuffer = ctx.createBuffer(1, windSize, ctx.sampleRate);
+          const windData = windBuffer.getChannelData(0);
+          for (let i = 0; i < windSize; i++) {
+            windData[i] = (Math.random() * 2 - 1) * 0.25;
+          }
+          const wind = ctx.createBufferSource();
+          wind.buffer = windBuffer;
+          const windFilter = ctx.createBiquadFilter();
+          windFilter.type = "lowpass";
+          windFilter.frequency.setValueAtTime(800, now);
+          windFilter.frequency.exponentialRampToValueAtTime(200, now + 0.22);
+
+          const windGain = ctx.createGain();
+          windGain.gain.setValueAtTime(0.22, now);
+          windGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+          wind.connect(windFilter);
+          windFilter.connect(windGain);
+          windGain.connect(master);
+          wind.start(now);
+
+          // 2. Impacto grave e oco de baú antigo
+          const chestThud = ctx.createOscillator();
+          const chestGain = ctx.createGain();
+          chestThud.type = "triangle";
+          chestThud.frequency.setValueAtTime(110, now + 0.03);
+          chestThud.frequency.exponentialRampToValueAtTime(32, now + 0.25);
+
+          chestGain.gain.setValueAtTime(0.001, now);
+          chestGain.gain.setValueAtTime(0.35, now + 0.03);
+          chestGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+          chestThud.connect(chestGain);
+          chestGain.connect(master);
+          chestThud.start(now + 0.03);
+          chestThud.stop(now + 0.26);
+          break;
+        }
+
+        case "keystroke": {
+          // Barulho sutil e realista de teclas mecânicas / máquina de escrever vintage
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const randPitch = 1800 + Math.random() * 400;
+
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(randPitch, now);
+          osc.frequency.exponentialRampToValueAtTime(400, now + 0.015);
+
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+
+          osc.connect(gain);
+          gain.connect(master);
+          osc.start(now);
+          osc.stop(now + 0.018);
+          break;
+        }
+
+        case "crystallize": {
+          // Som de cristalização do projeto: rajada de vento etérea + brilho harmônico temporal
+          const bufferSize = Math.floor(ctx.sampleRate * 0.4);
+          const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+          const data = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.15;
+          }
+          const wind = ctx.createBufferSource();
+          wind.buffer = buffer;
+          const filter = ctx.createBiquadFilter();
+          filter.type = "bandpass";
+          filter.frequency.setValueAtTime(350, now);
+          filter.frequency.exponentialRampToValueAtTime(1200, now + 0.2);
+          filter.frequency.exponentialRampToValueAtTime(200, now + 0.4);
+
+          const windGain = ctx.createGain();
+          windGain.gain.setValueAtTime(0.2, now);
+          windGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+          wind.connect(filter);
+          filter.connect(windGain);
+          windGain.connect(master);
+          wind.start(now);
+
+          // Sino harmônico místico
+          [587.33, 880.00].forEach((freq, i) => {
+            const bell = ctx.createOscillator();
+            const bellGain = ctx.createGain();
+            bell.type = "sine";
+            bell.frequency.setValueAtTime(freq, now + i * 0.08);
+
+            bellGain.gain.setValueAtTime(0.001, now + i * 0.08);
+            bellGain.gain.linearRampToValueAtTime(0.25, now + i * 0.08 + 0.03);
+            bellGain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.6);
+
+            bell.connect(bellGain);
+            bellGain.connect(master);
+            bell.start(now + i * 0.08);
+            bell.stop(now + i * 0.08 + 0.65);
+          });
           break;
         }
 

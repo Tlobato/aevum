@@ -165,6 +165,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
         {activeForgeMode === "TEXT" && forgeSubMode === "WRITE" && (
           <textarea 
             value={forgeText}
+            onKeyDown={() => play("keystroke")}
             onChange={e => setForgeText(e.target.value)}
             autoFocus
             placeholder={t("forgeModal.writePlaceholder")}
