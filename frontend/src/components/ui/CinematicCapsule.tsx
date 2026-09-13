@@ -11,6 +11,8 @@ import { StorageBar } from "./StorageBar";
 import { RelicGallery } from "./RelicGallery";
 import { TermsModal } from "./TermsModal";
 import { VisualRitual } from "./VisualRitual";
+import { useSound } from "@/hooks/useSound";
+import { SoundToggle } from "./SoundToggle";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -51,6 +53,7 @@ export function CinematicCapsule({
   const { user } = useUser();
   const { getToken } = useAuth();
   const { t, i18n } = useTranslation();
+  const { play } = useSound();
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY[DEFAULT_THEME_ID];
   const [localMemoriesCount, setLocalMemoriesCount] = useState(initialUsedBytes > 0 ? 1 : 0);
   const [localUsedBytes, setLocalUsedBytes] = useState(initialUsedBytes);
@@ -380,11 +383,15 @@ export function CinematicCapsule({
     };
 
     // 1. Optimistic UI Update (Animação voando na hora!)
+    play("click");
     setFlyingItem(newMemory);
     setLocalMemoriesCount(prev => prev + 1);
     setLocalUsedBytes(prev => prev + actualSizeBytes);
 
-    setTimeout(() => { setIsChomping(true); }, 650);
+    setTimeout(() => {
+      setIsChomping(true);
+      play("drop");
+    }, 650);
     setTimeout(() => {
       setFlyingItem(null);
       setIsChomping(false);
@@ -445,11 +452,13 @@ export function CinematicCapsule({
 
   const initiateForge = (type: ItemType) => {
     if (isQuotaFull || isSealed || storageStatus === "RESTORING") return;
+    play("modal-open");
     setActiveForgeMode(type);
     setIsOpened(true);
   };
 
   const cancelForge = () => {
+    play("modal-close");
     setActiveForgeMode(null);
   };
 
@@ -580,6 +589,11 @@ export function CinematicCapsule({
 
   return (
     <div className="flex flex-col items-center w-full min-h-[650px] relative pointer-events-auto">
+      {/* Botão de Efeitos Sonoros */}
+      <div className="fixed top-4 right-4 z-50 md:absolute md:top-2 md:right-4">
+        <SoundToggle />
+      </div>
+
       <div className={`w-full flex flex-col items-center transition-all duration-500 ${shouldHideChest ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
       {/* Marcador de Armazenamento - Barra de Quota Externa */}

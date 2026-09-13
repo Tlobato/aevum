@@ -9,6 +9,8 @@ import { Lock, Plus, ArrowRight, Wallet, ShieldAlert, Archive, Clock, X, Trash2,
 import { ThemePicker } from "@/components/ui/ThemePicker";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SoundToggle } from "@/components/ui/SoundToggle";
+import { useSound } from "@/hooks/useSound";
 import { useTranslation } from "react-i18next";
 import { API_URL, getApiHeaders } from "@/lib/api";
 
@@ -49,6 +51,7 @@ export default function Dashboard() {
     const clerk = useClerk();
     const router = useRouter();
     const { t, i18n } = useTranslation();
+    const { play } = useSound();
 
     const updateSealedCapsule = useReverification(
         async (capsuleId: string, email: string, name: string) => {
@@ -469,6 +472,7 @@ export default function Dashboard() {
                         <span className="font-serif text-xl font-light tracking-tight group-hover:text-amber-500 transition-colors">Aevum</span>
                     </div>
                     <div className="flex items-center gap-4">
+                        <SoundToggle />
                         <LanguageSwitcher />
                         <span className="text-xs font-mono text-neutral-500 bg-neutral-900/80 px-3 py-1.5 rounded-full border border-neutral-800 hidden md:block">
                             {user?.primaryEmailAddress?.emailAddress}
@@ -495,6 +499,7 @@ export default function Dashboard() {
                     </div>
                     <button
                         onClick={() => {
+                            play(showCreateForm ? "modal-close" : "modal-open");
                             setErrors({});
                             setShowCreateForm(!showCreateForm);
                         }}

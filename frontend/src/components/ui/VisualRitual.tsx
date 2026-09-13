@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { THEME_REGISTRY } from "@/config/themes";
+import { useSound } from "@/hooks/useSound";
 
 interface VisualRitualProps {
   type: "seal" | "unseal";
@@ -25,6 +26,7 @@ interface Particle {
 }
 
 export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
+  const { play } = useSound();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const activeTheme = THEME_REGISTRY[themeId] ?? THEME_REGISTRY["bau-classico"];
@@ -241,13 +243,23 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
 
     render();
 
+    // Dispara o som inicial do ritual
+    if (type === "seal") {
+      play("seal-ambient");
+    } else {
+      play("unseal-chime");
+    }
+
     // Controle de tempo do ritual (Duração total de 3.5 segundos)
-    // - Aos 2.8s, dispara o flash de luz
+    // - Aos 2.8s, dispara o flash de luz e o som de tranca
     // - Aos 3.0s (pico do brilho), altera a imagem do baú para o estado final
     // - Aos 3.5s, executa o onComplete
     let chestImageTimer: any;
     const flashTimer = setTimeout(() => {
       setShowFlash(true);
+      if (type === "seal") {
+        play("seal-lock");
+      }
       chestImageTimer = setTimeout(() => {
         setCurrentChestImage(
           type === "seal" ? activeTheme.assets.vault.closed : activeTheme.assets.vault.opened

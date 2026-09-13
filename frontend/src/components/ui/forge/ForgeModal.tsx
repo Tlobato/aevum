@@ -6,6 +6,7 @@ import { Camera, Type, Mic, FileVideo, X, FileUp, PenLine, Paperclip, CheckCircl
 import { ItemType, SubMode, Memory } from "@/types/capsule";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { useTranslation } from "react-i18next";
+import { useSound } from "@/hooks/useSound";
 
 interface ForgeModalProps {
   activeForgeMode: ItemType;
@@ -15,6 +16,7 @@ interface ForgeModalProps {
 
 export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalProps) {
   const { t } = useTranslation();
+  const { play } = useSound();
   const [forgeSubMode, setForgeSubMode] = useState<SubMode>("WRITE");
   const [forgeText, setForgeText] = useState("");
   const [forgeFile, setForgeFile] = useState<File | null>(null);
@@ -87,6 +89,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
   const executeLaunch = () => {
     if (recordState === "RECORDING") stopHardwareRecording();
     cleanupHardwareTracks();
+    play("success");
     
     // O file físico que será entregue à cápsula
     const targetFile = (forgeSubMode === "WRITE" && (activeForgeMode === "AUDIO" || activeForgeMode === "VIDEO" || activeForgeMode === "PHOTO")) ? capturedFile : forgeFile;
@@ -103,6 +106,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
   };
 
   const handleModeSwitch = (mode: SubMode) => {
+      play("click");
       setForgeSubMode(mode);
       if (mode === "UPLOAD") {
          resetRecordingState(); 
@@ -120,7 +124,7 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
         transition={{ type: "spring", damping: 20, stiffness: 300 }}
         className="absolute inset-x-0 top-10 md:top-20 z-[100] max-w-md w-full mx-auto p-6 md:p-8 rounded-3xl bg-black/90 backdrop-blur-2xl border border-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.2)]"
       >
-        <button onClick={() => { cleanupHardwareTracks(); onCancel(); }} className="absolute top-4 right-4 text-gray-400 hover:text-amber-500 transition-colors bg-white/5 rounded-full p-2 z-50">
+        <button onClick={() => { play("modal-close"); cleanupHardwareTracks(); onCancel(); }} className="absolute top-4 right-4 text-gray-400 hover:text-amber-500 transition-colors bg-white/5 rounded-full p-2 z-50">
           <X size={20} />
         </button>
         

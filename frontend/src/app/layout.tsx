@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkLocalizationProvider } from "@/components/ClerkLocalizationProvider";
 import { Wrench } from "lucide-react";
 import { I18nProvider } from "@/components/I18nProvider";
+import { SoundProvider } from "@/contexts/SoundContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,7 +76,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <I18nProvider>
           <ClerkLocalizationProvider>
-            {children}
+            <SoundProvider>
+              {children}
+            </SoundProvider>
           </ClerkLocalizationProvider>
         </I18nProvider>
       </body>

@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useSound } from "@/hooks/useSound";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -26,8 +28,15 @@ export function ConfirmationModal({
   isDangerous = false
 }: ConfirmationModalProps) {
   const { t } = useTranslation();
+  const { play } = useSound();
   const finalConfirmText = confirmText || t("common.confirm");
   const finalCancelText = cancelText || t("common.cancel");
+
+  useEffect(() => {
+    if (isOpen) {
+      play("modal-open");
+    }
+  }, [isOpen, play]);
   return (
     <AnimatePresence>
       {isOpen && (
@@ -63,13 +72,17 @@ export function ConfirmationModal({
 
               <div className="flex flex-col sm:flex-row gap-3 w-full">
                 <button
-                  onClick={onClose}
+                  onClick={() => {
+                    play("modal-close");
+                    onClose();
+                  }}
                   className="flex-1 px-6 py-3 rounded-2xl border border-neutral-800 text-neutral-400 font-medium hover:bg-neutral-800 hover:text-white transition-all text-sm uppercase tracking-widest"
                 >
                   {finalCancelText}
                 </button>
                 <button
                   onClick={() => {
+                    play(isDangerous ? "delete" : "click");
                     onConfirm();
                     onClose();
                   }}
@@ -86,7 +99,10 @@ export function ConfirmationModal({
 
             {/* Botão fechar (X) */}
             <button
-              onClick={onClose}
+              onClick={() => {
+                play("modal-close");
+                onClose();
+              }}
               className="absolute top-6 right-6 text-neutral-500 hover:text-white transition-all"
             >
               <X className="w-5 h-5" />
