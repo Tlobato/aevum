@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SoundToggle } from "@/components/ui/SoundToggle";
 import { useSound } from "@/hooks/useSound";
+import { trackEvent } from "@/providers/PostHogProvider";
 
 export default function Home() {
     const router = useRouter();
@@ -55,19 +56,19 @@ export default function Home() {
                 <div className="w-full space-y-4">
                     <Show when="signed-out">
                         <SignInButton mode="modal">
-                            <button onClick={() => play("click")} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
+                            <button onClick={() => { play("click"); trackEvent("enter_vault_clicked"); }} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
                                 <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none" />
                                 <span className="relative z-10 flex items-center justify-center gap-2">{t("home.enterVault")}</span>
                             </button>
                         </SignInButton>
                         <SignUpButton mode="modal">
-                            <button onClick={() => play("click")} className="w-full px-8 py-4 bg-transparent border border-neutral-800 hover:border-amber-500/50 rounded-2xl text-white font-extrabold tracking-widest uppercase transition-all hover:bg-neutral-900/50 cursor-pointer">
+                            <button onClick={() => { play("click"); trackEvent("create_legacy_clicked"); }} className="w-full px-8 py-4 bg-transparent border border-neutral-800 hover:border-amber-500/50 rounded-2xl text-white font-extrabold tracking-widest uppercase transition-all hover:bg-neutral-900/50 cursor-pointer">
                                 {t("home.createNewLegacy")}
                             </button>
                         </SignUpButton>
                     </Show>
                     <Show when="signed-in">
-                        <button onClick={() => { play("click"); router.push("/dashboard"); }} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
+                        <button onClick={() => { play("click"); trackEvent("access_dashboard_clicked"); router.push("/dashboard"); }} className="group relative w-full px-8 py-4 bg-gradient-to-br from-amber-600 via-amber-500 to-amber-700 rounded-2xl text-black font-extrabold tracking-widest uppercase transition-all overflow-hidden hover:shadow-[0_0_40px_rgba(214,158,46,0.4)] cursor-pointer">
                             {t("home.accessDashboard")}
                         </button>
                     </Show>

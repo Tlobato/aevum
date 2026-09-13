@@ -13,6 +13,7 @@ import { SoundToggle } from "@/components/ui/SoundToggle";
 import { useSound } from "@/hooks/useSound";
 import { useTranslation } from "react-i18next";
 import { API_URL, getApiHeaders } from "@/lib/api";
+import { trackEvent } from "@/providers/PostHogProvider";
 
 type CapsuleCard = {
     id: string;
@@ -403,6 +404,14 @@ export default function Dashboard() {
                 if (res.ok) {
                     setIsSyncing(false);
                     const data = await res.json();
+                    trackEvent("capsule_created", {
+                        capsuleId: data.id,
+                        planType,
+                        themeId,
+                        isGift,
+                        earlyUnlockRule,
+                        estimatedPriceCents: estimatedPrice
+                    });
                     router.push(`/vault/${data.id}`);
                 } else {
                     try {

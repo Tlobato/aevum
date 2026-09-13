@@ -7,6 +7,7 @@ import { ItemType, SubMode, Memory } from "@/types/capsule";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { useTranslation } from "react-i18next";
 import { useSound } from "@/hooks/useSound";
+import { trackEvent } from "@/providers/PostHogProvider";
 
 interface ForgeModalProps {
   activeForgeMode: ItemType;
@@ -96,6 +97,12 @@ export function ForgeModal({ activeForgeMode, onCancel, onLaunch }: ForgeModalPr
     
     const finalLabel = targetFile ? targetFile.name : (activeForgeMode === "TEXT" ? t("forgeModal.draftText") : t("forgeModal.tempRegister"));
     
+    trackEvent("memory_item_forged", {
+      type: activeForgeMode,
+      subMode: forgeSubMode,
+      hasFile: !!targetFile
+    });
+
     // Passa os dados cruciais para cima (pro Maestro)
     onLaunch({
        type: activeForgeMode,

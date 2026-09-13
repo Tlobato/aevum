@@ -5,6 +5,7 @@ import { ClerkLocalizationProvider } from "@/components/ClerkLocalizationProvide
 import { Wrench } from "lucide-react";
 import { I18nProvider } from "@/components/I18nProvider";
 import { SoundProvider } from "@/contexts/SoundContext";
+import { PostHogProvider } from "@/providers/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -76,9 +77,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <I18nProvider>
           <ClerkLocalizationProvider>
-            <SoundProvider>
-              {children}
-            </SoundProvider>
+            <PostHogProvider>
+              <SoundProvider>
+                {children}
+              </SoundProvider>
+            </PostHogProvider>
           </ClerkLocalizationProvider>
         </I18nProvider>
       </body>

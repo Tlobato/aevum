@@ -13,6 +13,7 @@ import { TermsModal } from "./TermsModal";
 import { VisualRitual } from "./VisualRitual";
 import { useSound } from "@/hooks/useSound";
 import { SoundToggle } from "./SoundToggle";
+import { trackEvent } from "@/providers/PostHogProvider";
 
 const DEFAULT_THEME_ID = "bau-classico";
 
@@ -479,6 +480,7 @@ export function CinematicCapsule({
       
       const data = await res.json();
       if (data.checkoutUrl) {
+        trackEvent("seal_checkout_started", { capsuleId });
         // Redireciona o usuário fisicamente para o domínio do Stripe para ele pagar
         window.location.href = data.checkoutUrl;
       } else {

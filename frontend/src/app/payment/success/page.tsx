@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@clerk/nextjs";
 import { useTranslation } from "react-i18next";
 import { API_URL, getApiHeaders } from "@/lib/api";
+import { trackEvent } from "@/providers/PostHogProvider";
 
 function PaymentSuccessContent() {
     const router = useRouter();
@@ -25,6 +26,7 @@ function PaymentSuccessContent() {
         const confirmSeal = async () => {
             if (sealed.current) return;
             sealed.current = true;
+            trackEvent("payment_completed", { capsuleId });
             try {
                 const token = await getToken();
                 await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/seal`, {
