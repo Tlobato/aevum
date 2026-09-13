@@ -116,22 +116,11 @@ export default function Home() {
                     transition={{ duration: 1.2, ease: "easeOut" }}
                     className="max-w-4xl mx-auto flex flex-col items-center"
                 >
-                    {/* Badge Solene */}
-                    <motion.div 
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.2, duration: 0.8 }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium tracking-wider uppercase mb-8"
-                    >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>{t("landing.badge")}</span>
-                    </motion.div>
-
                     {/* Cadeado Dourado Imponente */}
                     <motion.div 
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.4, duration: 1 }}
+                        transition={{ delay: 0.2, duration: 1 }}
                         className="w-36 h-36 sm:w-44 sm:h-44 relative flex items-center justify-center mb-8 select-none"
                     >
                         <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse" />
@@ -284,12 +273,28 @@ export default function Home() {
                             <div className="text-5xl font-extralight text-neutral-800 group-hover:text-amber-500/40 transition-colors mb-6">
                                 01
                             </div>
-                            <div className="w-16 h-16 mb-6">
-                                <img 
-                                    src="/themes/bau-classico/bau-classico-fechado.png" 
-                                    alt="Baú Clássico"
-                                    className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_15px_rgba(245,158,11,0.3)]"
-                                />
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
+                                    <img 
+                                        src="/themes/bau-classico/bau-classico-fechado.png" 
+                                        alt="Baú Clássico"
+                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                    />
+                                </div>
+                                <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
+                                    <img 
+                                        src="/themes/bau-grego/bau-grego-fechado.png" 
+                                        alt="Baú Grego"
+                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                    />
+                                </div>
+                                <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
+                                    <img 
+                                        src="/themes/bau-maritimo/bau-maritimo-fechado.png" 
+                                        alt="Baú Marítimo"
+                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
+                                    />
+                                </div>
                             </div>
                             <h3 className="text-xl font-medium text-white mb-3">
                                 {t("landing.step1Title")}
@@ -562,7 +567,7 @@ export default function Home() {
                             {t("common.termsLink", "Termos de Uso e Custódia Digital")}
                         </a>
                         <span>•</span>
-                        <span className="text-neutral-500">Criptografia Militar & AWS Glacier</span>
+                        <span className="text-neutral-500">Criptografia Avançada & Nuvem de Preservação Profunda</span>
                     </div>
                 </div>
             </footer>
