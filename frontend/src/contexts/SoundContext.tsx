@@ -19,7 +19,7 @@ export type SoundEffect =
 interface SoundContextType {
   isMuted: boolean;
   toggleMute: () => void;
-  play: (sound: SoundEffect) => void;
+  play: (sound: SoundEffect, customAudioUrl?: string) => void;
 }
 
 const SoundContext = createContext<SoundContextType>({
@@ -27,6 +27,11 @@ const SoundContext = createContext<SoundContextType>({
   toggleMute: () => {},
   play: () => {}
 });
+
+const AUDIO_ASSETS: Partial<Record<SoundEffect, string>> = {
+  "seal-lock": "/sounds/treasure-chest-locking.mp3",
+  "unseal-chime": "/sounds/chest-opening.mp3"
+};
 
 export const useSound = () => useContext(SoundContext);
 
@@ -45,7 +50,7 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
 
       const ctx = new AudioCtxClass();
       const gain = ctx.createGain();
-      gain.gain.value = 0.5; // volume equilibrado
+      gain.gain.value = 0.55; // volume equilibrado
       gain.connect(ctx.destination);
 
       audioCtxRef.current = ctx;
@@ -59,6 +64,38 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
     return audioCtxRef.current;
   }, []);
 
+  // Reproduz arquivo de áudio estático (.mp3) com fallback resiliente
+  const playAudioFile = useCallback((url: string) => {
+    if (typeof window === "undefined" || isMuted) return;
+
+    const ctx = getAudioContext();
+    if (ctx && masterGainRef.current) {
+      fetch(url)
+        .then(r => r.arrayBuffer())
+        .then(ab => ctx.decodeAudioData(ab))
+        .then(buf => {
+          const source = ctx.createBufferSource();
+          source.buffer = buf;
+          source.connect(masterGainRef.current!);
+          source.start();
+        })
+        .catch(() => {
+          try {
+            const a = new Audio(url);
+            a.volume = 0.65;
+            a.play().catch(() => {});
+          } catch (_) {}
+        });
+      return;
+    }
+
+    try {
+      const a = new Audio(url);
+      a.volume = 0.65;
+      a.play().catch(() => {});
+    } catch (_) {}
+  }, [getAudioContext, isMuted]);
+
   // Carrega preferência do usuário do localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -67,9 +104,12 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
       if (saved === "true") setIsMuted(true);
     } catch (_) {}
 
-    // Desbloqueia o AudioContext no primeiro toque/clique do usuário (política de autoplay do mobile)
+    // Desbloqueia o AudioContext e pré-carrega os áudios no primeiro toque/clique
     const unlock = () => {
       getAudioContext();
+      Object.values(AUDIO_ASSETS).forEach(url => {
+        if (url) fetch(url).catch(() => {});
+      });
     };
 
     window.addEventListener("pointerdown", unlock, { once: true, passive: true });
@@ -91,9 +131,17 @@ export function SoundProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Síntese procedural de efeitos sonoros com Web Audio API
-  const play = useCallback((sound: SoundEffect) => {
+  // Síntese procedural de efeitos sonoros com Web Audio API + suporte a arquivos .mp3
+  const play = useCallback((sound: SoundEffect, customAudioUrl?: string) => {
     if (isMuted) return;
+
+    // Se houver arquivo gravado (.mp3) configurado para este efeito ou via tema, prioriza a reprodução dele
+    const audioAsset = customAudioUrl || AUDIO_ASSETS[sound];
+    if (audioAsset) {
+      playAudioFile(audioAsset);
+      return;
+    }
+
     const ctx = getAudioContext();
     if (!ctx || !masterGainRef.current) return;
 

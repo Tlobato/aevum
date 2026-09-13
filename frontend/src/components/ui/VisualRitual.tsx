@@ -254,9 +254,9 @@ export function VisualRitual({ type, themeId, onComplete }: VisualRitualProps) {
     const flashTimer = setTimeout(() => {
       setShowFlash(true);
       if (type === "seal") {
-        play("seal-lock");
+        play("seal-lock", activeTheme.sounds?.lock);
       } else {
-        play("unseal-chime");
+        play("unseal-chime", activeTheme.sounds?.open);
       }
       chestImageTimer = setTimeout(() => {
         setCurrentChestImage(

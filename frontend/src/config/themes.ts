@@ -12,6 +12,10 @@ export interface CapsuleTheme {
   };
   ritualColors?: string[];
   glowColor?: string;
+  sounds?: {
+    lock?: string;
+    open?: string;
+  };
 }
 
 // O Dicionário Central. Para expandir os gráficos no futuro, 
@@ -31,6 +35,10 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
         AUDIO: "/themes/bau-classico/icone-audio-classico.png",
         VIDEO: "/themes/bau-classico/icone-video-classico.png"
       }
+    },
+    sounds: {
+      lock: "/sounds/treasure-chest-locking.mp3",
+      open: "/sounds/chest-opening.mp3"
     },
     ritualColors: [
       "rgba(212, 175, 55, ",
