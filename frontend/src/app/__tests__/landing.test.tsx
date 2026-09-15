@@ -19,6 +19,7 @@ jest.mock('@clerk/nextjs', () => ({
   },
   SignInButton: ({ children }: { children: React.ReactNode }) => <div data-testid="signin-btn">{children}</div>,
   SignUpButton: ({ children }: { children: React.ReactNode }) => <div data-testid="signup-btn">{children}</div>,
+  UserButton: () => <div data-testid="user-btn">UserButton</div>,
 }));
 
 // Mock de next/navigation

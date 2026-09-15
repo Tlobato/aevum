@@ -22,7 +22,7 @@ import {
   Mic,
   Video
 } from "lucide-react";
-import { Show, SignInButton, SignUpButton } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SoundToggle } from "@/components/ui/SoundToggle";
@@ -86,7 +86,7 @@ export default function Home() {
                         <LanguageSwitcher />
 
                         <Show when="signed-out">
-                            <SignInButton mode="modal">
+                            <SignInButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
                                 <button 
                                     onClick={() => { play("click"); trackEvent("enter_vault_clicked", { source: "header" }); }}
                                     className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_30px_rgba(245,158,11,0.5)] cursor-pointer"
@@ -97,12 +97,16 @@ export default function Home() {
                         </Show>
 
                         <Show when="signed-in">
-                            <button 
-                                onClick={() => { play("click"); trackEvent("access_dashboard_clicked", { source: "header" }); router.push("/dashboard"); }}
-                                className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer"
-                            >
-                                {t("home.accessDashboard")}
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button 
+                                    onClick={() => { play("click"); trackEvent("access_dashboard_clicked", { source: "header" }); router.push("/dashboard"); }}
+                                    className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black text-xs font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(245,158,11,0.3)] cursor-pointer flex items-center gap-1.5"
+                                >
+                                    <span>{t("home.accessDashboard")}</span>
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                </button>
+                                <UserButton />
+                            </div>
                         </Show>
                     </div>
                 </div>
@@ -147,7 +151,7 @@ export default function Home() {
                     {/* Botão de Ação do Hero */}
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm">
                         <Show when="signed-out">
-                            <SignUpButton mode="modal">
+                            <SignUpButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
                                 <button 
                                     onClick={() => { play("click"); trackEvent("create_legacy_clicked", { source: "hero" }); }}
                                     className="w-full px-8 py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_35px_rgba(245,158,11,0.4)] hover:shadow-[0_0_45px_rgba(245,158,11,0.6)] transition-all cursor-pointer flex items-center justify-center gap-3 group"
@@ -521,7 +525,7 @@ export default function Home() {
 
                     <div className="flex justify-center relative z-10">
                         <Show when="signed-out">
-                            <SignUpButton mode="modal">
+                            <SignUpButton mode="modal" forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
                                 <button 
                                     onClick={() => { play("click"); trackEvent("create_legacy_clicked", { source: "cta_final" }); }}
                                     className="px-10 py-5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-extrabold text-sm uppercase tracking-widest rounded-2xl shadow-[0_0_40px_rgba(245,158,11,0.4)] transition-all cursor-pointer flex items-center gap-3"
