@@ -27,6 +27,7 @@ export function I18nProvider({ children }: I18nProviderProps) {
       if (browserLang) {
         if (browserLang.startsWith("pt")) return "pt-BR";
         if (browserLang.startsWith("en")) return "en";
+        if (browserLang.startsWith("es")) return "es";
       }
       return "pt-BR"; // fallback to pt-BR
     };

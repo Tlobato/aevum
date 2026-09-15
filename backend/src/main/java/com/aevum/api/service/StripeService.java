@@ -75,6 +75,8 @@ public class StripeService {
                 builder.setLocale(SessionCreateParams.Locale.PT_BR);
             } else if (lower.startsWith("en")) {
                 builder.setLocale(SessionCreateParams.Locale.EN);
+            } else if (lower.startsWith("es")) {
+                builder.setLocale(SessionCreateParams.Locale.ES);
             }
         }
 
@@ -125,6 +127,8 @@ public class StripeService {
                 builder.setLocale(SessionCreateParams.Locale.PT_BR);
             } else if (lower.startsWith("en")) {
                 builder.setLocale(SessionCreateParams.Locale.EN);
+            } else if (lower.startsWith("es")) {
+                builder.setLocale(SessionCreateParams.Locale.ES);
             }
         }
 
@@ -168,6 +172,8 @@ public class StripeService {
                 builder.setLocale(SessionCreateParams.Locale.PT_BR);
             } else if (lower.startsWith("en")) {
                 builder.setLocale(SessionCreateParams.Locale.EN);
+            } else if (lower.startsWith("es")) {
+                builder.setLocale(SessionCreateParams.Locale.ES);
             }
         }
 

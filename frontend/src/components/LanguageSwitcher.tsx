@@ -35,6 +35,16 @@ export function LanguageSwitcher() {
                 >
                     EN
                 </button>
+                <button
+                    onClick={() => changeLanguage("es")}
+                    className={`text-[10px] md:text-xs px-2 py-0.5 rounded-md font-bold tracking-wider transition-all cursor-pointer ${
+                        currentLang.startsWith("es")
+                            ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                            : "text-neutral-400 hover:text-white border border-transparent"
+                    }`}
+                >
+                    ES
+                </button>
             </div>
         </div>
     );
