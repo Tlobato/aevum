@@ -361,6 +361,8 @@
     "cancel": "Cancel",
     "save": "Save Changes",
     "termsCheckbox": "I read and agree to the ",
-    "termsLink": "Terms of Use and Digital Custody"
+    "termsLink": "Terms of Use and Digital Custody",
+    "contact": "Support & Inquiries",
+    "contactEmail": "contato@myaevum.space"
   }
 }

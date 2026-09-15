@@ -164,6 +164,13 @@ export default function TermosPage() {
                                     <strong>7.2. (International Users and Local Compliance)</strong> Users accessing the platform outside the Brazilian territory are solely responsible for ensuring compliance with the laws and regulations of their respective countries of residence. The use of Aevum services is prohibited in any jurisdiction where the object of this contract or the content inserted by the User is considered unlawful.
                                 </p>
                             </section>
+
+                            <section className="space-y-3 pt-4">
+                                <h2 className="text-lg font-serif text-white font-medium">8. Contact & Support</h2>
+                                <p>
+                                    For inquiries, technical assistance, or notices regarding this Agreement and digital custody, contact our team directly at <a href="mailto:contato@myaevum.space" className="text-amber-500 hover:underline">contato@myaevum.space</a>.
+                                </p>
+                            </section>
                         </div>
                     ) : (
                         <div className="space-y-6 text-sm leading-relaxed font-light text-neutral-400">
@@ -259,6 +266,13 @@ export default function TermosPage() {
                                 </p>
                                 <p>
                                     <strong>7.2. (Usuários Internacionais e Conformidade Local)</strong> Usuários acessando a plataforma fora do território brasileiro são exclusivamente responsáveis por garantir a conformidade com as leis e regulamentações de seus respectivos países de residência. O uso dos serviços Aevum é proibido em qualquer jurisdição onde o objeto deste contrato ou o conteúdo inserido pelo Usuário seja considerado ilícito.
+                                </p>
+                            </section>
+
+                            <section className="space-y-3 pt-4">
+                                <h2 className="text-lg font-serif text-white font-medium">8. Contato e Suporte</h2>
+                                <p>
+                                    Para dúvidas, suporte técnico ou comunicações oficiais sobre este Contrato e a custódia de seus arquivos, entre em contato direto com nossa equipe através do e-mail <a href="mailto:contato@myaevum.space" className="text-amber-500 hover:underline">contato@myaevum.space</a>.
                                 </p>
                             </section>
                         </div>

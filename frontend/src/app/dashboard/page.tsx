@@ -1175,11 +1175,23 @@ export default function Dashboard() {
 
             {/* Rodapé do Dashboard */}
             <footer className="w-full border-t border-white/5 py-8 mt-auto select-none shrink-0">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] text-neutral-600 font-medium">
-                    <span>© {new Date().getFullYear()} Aevum.</span>
-                    <a href="/termos" className="hover:text-amber-500 transition-colors underline decoration-neutral-800 underline-offset-2">
-                        {t("common.termsLink", "Termos de Uso e Custódia Digital")}
-                    </a>
+                <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
+                    <div className="flex items-center gap-2">
+                        <span>© {new Date().getFullYear()} Aevum.</span>
+                        <span>•</span>
+                        <a href="/termos" className="hover:text-amber-400 transition-colors underline decoration-neutral-800 underline-offset-2">
+                            {t("common.termsLink", "Termos de Uso e Custódia Digital")}
+                        </a>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-neutral-600">{t("common.contact", "Suporte & Dúvidas")}:</span>
+                        <a 
+                            href="mailto:contato@myaevum.space" 
+                            className="text-neutral-400 hover:text-amber-400 transition-colors font-mono"
+                        >
+                            contato@myaevum.space
+                        </a>
+                    </div>
                 </div>
             </footer>
 

@@ -554,12 +554,20 @@ export default function Home() {
                         <span>• © {new Date().getFullYear()}</span>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+                        <a 
+                            href="mailto:contato@myaevum.space" 
+                            className="text-neutral-400 hover:text-amber-400 transition-colors flex items-center gap-1.5"
+                            title={t("common.contact", "Suporte & Dúvidas")}
+                        >
+                            <span>contato@myaevum.space</span>
+                        </a>
+                        <span>•</span>
                         <a href="/termos" className="hover:text-amber-400 transition-colors">
                             {t("common.termsLink", "Termos de Uso e Custódia Digital")}
                         </a>
-                        <span>•</span>
-                        <span className="text-neutral-500">Criptografia Avançada & Nuvem de Preservação Profunda</span>
+                        <span className="hidden md:inline">•</span>
+                        <span className="text-neutral-500 hidden md:inline">Criptografia Avançada & Nuvem de Preservação Profunda</span>
                     </div>
                 </div>
             </footer>
