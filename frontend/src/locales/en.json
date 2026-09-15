@@ -97,7 +97,8 @@
       "SEALED": "Sealed",
       "OPENED": "Awakened",
       "UNLOCKED": "Ready",
-      "RESTORING": "Restoring"
+      "RESTORING": "Restoring",
+      "PURGED": "Purged"
     },
     "actions": {
       "view": "Enter the Vault",

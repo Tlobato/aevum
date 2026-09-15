@@ -97,7 +97,8 @@
       "SEALED": "Selada",
       "OPENED": "Desperta",
       "UNLOCKED": "Pronta",
-      "RESTORING": "Desbloqueando"
+      "RESTORING": "Desbloqueando",
+      "PURGED": "Purgada"
     },
     "actions": {
       "view": "Ingressar no Cofre",

@@ -44,6 +44,7 @@ const STATUS_BADGE: Record<string, string> = {
     OPENED:    "bg-green-500/20 text-green-300 border-green-500/40",
     UNLOCKED:  "bg-green-500/20 text-green-300 border-green-500/40",
     RESTORING: "bg-orange-500/20 text-orange-300 border-orange-500/40",
+    PURGED:    "bg-neutral-800/80 text-neutral-400 border-neutral-700",
 };
 
 export default function Dashboard() {
