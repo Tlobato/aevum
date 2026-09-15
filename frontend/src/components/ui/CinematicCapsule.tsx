@@ -590,11 +590,6 @@ export function CinematicCapsule({
 
   return (
     <div className="flex flex-col items-center w-full min-h-[650px] relative pointer-events-auto">
-      {/* Botão de Efeitos Sonoros */}
-      <div className="fixed top-4 right-4 z-50 md:absolute md:top-2 md:right-4">
-        <SoundToggle />
-      </div>
-
       <div className={`w-full flex flex-col items-center transition-all duration-500 ${shouldHideChest ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
 
       {/* Marcador de Armazenamento - Barra de Quota Externa */}

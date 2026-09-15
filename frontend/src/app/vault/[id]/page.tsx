@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useUser, useAuth, useClerk } from "@clerk/nextjs";
 import { CinematicCapsule } from "@/components/ui/CinematicCapsule";
+import { SoundToggle } from "@/components/ui/SoundToggle";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { API_URL, getApiHeaders } from "@/lib/api";
@@ -129,15 +130,19 @@ function VaultContent() {
 
     return (
         <main className="min-h-screen bg-black relative overflow-hidden flex flex-col items-center justify-between md:justify-center p-4 md:p-6">
-            <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex flex-col gap-1 items-start">
-                <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
-                    <ArrowLeft className="w-4 h-4" /> {t("vault.addMemories")}
-                </button>
-                {capsuleData?.storageStatus === "DRAFT" && (
-                    <span className="text-[10px] text-neutral-600 font-sans tracking-wide">
-                        {t("vault.exitDraftNotice")}
-                    </span>
-                )}
+            <div className="w-full max-w-5xl mb-6 md:mb-0 md:absolute md:top-8 md:left-8 z-50 flex items-center gap-4">
+                <div className="flex flex-col gap-1 items-start">
+                    <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 text-neutral-500 hover:text-amber-500 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer">
+                        <ArrowLeft className="w-4 h-4" /> {t("vault.addMemories")}
+                    </button>
+                    {capsuleData?.storageStatus === "DRAFT" && (
+                        <span className="text-[10px] text-neutral-600 font-sans tracking-wide">
+                            {t("vault.exitDraftNotice")}
+                        </span>
+                    )}
+                </div>
+                <div className="h-6 w-px bg-neutral-800 hidden sm:block" />
+                <SoundToggle />
             </div>
             
             <div className="w-full flex-1 flex items-center justify-center">
