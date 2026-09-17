@@ -296,7 +296,6 @@ export function CinematicCapsule({
   };
 
   const handleDeleteInventoryMemory = async (memoryId: string, memorySizeBytes: number) => {
-    if (!confirm(t("vault.removeItemConfirm"))) return;
     setDeletingMemoryId(memoryId);
     play("click");
     try {
@@ -309,13 +308,9 @@ export function CinematicCapsule({
         setInventoryMemories(prev => prev.filter(m => m.id !== memoryId));
         setLocalMemoriesCount(prev => Math.max(0, prev - 1));
         setLocalUsedBytes(prev => Math.max(0, prev - memorySizeBytes));
-        alert(t("vault.itemRemoved"));
-      } else {
-        alert(t("vault.alerts.forgeError"));
       }
     } catch (e) {
       console.error("Failed to delete memory", e);
-      alert(t("vault.alerts.forgeError"));
     } finally {
       setDeletingMemoryId(null);
     }

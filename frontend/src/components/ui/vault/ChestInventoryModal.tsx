@@ -27,6 +27,7 @@ export function ChestInventoryModal({
   const { t } = useTranslation();
   const { play } = useSound();
   const [previewMemory, setPreviewMemory] = useState<Memory | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Memory | null>(null);
 
   if (!isOpen) return null;
 
@@ -152,7 +153,7 @@ export function ChestInventoryModal({
                   <button
                     type="button"
                     disabled={deletingId === item.id}
-                    onClick={() => onDeleteMemory(item.id, item.sizeBytes || 0)}
+                    onClick={() => { play("click"); setItemToDelete(item); }}
                     className="p-2 rounded-xl bg-red-950/30 border border-red-900/40 hover:bg-red-900/50 text-red-400 hover:text-red-200 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5 text-xs font-medium"
                     title={t("vault.removeItem")}
                   >
@@ -179,6 +180,79 @@ export function ChestInventoryModal({
             {t("forge.buttonCancel")}
           </button>
         </div>
+
+        {/* Modal de Confirmação de Exclusão */}
+        <AnimatePresence>
+          {itemToDelete && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="w-full max-w-md bg-neutral-950 border border-red-500/40 rounded-3xl p-6 sm:p-7 shadow-[0_0_50px_rgba(239,68,68,0.2)] flex flex-col gap-4 relative overflow-hidden"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 shrink-0 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                    <Trash2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-white tracking-tight">
+                      {t("vault.deleteItemTitle")}
+                    </h3>
+                    <p className="text-xs text-neutral-400 font-light mt-0.5 leading-relaxed">
+                      {t("vault.removeItemConfirm")}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Preview do item a ser excluído */}
+                <div className="p-3 rounded-2xl bg-neutral-900/80 border border-neutral-800 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-neutral-800 flex items-center justify-center shrink-0">
+                    {getIcon(itemToDelete.type)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-neutral-200 truncate">
+                      {itemToDelete.type === "TEXT"
+                        ? (itemToDelete.textContent || t("vault.write"))
+                        : (itemToDelete.fileName || t("vault.memory"))}
+                    </p>
+                    <span className="text-[10px] text-neutral-500 font-mono">
+                      {formatSize(itemToDelete.sizeBytes)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Botões de Ação */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={deletingId === itemToDelete.id}
+                    onClick={() => { play("click"); setItemToDelete(null); }}
+                    className="px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 text-xs font-semibold uppercase tracking-wider transition-all border border-neutral-800 cursor-pointer disabled:opacity-50"
+                  >
+                    {t("forge.buttonCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingId === itemToDelete.id}
+                    onClick={async () => {
+                      await onDeleteMemory(itemToDelete.id, itemToDelete.sizeBytes || 0);
+                      setItemToDelete(null);
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(239,68,68,0.4)] cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {deletingId === itemToDelete.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                    <span>{t("vault.confirmDelete")}</span>
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         {/* Modal de Prévia Interno */}
         <AnimatePresence>
