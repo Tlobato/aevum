@@ -205,20 +205,20 @@ export default function Home() {
                                 <Clock className="w-6 h-6" />
                             </div>
                             <h3 className="text-xl font-medium text-neutral-300 mb-3">
-                                Mensagens do Cotidiano
+                                {t("landing.problemCard1Title")}
                             </h3>
                             <ul className="space-y-3 text-sm text-neutral-400 font-light">
                                 <li className="flex items-start gap-2">
                                     <span className="text-neutral-600">✕</span>
-                                    <span>Conversas perdidas ao trocar de aparelho ou apagar contas.</span>
+                                    <span>{t("landing.problemCard1Item1")}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-neutral-600">✕</span>
-                                    <span>Fotos esquecidas em feeds e rolos de câmera com milhares de imagens.</span>
+                                    <span>{t("landing.problemCard1Item2")}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-neutral-600">✕</span>
-                                    <span>Sem garantia de entrega futura em datas de marco da vida.</span>
+                                    <span>{t("landing.problemCard1Item3")}</span>
                                 </li>
                             </ul>
                         </div>
@@ -229,20 +229,20 @@ export default function Home() {
                                 <Lock className="w-6 h-6" />
                             </div>
                             <h3 className="text-xl font-semibold text-amber-200 mb-3">
-                                O Santuário Aevum
+                                {t("landing.problemCard2Title")}
                             </h3>
                             <ul className="space-y-3 text-sm text-neutral-300 font-light">
                                 <li className="flex items-start gap-2">
                                     <span className="text-amber-400 font-bold">✓</span>
-                                    <span>Cofre imutável com preservação permanente em nuvem fria secular.</span>
+                                    <span>{t("landing.problemCard2Item1")}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-amber-400 font-bold">✓</span>
-                                    <span>Tranca inviolável: nada é revelado antes do dia e ano estipulados.</span>
+                                    <span>{t("landing.problemCard2Item2")}</span>
                                 </li>
                                 <li className="flex items-start gap-2">
                                     <span className="text-amber-400 font-bold">✓</span>
-                                    <span>Entrega solene ao destinatário com chave de acesso exclusiva.</span>
+                                    <span>{t("landing.problemCard2Item3")}</span>
                                 </li>
                             </ul>
                         </div>

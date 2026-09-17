@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Type, Mic, FileVideo, Lock, Unlock } from "lucide-react";
+import { Camera, Type, Mic, FileVideo, Lock, Unlock, Package } from "lucide-react";
 import { ItemType, Memory } from "@/types/capsule";
 import { THEME_REGISTRY } from "@/config/themes";
 import { PhysicalRelic } from "./relics/PhysicalRelic";
@@ -11,6 +11,7 @@ import { StorageBar } from "./StorageBar";
 import { RelicGallery } from "./RelicGallery";
 import { TermsModal } from "./TermsModal";
 import { VisualRitual } from "./VisualRitual";
+import { ChestInventoryModal } from "./vault/ChestInventoryModal";
 import { useSound } from "@/hooks/useSound";
 import { SoundToggle } from "./SoundToggle";
 import { trackEvent } from "@/providers/PostHogProvider";
@@ -249,6 +250,76 @@ export function CinematicCapsule({
   const [viewMode, setViewMode] = useState<"VAULT" | "GALLERY">("VAULT");
   const [isUnsealingVideoPlaying, setIsUnsealingVideoPlaying] = useState(false);
   const [memoriesList, setMemoriesList] = useState<Memory[]>([]);
+
+  // Estados de Inventário em Rascunho
+  const [showInventoryModal, setShowInventoryModal] = useState(false);
+  const [inventoryMemories, setInventoryMemories] = useState<Memory[]>([]);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
+  const [deletingMemoryId, setDeletingMemoryId] = useState<string | null>(null);
+
+  const fetchInventoryMemories = async () => {
+    if (!capsuleId) return;
+    setIsLoadingInventory(true);
+    try {
+      const token = await getToken({ template: 'aevum-session' });
+      const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories`, {
+        headers: getApiHeaders(token)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: Memory[] = data.map((m: any) => ({
+          id: m.id,
+          type: m.type as ItemType,
+          label: m.fileName || t("vault.memory"),
+          payload: m.presignedGetUrl || m.textContent || "",
+          fileName: m.fileName,
+          textContent: m.textContent,
+          presignedGetUrl: m.presignedGetUrl,
+          sizeBytes: m.sizeBytes
+        }));
+        setInventoryMemories(mapped);
+        setLocalMemoriesCount(mapped.length);
+        const totalBytes = mapped.reduce((acc, curr) => acc + (curr.sizeBytes || 0), 0);
+        setLocalUsedBytes(totalBytes);
+      }
+    } catch (e) {
+      console.error("Failed to fetch inventory memories", e);
+    } finally {
+      setIsLoadingInventory(false);
+    }
+  };
+
+  const openInventoryModal = () => {
+    play("click");
+    setShowInventoryModal(true);
+    fetchInventoryMemories();
+  };
+
+  const handleDeleteInventoryMemory = async (memoryId: string, memorySizeBytes: number) => {
+    if (!confirm(t("vault.removeItemConfirm"))) return;
+    setDeletingMemoryId(memoryId);
+    play("click");
+    try {
+      const token = await getToken({ template: 'aevum-session' });
+      const res = await fetch(`${API_URL}/api/v1/capsules/${capsuleId}/memories/${memoryId}`, {
+        method: "DELETE",
+        headers: getApiHeaders(token)
+      });
+      if (res.ok) {
+        setInventoryMemories(prev => prev.filter(m => m.id !== memoryId));
+        setLocalMemoriesCount(prev => Math.max(0, prev - 1));
+        setLocalUsedBytes(prev => Math.max(0, prev - memorySizeBytes));
+        alert(t("vault.itemRemoved"));
+      } else {
+        alert(t("vault.alerts.forgeError"));
+      }
+    } catch (e) {
+      console.error("Failed to delete memory", e);
+      alert(t("vault.alerts.forgeError"));
+    } finally {
+      setDeletingMemoryId(null);
+    }
+  };
 
   // Fetch memories when we switch to GALLERY view
   useEffect(() => {
@@ -825,12 +896,28 @@ export function CinematicCapsule({
             opacity: isSealed ? 0 : 1, y: isSealed ? 80 : 0, scale: flyingItem ? 0.95 : 1, pointerEvents: isSealed || flyingItem || isBlurMode ? "none" : "auto"
           }}
           transition={{ duration: 0.5 }}
-          className={`mt-2 flex gap-4 w-full max-w-lg justify-center flex-wrap z-10 transition-all duration-500 ${isBlurMode ? 'opacity-0 blur-md translate-y-10' : ''}`}
+          className={`mt-2 flex flex-col items-center gap-3 w-full max-w-lg z-10 transition-all duration-500 ${isBlurMode ? 'opacity-0 blur-md translate-y-10' : ''}`}
         >
-          <GameButton icon={<Type className="w-5 h-5" />} label={t("vault.write")} onClick={() => initiateForge("TEXT")} disabled={isQuotaFull} />
-          <GameButton icon={<Camera className="w-5 h-5" />} label={t("vault.photo")} onClick={() => initiateForge("PHOTO")} disabled={isQuotaFull} />
-          <GameButton icon={<Mic className="w-5 h-5" />} label={t("vault.audio")} onClick={() => initiateForge("AUDIO")} disabled={isQuotaFull} />
-          <GameButton icon={<FileVideo className="w-5 h-5" />} label={t("vault.video")} onClick={() => initiateForge("VIDEO")} disabled={isQuotaFull} />
+          <div className="flex gap-4 w-full justify-center flex-wrap">
+            <GameButton icon={<Type className="w-5 h-5" />} label={t("vault.write")} onClick={() => initiateForge("TEXT")} disabled={isQuotaFull} />
+            <GameButton icon={<Camera className="w-5 h-5" />} label={t("vault.photo")} onClick={() => initiateForge("PHOTO")} disabled={isQuotaFull} />
+            <GameButton icon={<Mic className="w-5 h-5" />} label={t("vault.audio")} onClick={() => initiateForge("AUDIO")} disabled={isQuotaFull} />
+            <GameButton icon={<FileVideo className="w-5 h-5" />} label={t("vault.video")} onClick={() => initiateForge("VIDEO")} disabled={isQuotaFull} />
+          </div>
+
+          {/* Botão de Ver Conteúdo do Baú */}
+          {localMemoriesCount > 0 && (
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={openInventoryModal}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neutral-900/90 border border-amber-500/40 hover:border-amber-400 hover:bg-neutral-800/90 text-amber-300 text-xs font-semibold uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:shadow-[0_0_30px_rgba(245,158,11,0.4)] cursor-pointer group"
+            >
+              <Package className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
+              <span>{t("vault.viewChestContents", { count: localMemoriesCount })}</span>
+            </motion.button>
+          )}
         </motion.div>
       )}
 
@@ -1328,6 +1415,16 @@ export function CinematicCapsule({
           />
         )}
       </AnimatePresence>
+
+      {/* Modal de Inventário do Baú (Revisar e Excluir antes de Selar) */}
+      <ChestInventoryModal
+        isOpen={showInventoryModal}
+        onClose={() => setShowInventoryModal(false)}
+        memories={inventoryMemories}
+        isLoading={isLoadingInventory}
+        onDeleteMemory={handleDeleteInventoryMemory}
+        deletingId={deletingMemoryId}
+      />
 
     </div>
   );

@@ -82,6 +82,36 @@ public class StorageService {
         return presignedRequest.url().toString();
     }
 
+    public String generatePresignedDraftGetUrl(String capsuleId, String fileName) {
+        String cleanFileName = sanitizeFileName(fileName);
+        String draftKey = "drafts/" + capsuleId + "/" + cleanFileName;
+
+        GetObjectRequest objectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(draftKey)
+                .responseContentDisposition("inline; filename=\"" + cleanFileName + "\"")
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(60))
+                .getObjectRequest(objectRequest)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+        return presignedRequest.url().toString();
+    }
+
+    public void deleteDraftFile(String capsuleId, String fileName) {
+        String cleanFileName = sanitizeFileName(fileName);
+        String draftKey = "drafts/" + capsuleId + "/" + cleanFileName;
+        try {
+            s3Client.deleteObject(b -> b.bucket(bucketName).key(draftKey));
+            log.info("Lixeira (AWS): Deletado arquivo de rascunho {}", draftKey);
+        } catch (Exception e) {
+            log.error("Erro ao deletar arquivo de rascunho {} no S3", draftKey, e);
+        }
+    }
+
     public void freezeCapsuleFiles(Capsule capsule) {
         // Altera arquivos de STANDARD (em /drafts/) para sealed/ com a StorageClass adequada
         String capsuleIdStr = capsule.getId().toString();

@@ -191,6 +191,41 @@ public class CapsuleService {
         return CapsuleResponse.fromEntity(capsule);
     }
 
+    @Transactional
+    public CapsuleResponse deleteMemory(UUID capsuleId, UUID memoryId, String userId, com.aevum.api.service.StorageService storageService) {
+        Capsule capsule = repository.findById(capsuleId)
+                .orElseThrow(() -> new IllegalArgumentException("capsule.notfound"));
+
+        if (!capsule.getOwnerId().equals(userId)) {
+            throw new com.aevum.api.exception.AccessDeniedException("capsule.delete.denied");
+        }
+
+        if (capsule.getStorageStatus() != com.aevum.api.domain.StorageStatus.DRAFT) {
+            throw new IllegalArgumentException("capsule.delete.sealed");
+        }
+
+        com.aevum.api.domain.MemoryItem itemToRemove = capsule.getItems().stream()
+                .filter(item -> item.getId().equals(memoryId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("memory.notfound"));
+
+        if (itemToRemove.getFileName() != null && !itemToRemove.getFileName().isBlank()) {
+            try {
+                storageService.deleteDraftFile(capsuleId.toString(), itemToRemove.getFileName());
+            } catch (Exception e) {
+                log.warn("Erro ao deletar arquivo de rascunho {} do S3: {}", itemToRemove.getFileName(), e.getMessage());
+            }
+        }
+
+        long itemSize = itemToRemove.getSizeBytes();
+        capsule.getItems().remove(itemToRemove);
+        capsule.setTotalSizeBytes(Math.max(0, capsule.getTotalSizeBytes() - itemSize));
+
+        capsule = repository.save(capsule);
+        log.info("Memória {} removida da cápsula draft {}. Novo tamanho: {} bytes", memoryId, capsuleId, capsule.getTotalSizeBytes());
+        return CapsuleResponse.fromEntity(capsule);
+    }
+
     @Transactional(readOnly = true)
     public CapsuleResponse openCapsule(UUID id, String userId, String userEmail) {
         Capsule capsule = repository.findById(id)
@@ -283,6 +318,17 @@ public class CapsuleService {
 
         if (!isOwner && !isRecipient) {
             throw new com.aevum.api.exception.AccessDeniedException("capsule.memories.denied");
+        }
+
+        // Se for o dono e estiver em DRAFT: permite visualizar os itens do rascunho para revisar antes de selar!
+        if (isOwner && capsule.getStorageStatus() == com.aevum.api.domain.StorageStatus.DRAFT) {
+            return capsule.getItems().stream().map(item -> {
+                String presignedUrl = null;
+                if (item.getFileName() != null && !item.getFileName().isBlank()) {
+                    presignedUrl = storageService.generatePresignedDraftGetUrl(capsule.getId().toString(), item.getFileName());
+                }
+                return MemoryResponse.fromEntity(item, presignedUrl);
+            }).collect(Collectors.toList());
         }
 
         if (!capsule.isTestMode() && capsule.getStatus() != com.aevum.api.domain.CapsuleStatus.UNLOCKED && capsule.getUnlockDate().isAfter(LocalDateTime.now())) {

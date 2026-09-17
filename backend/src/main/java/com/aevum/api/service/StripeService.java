@@ -39,6 +39,16 @@ public class StripeService {
     public String createCheckoutSession(String capsuleId, long priceInCents, String capsuleTitle, String customerEmail, String customerLocale) throws StripeException {
         Stripe.apiKey = secretKey;
 
+        String sealDescription = "Lacre temporal permanente. Uma vez selado, o tempo começa a correr.";
+        if (customerLocale != null) {
+            String lower = customerLocale.toLowerCase().trim();
+            if (lower.startsWith("en")) {
+                sealDescription = "Permanent temporal seal. Once sealed, time begins to run.";
+            } else if (lower.startsWith("es")) {
+                sealDescription = "Sello temporal permanente. Una vez sellado, el tiempo comienza a correr.";
+            }
+        }
+
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
                 // Redireciona direto de volta para o cofre para ativarmos o vídeo cinematográfico
@@ -54,7 +64,7 @@ public class StripeService {
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                                 .setName("Aevum — " + capsuleTitle)
-                                                                .setDescription("Lacre temporal permanente. Uma vez selado, o tempo começa a correr.")
+                                                                .setDescription(sealDescription)
                                                                 .build()
                                                 )
                                                 .build()
@@ -91,11 +101,20 @@ public class StripeService {
     public String createEarlyUnlockCheckoutSession(String capsuleId, long penaltyInCents, String capsuleTitle, String customerEmail, String customerLocale) throws StripeException {
         Stripe.apiKey = secretKey;
 
+        String earlyUnlockDescription = "Custo de descompressão forçada do cofre antes da data programada.";
+        if (customerLocale != null) {
+            String lower = customerLocale.toLowerCase().trim();
+            if (lower.startsWith("en")) {
+                earlyUnlockDescription = "Cost of forced decompression of the vault prior to the scheduled date.";
+            } else if (lower.startsWith("es")) {
+                earlyUnlockDescription = "Costo de descompresión forzada del cofre antes de la fecha programada.";
+            }
+        }
+
         SessionCreateParams.Builder builder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                // Redireciona direto de volta para o cofre com parâmetro de destranca paga
                 .setSuccessUrl(frontendUrl + "/vault/" + capsuleId + "?early_unlock_success=true")
-                .setCancelUrl(frontendUrl + "/vault/" + capsuleId + "?unlock=cancelled")
+                .setCancelUrl(frontendUrl + "/vault/" + capsuleId + "?early_unlock_cancelled=true")
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setQuantity(1L)
@@ -106,7 +125,7 @@ public class StripeService {
                                                 .setProductData(
                                                         SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                                                 .setName("Aevum — Resgate Antecipado: " + capsuleTitle)
-                                                                .setDescription("Custo de decompressão forçada do cofre antes da data programada.")
+                                                                .setDescription(earlyUnlockDescription)
                                                                 .build()
                                                 )
                                                 .build()

@@ -77,8 +77,14 @@ export default function Dashboard() {
     const [showCreateForm, setShowCreateForm] = useState(false);
 
     // Form state
-    const [title, setTitle]           = useState("Meu Legado");
+    const [title, setTitle]           = useState(() => t("forge.defaultRelicTitle", "Meu Legado"));
     const [description, setDescription] = useState("");
+
+    useEffect(() => {
+        if (title === "Meu Legado" || title === "My Legacy" || title === "Mi Legado") {
+            setTitle(t("forge.defaultRelicTitle", "Meu Legado"));
+        }
+    }, [t]);
     const [unlockDate, setUnlockDate] = useState(() => {
         const d = new Date(); d.setDate(d.getDate() + 1);
         return d.toISOString().split("T")[0];
@@ -877,11 +883,15 @@ export default function Dashboard() {
                                         <span className="text-xs font-bold uppercase tracking-widest">{t("forge.estimate")}</span>
                                     </div>
                                     <div>
-                                        <p className="text-3xl font-mono text-white">
+                                        <p className="text-3xl font-mono text-white flex items-baseline gap-1">
                                             <span className="text-lg text-neutral-500">R$ </span>
-                                            {estimatedPrice ? (estimatedPrice / 100).toFixed(2) : "—"}
+                                            <span>{estimatedPrice ? (estimatedPrice / 100).toFixed(2) : "—"}</span>
+                                            <span className="text-xs text-amber-500/70 font-sans uppercase font-bold tracking-wider ml-1">BRL</span>
                                         </p>
                                         <p className="text-xs text-neutral-500 mt-1">{t("forge.estimateNote")}</p>
+                                        <p className="text-[11px] text-amber-400/80 mt-1.5 font-light">
+                                            {t("forge.autoCurrencyNotice")}
+                                        </p>
                                     </div>
                                     <div className="pt-3 border-t border-amber-500/10 text-xs text-neutral-600 leading-relaxed">
                                         <ShieldAlert className="inline w-3 h-3 mr-1" />

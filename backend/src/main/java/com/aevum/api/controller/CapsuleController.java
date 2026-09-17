@@ -117,6 +117,15 @@ public class CapsuleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @DeleteMapping("/{id}/memories/{memoryId}")
+    public ResponseEntity<CapsuleResponse> deleteMemory(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable UUID id,
+            @PathVariable UUID memoryId) {
+        CapsuleResponse response = capsuleService.deleteMemory(id, memoryId, jwt.getSubject(), storageService);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CapsuleResponse> openCapsule(
             @AuthenticationPrincipal Jwt jwt,
