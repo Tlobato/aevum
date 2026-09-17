@@ -26,14 +26,14 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Clássico",
     assets: {
       vault: {
-        closed: "/themes/bau-classico/bau-classico-fechado.png",
-        opened: "/themes/bau-classico/bau-classico-aberto.png"
+        closed: "/themes/bau-classico/bau-classico-fechado.webp",
+        opened: "/themes/bau-classico/bau-classico-aberto.webp"
       },
       relics: {
-        TEXT: "/themes/bau-classico/icone-texto-classico.png",
-        PHOTO: "/themes/bau-classico/icone-imagem-classico.png",
-        AUDIO: "/themes/bau-classico/icone-audio-classico.png",
-        VIDEO: "/themes/bau-classico/icone-video-classico.png"
+        TEXT: "/themes/bau-classico/icone-texto-classico.webp",
+        PHOTO: "/themes/bau-classico/icone-imagem-classico.webp",
+        AUDIO: "/themes/bau-classico/icone-audio-classico.webp",
+        VIDEO: "/themes/bau-classico/icone-video-classico.webp"
       }
     },
     sounds: {
@@ -54,8 +54,8 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Marítimo",
     assets: {
       vault: {
-        closed: "/themes/bau-maritimo/bau-maritimo-fechado.png",
-        opened: "/themes/bau-maritimo/bau-maritimo-aberto.png"
+        closed: "/themes/bau-maritimo/bau-maritimo-fechado.webp",
+        opened: "/themes/bau-maritimo/bau-maritimo-aberto.webp"
       },
       relics: {
         // Ícones serão adicionados futuramente
@@ -75,8 +75,8 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Astronauta",
     assets: {
       vault: {
-        closed: "/themes/bau-astronauta/bau-astronauta-fechado.png",
-        opened: "/themes/bau-astronauta/bau-astronauta-aberto.png"
+        closed: "/themes/bau-astronauta/bau-astronauta-fechado.webp",
+        opened: "/themes/bau-astronauta/bau-astronauta-aberto.webp"
       },
       relics: {
         // Ícones serão adicionados futuramente
@@ -96,8 +96,8 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Caveira Assombrada",
     assets: {
       vault: {
-        closed: "/themes/bau-caveira-assombrada/bau-caveiraAssombrada-fechado.png",
-        opened: "/themes/bau-caveira-assombrada/bau-caveiraAssombrada-aberto.png"
+        closed: "/themes/bau-caveira-assombrada/bau-caveiraAssombrada-fechado.webp",
+        opened: "/themes/bau-caveira-assombrada/bau-caveiraAssombrada-aberto.webp"
       },
       relics: {
         // Ícones serão adicionados futuramente
@@ -117,8 +117,8 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Grego",
     assets: {
       vault: {
-        closed: "/themes/bau-grego/bau-grego-fechado.png",
-        opened: "/themes/bau-grego/bau-grego-aberto.png"
+        closed: "/themes/bau-grego/bau-grego-fechado.webp",
+        opened: "/themes/bau-grego/bau-grego-aberto.webp"
       },
       relics: {
         // Ícones serão adicionados futuramente
@@ -138,8 +138,8 @@ export const THEME_REGISTRY: Record<string, CapsuleTheme> = {
     name: "Baú Selvagem",
     assets: {
       vault: {
-        closed: "/themes/bau-selva/bau-selva-fechado.png",
-        opened: "/themes/bau-selva/bau-selva-aberto.png"
+        closed: "/themes/bau-selva/bau-selva-fechado.webp",
+        opened: "/themes/bau-selva/bau-selva-aberto.webp"
       },
       relics: {
         // Ícones serão adicionados futuramente

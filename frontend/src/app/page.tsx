@@ -68,7 +68,7 @@ export default function Home() {
                     >
                         <div className="w-10 h-10 relative flex items-center justify-center">
                             <img 
-                                src="/logo-relic.png" 
+                                src="/logo-relic.webp" 
                                 alt="Aevum Relic" 
                                 className="w-full h-full object-contain drop-shadow-[0_0_12px_rgba(245,158,11,0.5)] group-hover:scale-105 transition-transform"
                             />
@@ -129,7 +129,7 @@ export default function Home() {
                     >
                         <div className="absolute inset-0 bg-amber-500/20 blur-2xl rounded-full animate-pulse" />
                         <img 
-                            src="/logo-relic.png" 
+                            src="/logo-relic.webp" 
                             alt="Aevum Relic" 
                             className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_35px_rgba(245,158,11,0.7)]"
                         />
@@ -272,21 +272,21 @@ export default function Home() {
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
                                     <img 
-                                        src="/themes/bau-classico/bau-classico-fechado.png" 
+                                        src="/themes/bau-classico/bau-classico-fechado.webp" 
                                         alt="Baú Clássico"
                                         className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
                                     />
                                 </div>
                                 <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
                                     <img 
-                                        src="/themes/bau-grego/bau-grego-fechado.png" 
+                                        src="/themes/bau-grego/bau-grego-fechado.webp" 
                                         alt="Baú Grego"
                                         className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
                                     />
                                 </div>
                                 <div className="w-14 h-14 relative p-1.5 rounded-2xl bg-neutral-900/60 border border-neutral-800/80 group-hover:border-amber-500/40 transition-all flex items-center justify-center">
                                     <img 
-                                        src="/themes/bau-maritimo/bau-maritimo-fechado.png" 
+                                        src="/themes/bau-maritimo/bau-maritimo-fechado.webp" 
                                         alt="Baú Marítimo"
                                         className="w-full h-full object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]"
                                     />
@@ -553,7 +553,7 @@ export default function Home() {
             <footer className="py-12 border-t border-neutral-900 text-center z-10 text-xs text-neutral-600 font-light select-none">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2">
-                        <img src="/logo-relic.png" alt="Aevum" className="w-5 h-5 object-contain" />
+                        <img src="/logo-relic.webp" alt="Aevum" className="w-5 h-5 object-contain" />
                         <span className="text-neutral-400 font-extralight tracking-wider">Aevum</span>
                         <span>• © {new Date().getFullYear()}</span>
                     </div>

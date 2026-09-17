@@ -482,7 +482,7 @@ export default function Dashboard() {
                         <motion.img 
                             animate={{ rotate: isLogoRotating ? 360 : 0 }}
                             transition={{ duration: 0.8, ease: "easeInOut" }}
-                            src="/logo-relic.png" 
+                            src="/logo-relic.webp" 
                             alt="Aevum Logo" 
                             className="w-8 h-8 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
                         />

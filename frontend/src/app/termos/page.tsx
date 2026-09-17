@@ -35,7 +35,7 @@ export default function TermosPage() {
                     <div className="flex items-center gap-4">
                         <LanguageSwitcher />
                         <span className="font-serif text-xl font-light tracking-tight text-white flex items-center gap-2">
-                            <img src="/logo-relic.png" alt="Aevum" className="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                            <img src="/logo-relic.webp" alt="Aevum" className="w-6 h-6 object-contain drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                             Aevum
                         </span>
                     </div>
