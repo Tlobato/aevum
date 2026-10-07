@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ClerkLocalizationProvider } from "@/components/ClerkLocalizationProvider";
-import { Wrench } from "lucide-react";
+import { MaintenancePage } from "@/components/MaintenancePage";
 import { I18nProvider } from "@/components/I18nProvider";
 import { SoundProvider } from "@/contexts/SoundContext";
 import { PostHogProvider } from "@/providers/PostHogProvider";
@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aevum - Digital Time Capsule",
-  description: "Cápsula do tempo digital construída para durar gerações.",
+  title: "Aevum - Em Manutenção",
+  description: "O Aevum está temporariamente em manutenção e retornará em breve.",
 };
 
 export default function RootLayout({
@@ -27,8 +27,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Alterar para false quando quiser desativar o modo de manutenção
-  const isMaintenance = false;
+  // Ativado por padrão. Defina NEXT_PUBLIC_MAINTENANCE_MODE="false" para desativar.
+  const isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE !== "false";
 
   if (isMaintenance) {
     return (
@@ -36,34 +36,8 @@ export default function RootLayout({
         lang="pt-BR"
         className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       >
-        <body className="min-h-full flex flex-col bg-slate-950 text-white items-center justify-center p-4 font-sans">
-          <div className="max-w-md w-full text-center space-y-8">
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-blue-500 blur-xl opacity-20 rounded-full animate-pulse"></div>
-                <div className="relative bg-slate-900 p-5 rounded-full border border-slate-800 shadow-2xl">
-                  <Wrench className="w-12 h-12 text-blue-400" />
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-100">
-                Em Manutenção
-              </h1>
-              <p className="text-slate-400 text-lg">
-                O Aevum está passando por melhorias no momento. Voltaremos em breve com novidades!
-              </p>
-            </div>
-
-            <div className="pt-8 flex justify-center">
-              <div className="flex space-x-2">
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2.5 h-2.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-              </div>
-            </div>
-          </div>
+        <body className="min-h-full flex flex-col bg-[#030303] text-white">
+          <MaintenancePage />
         </body>
       </html>
     );

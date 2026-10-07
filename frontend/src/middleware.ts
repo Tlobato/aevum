@@ -1,8 +1,18 @@
 import { clerkMiddleware } from '@clerk/nextjs/server'
+import { NextResponse, type NextRequest, type NextFetchEvent } from 'next/server'
 
-export default clerkMiddleware({
-  debug: process.env.CLERK_DEBUG === 'true' || process.env.NODE_ENV === 'development',
-})
+const isMaintenance = process.env.NEXT_PUBLIC_MAINTENANCE_MODE !== 'false'
+
+export default function middleware(req: NextRequest, ev: NextFetchEvent) {
+  if (isMaintenance) {
+    // Em modo de manutenção, não processa autenticação Clerk
+    return NextResponse.next()
+  }
+
+  return clerkMiddleware({
+    debug: process.env.CLERK_DEBUG === 'true' || process.env.NODE_ENV === 'development',
+  })(req, ev)
+}
 
 export const config = {
   matcher: [
@@ -10,3 +20,4 @@ export const config = {
     '/(api|trpc)(.*)',
   ],
 }
+
